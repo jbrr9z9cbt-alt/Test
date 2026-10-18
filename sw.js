@@ -1,5 +1,5 @@
 /* Service Worker: hält die App vollständig offline verfügbar. */
-const CACHE = 'turnwettkampf-v1';
+const CACHE = 'turnwettkampf-v2';
 const ASSETS = [
   './',
   'index.html',
