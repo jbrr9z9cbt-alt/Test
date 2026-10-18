@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Turnwettkampf</title>
+  <meta name="description" content="Offline-Wettkampfverwaltung für Gerätturnen männlich mit Scoresystem nach DTL-Vorbild">
+  <meta name="theme-color" content="#1e3a8a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/" class="brand"><img src="icons/icon.svg" alt="" width="28" height="28"> Turnwettkampf</a>
+    <nav>
+      <a href="#/" data-route="home">Wettkämpfe</a>
+      <a href="#/teams" data-route="teams">Mannschaften</a>
+      <a href="#/table" data-route="table">Tabelle</a>
+      <a href="#/data" data-route="data">Daten &amp; Regeln</a>
+    </nav>
+    <span id="net-status" class="net-status"></span>
+  </header>
+  <main id="app"><p class="muted">Lade …</p></main>
+  <div id="toast" aria-live="polite"></div>
+  <noscript>Diese App benötigt JavaScript.</noscript>
+  <script src="js/scoring.js"></script>
+  <script src="js/crypto.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

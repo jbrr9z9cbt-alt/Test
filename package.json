@@ -1,0 +1,10 @@
+{
+  "name": "turnwettkampf",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline-Web-App für Turnwettkämpfe im Gerätturnen männlich mit Scoresystem nach DTL-Vorbild",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node --test tests/*.test.js"
+  }
+}
