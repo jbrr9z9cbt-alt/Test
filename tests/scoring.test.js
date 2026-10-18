@@ -4,7 +4,12 @@ const S = require('../js/scoring.js');
 const SB = require('../js/crypto.js');
 
 const rules = S.clone(S.DEFAULT_RULES);
-const side = (d, e, nd = 0, extra = {}) => Object.assign(S.emptySide(), { d: S.parseScore(d), e: S.parseScore(e), nd: S.parseScore(nd) || 0 }, extra);
+// Hilfsfunktion: E-Note wird über zwei gleiche Abzüge (10 − E) abgebildet.
+const side = (d, e, nd = 0, extra = {}) => {
+  const ev = S.parseScore(e);
+  const ded = ev === null ? null : 10000 - ev;
+  return Object.assign(S.emptySide(), { d: S.parseScore(d), e1: ded, e2: ded, nd: S.parseScore(nd) || 0 }, extra);
+};
 
 test('parseScore / formatScore', () => {
   assert.equal(S.parseScore('8,433'), 8433);
@@ -22,6 +27,32 @@ test('Endnote = D + E − Abzug, nicht angetreten = 0', () => {
   assert.equal(S.sideFinal(side('4,8', '8,433', '0,3')), 12933);
   assert.equal(S.sideFinal(side('4,8', '')), null);
   assert.equal(S.sideFinal(Object.assign(S.emptySide(), { dns: true })), 0);
+});
+
+test('E-Note = 10 − Mittelwert der zwei Abzüge', () => {
+  const s = Object.assign(S.emptySide(), { d: 5000, e1: S.parseScore('1,3'), e2: S.parseScore('1,6') });
+  assert.equal(S.eScore(s), 8550);
+  assert.equal(S.sideFinal(s), 13550);
+  s.nd = 300;
+  assert.equal(S.sideFinal(s), 13250);
+  s.e2 = null;
+  assert.equal(S.eScore(s), null);
+  assert.equal(S.sideFinal(s), null);
+});
+
+test('Anzeigetafel zeigt nur freigegebene Duelle', () => {
+  const m = buildMatch((key, i) => ({ home: side('5', '8', 0, { name: 'H' + i, number: i + 1 }), guest: side('4', '8', 0, { name: 'G' + i, number: i + 1 }) }));
+  assert.equal(S.matchResult(m).homePoints, 6 * 4 * 4);
+  assert.equal(S.matchResult(S.revealedView(m)).homePoints, 0);
+  m.apparatus.FX.duels[0].revealedAt = '2026-10-18T10:00:00Z';
+  m.apparatus.FX.duels[2].revealedAt = '2026-10-18T10:01:00Z';
+  const view = S.revealedView(m);
+  const r = S.matchResult(view);
+  assert.equal(r.homePoints, 8);
+  assert.equal(r.apparatus.FX.complete, false);
+  assert.equal(view.apparatus.FX.duels[1].home.name, 'H1');
+  assert.equal(view.apparatus.FX.duels[1].home.d, null);
+  assert.equal(m.apparatus.FX.duels[1].home.d, 5000, 'Original bleibt unverändert');
 });
 
 test('Scorepunkte nach Differenz-Schwellen', () => {
@@ -81,12 +112,12 @@ test('Gerät und Wettkampf: Score-, Geräte- und Tabellenpunkte', () => {
 
 test('Gerätepunkte erst bei vollständigem Gerät, Gleichstand-Regel', () => {
   const m = buildMatch(() => ({ home: side('4', '8'), guest: side('4', '8') }));
-  m.apparatus.FX.duels[0].home.e = null;
+  m.apparatus.FX.duels[0].home.e1 = null;
   let r = S.matchResult(m);
   assert.equal(r.complete, false);
   assert.equal(r.apparatus.FX.homeApp, 0);
   assert.equal(r.apparatus.PH.homeApp, 1);
-  m.apparatus.FX.duels[0].home.e = 8000;
+  m.apparatus.FX.duels[0].home.e1 = 2000;
   r = S.matchResult(m);
   assert.equal(r.winner, 'draw');
   assert.deepEqual([r.homeMatch, r.guestMatch], [1, 1]);

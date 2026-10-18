@@ -5,14 +5,18 @@
   var S = window.Scoring;
   var DB = window.DB;
   var SB = window.SecureBackup;
-  var APP_VERSION = 1;
+  var CFG = window.TEAM_CONFIG;
+  var APP_VERSION = 2;
+  var FLASH_MS = 5000;
 
   var state = {
     teams: [],
     matches: [],
     settings: { key: 'settings', rules: S.clone(S.DEFAULT_RULES) },
+    legacyTeamNames: {},
     persistent: false,
-    ui: { tab: {} }
+    ui: { tab: {} },
+    board: { matchId: null, lastReveal: '' }
   };
 
   var $app = document.getElementById('app');
@@ -50,7 +54,17 @@
 
   function teamName(id) {
     var t = team(id);
-    return t ? t.name : 'Unbekannte Mannschaft';
+    return t ? t.name : (state.legacyTeamNames[id] || 'Unbekannte Mannschaft');
+  }
+
+  function teamColor(id) {
+    var t = team(id);
+    return t && t.color ? t.color : '#737373';
+  }
+
+  function gymnastLabel(number, name) {
+    if (!number) return name || '';
+    return number + (name ? ' ' + name : '');
   }
 
   function match(id) {
@@ -140,10 +154,56 @@
     el.className = text === 'FEHLER' ? 'save-status error' : 'save-status';
   }
 
+  /**
+   * Mannschaften kommen fest aus js/config.js. Gespeichert werden nur die
+   * Nutzerangaben dazu (Farbe, Turnernamen der Startnummern 1–20).
+   */
+  function buildTeams(stored) {
+    var byId = {};
+    state.legacyTeamNames = {};
+    stored.forEach(function (t) { byId[t.id] = t; });
+    var known = {};
+    var teams = CFG.teams.map(function (c) {
+      known[c.id] = true;
+      var s = byId[c.id] || {};
+      var gymnasts = [];
+      for (var n = 1; n <= CFG.gymnastsPerTeam; n++) {
+        var old = (s.gymnasts || []).filter(function (g) { return g.number === n; })[0];
+        gymnasts.push({ id: c.id + '-' + n, number: n, name: old ? old.name : '' });
+      }
+      return { id: c.id, name: c.name, color: s.color || c.color, gymnasts: gymnasts };
+    });
+    stored.forEach(function (t) { if (!known[t.id] && t.name) state.legacyTeamNames[t.id] = t.name; });
+    return teams;
+  }
+
+  /** Ältere Daten (eine E-Note statt zwei E-Abzügen) auf das neue Format bringen. */
+  function migrateMatch(m) {
+    var changed = false;
+    S.APPARATUS.forEach(function (a) {
+      var app = m.apparatus[a.key];
+      if (!app) return;
+      app.duels.forEach(function (d) {
+        if (d.revealedAt === undefined) { d.revealedAt = null; changed = true; }
+        ['home', 'guest'].forEach(function (k) {
+          var side = d[k];
+          if (side.e !== undefined) {
+            if (side.e !== null && (side.e1 === undefined || side.e1 === null)) side.e1 = side.e2 = 10000 - side.e;
+            delete side.e;
+            changed = true;
+          }
+          if (side.e1 === undefined) { side.e1 = null; side.e2 = null; changed = true; }
+        });
+      });
+    });
+    return changed;
+  }
+
   function loadAll() {
     return Promise.all([DB.getAll('teams'), DB.getAll('matches'), DB.get('meta', 'settings')]).then(function (r) {
-      state.teams = r[0].sort(function (a, b) { return a.name.localeCompare(b.name); });
+      state.teams = buildTeams(r[0]);
       state.matches = r[1].sort(function (a, b) { return (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''); });
+      state.matches.forEach(function (m) { if (migrateMatch(m)) DB.put('matches', S.clone(m)); });
       if (r[2]) state.settings = r[2];
     });
   }
@@ -154,6 +214,8 @@
     var parts = (location.hash.replace(/^#\/?/, '') || '').split('/');
     return { name: parts[0] || 'home', id: parts[1], sub: parts[2] };
   }
+
+  var keepScroll = false;
 
   function render() {
     var r = route();
@@ -178,7 +240,11 @@
     $app.innerHTML = (state.persistent ? '' : warningBanner()) + html;
     if (r.name === 'data') refreshDataView();
     if (r.name === 'home') refreshStorageBox();
-    window.scrollTo(0, 0);
+    var isBoard = r.name === 'match' && r.sub === 'board' && match(r.id);
+    if (isBoard) checkBoardFlash(match(r.id));
+    else state.board = { matchId: null, lastReveal: '' };
+    if (!keepScroll) window.scrollTo(0, 0);
+    keepScroll = false;
   }
 
   function warningBanner() {
@@ -193,22 +259,25 @@
   // ---------- Ansicht: Übersicht ----------
 
   function viewHome() {
-    var canCreate = state.teams.length >= 2;
     var list = state.matches.length ? state.matches.map(function (m) {
       var r = S.matchResult(m);
       return '<a class="match-row" href="#/match/' + m.id + '">' +
         '<div><div class="match-title">' + esc(m.title || 'Wettkampf') + '</div>' +
         '<div class="muted">' + esc(fmtDate(m.date)) + (m.location ? ' · ' + esc(m.location) : '') + '</div></div>' +
-        '<div class="match-teams">' + esc(teamName(m.homeTeamId)) + ' <span class="muted">vs.</span> ' + esc(teamName(m.guestTeamId)) + '</div>' +
+        '<div class="match-teams">' + teamTag(m.homeTeamId) + ' <span class="muted">vs.</span> ' + teamTag(m.guestTeamId) + '</div>' +
         '<div class="match-score">' + r.homePoints + ':' + r.guestPoints + '</div>' +
         '<div>' + statusBadge(m, r) + '</div></a>';
     }).join('') : '<p class="muted">Noch keine Wettkämpfe angelegt.</p>';
 
     return '<section class="card">' +
       '<div class="card-head"><h2>Wettkämpfe</h2>' +
-      (canCreate ? '<a class="btn primary" href="#/new">+ Neuer Wettkampf</a>' : '<a class="btn" href="#/teams">Zuerst Mannschaften anlegen</a>') +
+      '<a class="btn primary" href="#/new">+ Neuer Wettkampf</a>' +
       '</div>' + list + '</section>' +
       '<section class="card"><h2>Datenspeicher</h2><div id="storage-box" class="muted">wird geprüft …</div></section>';
+  }
+
+  function teamTag(id) {
+    return '<span class="team-tag"><span class="dot" style="background:' + esc(teamColor(id)) + '"></span>' + esc(teamName(id)) + '</span>';
   }
 
   function statusBadge(m, r) {
@@ -248,26 +317,21 @@
 
   function viewTeams() {
     var cards = state.teams.map(function (t) {
-      var gymnasts = t.gymnasts.map(function (g) {
-        return '<li class="gym-row">' +
-          '<input type="text" value="' + esc(g.name) + '" data-team="' + t.id + '" data-gym="' + g.id + '" data-tfield="gname" aria-label="Name">' +
-          '<button class="btn small ghost" data-action="del-gym" data-team="' + t.id + '" data-gym="' + g.id + '" title="Turner entfernen">✕</button></li>';
+      var rows = t.gymnasts.map(function (g) {
+        return '<li class="gym-row"><span class="startno" style="background:' + esc(t.color) + '">' + g.number + '</span>' +
+          '<input type="text" value="' + esc(g.name) + '" placeholder="Name Startnummer ' + g.number + '" data-team="' + t.id + '" data-gym="' + g.number + '" data-tfield="gname" aria-label="Name Startnummer ' + g.number + '"></li>';
       }).join('');
-      return '<section class="card team-card">' +
-        '<div class="card-head"><input class="team-name" type="text" value="' + esc(t.name) + '" data-team="' + t.id + '" data-tfield="name" aria-label="Mannschaftsname">' +
-        '<button class="btn small danger" data-action="del-team" data-team="' + t.id + '">Löschen</button></div>' +
-        '<h3>Turner (' + t.gymnasts.length + ')</h3><ul class="plain gym-list">' + gymnasts + '</ul>' +
-        '<form class="inline-form" data-form="add-gym" data-team="' + t.id + '">' +
-        '<input type="text" name="name" placeholder="Name des Turners" required>' +
-        '<button class="btn" type="submit">+ Turner</button></form>' +
-        '<p class="muted small">Mehrere Namen auf einmal: durch Komma oder Zeilenumbruch trennen.</p>' +
-        '</section>';
+      var filled = t.gymnasts.filter(function (g) { return g.name; }).length;
+      return '<section class="card team-card" style="--team:' + esc(t.color) + '">' +
+        '<div class="card-head"><h3 class="team-title"><span class="dot" style="background:' + esc(t.color) + '"></span>' + esc(t.name) + '</h3>' +
+        '<label class="color-pick" title="Mannschaftsfarbe wählen">Farbe <input type="color" value="' + esc(t.color) + '" data-team="' + t.id + '" data-tfield="color"></label></div>' +
+        '<p class="muted small">' + filled + ' von ' + t.gymnasts.length + ' Turnern benannt</p>' +
+        '<ul class="plain gym-list">' + rows + '</ul></section>';
     }).join('');
 
     return '<section class="card"><h2>Mannschaften</h2>' +
-      '<form class="inline-form" data-form="add-team">' +
-      '<input type="text" name="name" placeholder="Name der Mannschaft" required>' +
-      '<button class="btn primary" type="submit">+ Mannschaft</button></form></section>' +
+      '<p class="muted">Die ' + state.teams.length + ' Mannschaften sind fest vorgegeben. Hier lassen sich die Mannschaftsfarbe und die Namen der Turner mit den Startnummern 1–' +
+      CFG.gymnastsPerTeam + ' anpassen. Jede Änderung wird sofort gespeichert.</p></section>' +
       '<div class="team-grid">' + cards + '</div>';
   }
 
@@ -341,7 +405,7 @@
   }
 
   function sideUsed(s) {
-    return !!(s.gymnastId || s.name || s.d !== null || s.e !== null || s.dns);
+    return !!(s.gymnastId || s.name || s.d !== null || s.e1 !== null || s.e2 !== null || s.dns);
   }
 
   // ---------- Ansicht: Wettkampf (Erfassung) ----------
@@ -364,9 +428,9 @@
       '<div class="match-meta"><h2>' + esc(m.title || 'Wettkampf') + '</h2>' +
       '<div class="muted">' + esc(fmtDate(m.date)) + (m.location ? ' · ' + esc(m.location) : '') + ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
       '<div class="scoreline">' +
-      '<div class="team home"><div class="label">Heim</div><div class="name">' + esc(teamName(m.homeTeamId)) + '</div></div>' +
+      '<div class="team home"><div class="label">Heim</div><div class="name" style="color:' + esc(teamColor(m.homeTeamId)) + '">' + esc(teamName(m.homeTeamId)) + '</div></div>' +
       '<div class="big" data-out="score">' + r.homePoints + ' : ' + r.guestPoints + '</div>' +
-      '<div class="team guest"><div class="label">Gast</div><div class="name">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="team guest"><div class="label">Gast</div><div class="name" style="color:' + esc(teamColor(m.guestTeamId)) + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '</div>' +
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong> · Notensumme <span data-out="sum">' + fmt(r.homeSum) + ' : ' + fmt(r.guestSum) + '</span>' +
       '<span data-out="winner">' + winnerText(m, r) + '</span></div>' +
@@ -402,10 +466,9 @@
     (t ? t.gymnasts : []).forEach(function (g) {
       if (g.id === side.gymnastId) found = true;
       opts += '<option value="' + g.id + '"' + (g.id === side.gymnastId ? ' selected' : '') + (used[g.id] ? ' disabled' : '') + '>' +
-        esc(g.name) + (used[g.id] ? ' (bereits eingesetzt)' : '') + '</option>';
+        esc(gymnastLabel(g.number, g.name || '(ohne Name)')) + (used[g.id] ? ' (bereits eingesetzt)' : '') + '</option>';
     });
-    if (side.gymnastId && !found) opts += '<option value="' + esc(side.gymnastId) + '" selected>' + esc(side.name) + ' (nicht mehr im Kader)</option>';
-    if (!locked) opts += '<option value="__new__">+ neuer Turner …</option>';
+    if (side.gymnastId && !found) opts += '<option value="' + esc(side.gymnastId) + '" selected>' + esc(gymnastLabel(side.number, side.name)) + '</option>';
     return '<select ' + fieldAttrs(appKey, idx, sideKey, 'gymnast') + (locked ? ' disabled' : '') + ' aria-label="Turner">' + opts + '</select>';
   }
 
@@ -418,30 +481,41 @@
     if (field === 'nd' && !value) v = '';
     return '<label class="score-field"><span>' + label + '</span>' +
       '<input type="text" inputmode="decimal" autocomplete="off" ' + fieldAttrs(appKey, idx, sideKey, field) +
-      ' value="' + esc(v) + '" placeholder="' + (field === 'nd' ? '0,000' : '') + '"' + (locked ? ' disabled' : '') + '></label>';
+      ' value="' + esc(v) + '" placeholder="' + (field === 'nd' ? '0,0' : '') + '"' + (locked ? ' disabled' : '') + '></label>';
   }
 
   function sideHtml(m, appKey, idx, sideKey, side, locked) {
     var dis = locked || side.dns;
-    return '<div class="side ' + sideKey + (side.dns ? ' dns' : '') + '">' +
+    var color = teamColor(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
+    var key = appKey + '-' + idx + '-' + sideKey;
+    return '<div class="side ' + sideKey + (side.dns ? ' dns' : '') + '" style="--team:' + esc(color) + '">' +
       '<div class="side-head"><span class="side-label">' + (sideKey === 'home' ? 'Heim' : 'Gast') + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked) + '</div>' +
       '<div class="score-row">' +
       scoreInput(appKey, idx, sideKey, 'd', side.d, dis, 'D-Note') +
-      scoreInput(appKey, idx, sideKey, 'e', side.e, dis, 'E-Note') +
-      scoreInput(appKey, idx, sideKey, 'nd', side.nd, dis, 'Abzug') +
-      '<div class="final"><span>Endnote</span><strong data-out="final-' + appKey + '-' + idx + '-' + sideKey + '">' + fmt(S.sideFinal(side)) + '</strong></div>' +
+      scoreInput(appKey, idx, sideKey, 'e1', side.e1, dis, 'E-Abzug 1') +
+      scoreInput(appKey, idx, sideKey, 'e2', side.e2, dis, 'E-Abzug 2') +
+      scoreInput(appKey, idx, sideKey, 'nd', side.nd, dis, 'Neutr. Abzug') +
       '</div>' +
+      '<div class="result-row"><span>E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side)) + '</strong></span>' +
+      '<span class="final">Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side)) + '</strong></span></div>' +
       '<label class="check"><input type="checkbox" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked ? ' disabled' : '') + '> nicht angetreten / nicht besetzt (0,000)</label>' +
       '</div>';
   }
 
-  function duelBadge(r) {
+  function duelBadge(r, duel, appKey, idx, locked) {
     if (!r.complete) return '<span class="duel-open">offen</span>';
-    return '<span class="duel-pts ' + (r.winner === 'home' ? 'win' : '') + '">' + r.homePoints + '</span>' +
+    var html = '<span class="duel-pts ' + (r.winner === 'home' ? 'win' : '') + '">' + r.homePoints + '</span>' +
       '<span class="duel-sep">:</span>' +
       '<span class="duel-pts ' + (r.winner === 'guest' ? 'win' : '') + '">' + r.guestPoints + '</span>' +
       '<span class="duel-diff">Diff. ' + fmt(r.diff) + '</span>';
+    if (duel.revealedAt) {
+      html += '<span class="revealed">✓ auf Anzeigetafel</span>';
+      if (!locked) html += '<button class="btn small ghost" data-action="reveal" data-app="' + appKey + '" data-duel="' + idx + '">Erneut anzeigen</button>';
+    } else if (!locked) {
+      html += '<button class="btn small primary reveal-btn" data-action="reveal" data-app="' + appKey + '" data-duel="' + idx + '">Wertung anzeigen</button>';
+    }
+    return html;
   }
 
   function apparatusPanel(m, appKey) {
@@ -453,13 +527,14 @@
       return '<div class="duel">' +
         '<div class="duel-no">Duell ' + (i + 1) + '</div>' +
         sideHtml(m, appKey, i, 'home', d.home, locked) +
-        '<div class="duel-result" data-out="duel-' + appKey + '-' + i + '">' + duelBadge(ar.duels[i]) + '</div>' +
+        '<div class="duel-result" data-out="duel-' + appKey + '-' + i + '">' + duelBadge(ar.duels[i], d, appKey, i, locked) + '</div>' +
         sideHtml(m, appKey, i, 'guest', d.guest, locked) +
         '</div>';
     }).join('');
     return '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(ar) + '</div></div>' + duels +
-      '<p class="muted small">Eingabe mit Komma oder Punkt, z. B. <code>4,8</code> oder <code>8.433</code>. Endnote = D-Note + E-Note − Abzug. Jede Eingabe wird sofort gespeichert.</p>';
+      '<p class="muted small">Eingabe mit Komma oder Punkt, z. B. <code>4,8</code> oder <code>1.35</code>. E-Note = 10 − Mittelwert der beiden E-Abzüge; Endnote = D-Note + E-Note − neutraler Abzug. ' +
+      'Die Scorepunkte eines Duells erscheinen auf der Anzeigetafel erst nach „Wertung anzeigen“. Jede Eingabe wird sofort gespeichert.</p>';
   }
 
   function appSumHtml(ar) {
@@ -472,7 +547,7 @@
     if (!list.length) return '<p class="muted">Noch keine Turner eingesetzt.</p>';
     return '<div class="table-wrap"><table class="table compact"><thead><tr><th>#</th><th>Turner</th><th>Mannschaft</th><th class="num">Starts</th><th class="num">Siege</th><th class="num">Scorepunkte</th></tr></thead><tbody>' +
       list.map(function (s, i) {
-        return '<tr><td>' + (i + 1) + '</td><td>' + esc(s.name || '–') + '</td><td>' + esc(teamName(s.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</td>' +
+        return '<tr><td>' + (i + 1) + '</td><td>' + esc(gymnastLabel(s.number, s.name) || '–') + '</td><td>' + esc(teamName(s.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</td>' +
           '<td class="num">' + s.starts + '</td><td class="num">' + s.wins + '</td><td class="num"><strong>' + s.points + '</strong></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
@@ -498,10 +573,13 @@
     var tab = currentTab(m);
     var ar = r.apparatus[tab];
     out('app-sum', appSumHtml(ar));
+    var locked = m.status === 'final';
     m.apparatus[tab].duels.forEach(function (d, i) {
-      out('duel-' + tab + '-' + i, duelBadge(ar.duels[i]));
-      out('final-' + tab + '-' + i + '-home', fmt(S.sideFinal(d.home)));
-      out('final-' + tab + '-' + i + '-guest', fmt(S.sideFinal(d.guest)));
+      out('duel-' + tab + '-' + i, duelBadge(ar.duels[i], d, tab, i, locked));
+      ['home', 'guest'].forEach(function (k) {
+        out('enote-' + tab + '-' + i + '-' + k, fmt(S.eScore(d[k])));
+        out('final-' + tab + '-' + i + '-' + k, fmt(S.sideFinal(d[k])));
+      });
     });
     out('scorers', scorersHtml(m));
   }
@@ -516,21 +594,11 @@
     var side = m.apparatus[appKey].duels[idx][sideKey];
 
     if (field === 'gymnast') {
-      if (el.value === '__new__') {
-        var t = team(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
-        var name = t && prompt('Name des neuen Turners für ' + t.name + ':');
-        if (!name || !name.trim()) { el.value = side.gymnastId || ''; return; }
-        var g = { id: uid(), name: name.trim() };
-        t.gymnasts.push(g);
-        save('teams', t);
-        side.gymnastId = g.id;
-        side.name = g.name;
-      } else {
-        var tm = team(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
-        var gy = tm && tm.gymnasts.filter(function (x) { return x.id === el.value; })[0];
-        side.gymnastId = el.value || null;
-        side.name = gy ? gy.name : '';
-      }
+      var tm = team(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
+      var gy = tm && tm.gymnasts.filter(function (x) { return x.id === el.value; })[0];
+      side.gymnastId = el.value || null;
+      side.number = gy ? gy.number : null;
+      side.name = gy ? gy.name : '';
       save('matches', m).then(function () { rerenderPanel(m); });
       return;
     }
@@ -543,10 +611,13 @@
 
     var v = S.parseScore(el.value);
     if (field === 'nd' && v === null) v = 0;
+    var isDeduction = field === 'e1' || field === 'e2';
     var max = field === 'd' ? 20000 : 10000;
-    if (Number.isNaN(v) || v > max) {
+    var invalid = Number.isNaN(v) || v > max || (isDeduction && v !== null && v % 10 !== 0);
+    if (invalid) {
       el.classList.add('invalid');
-      toast('Ungültige Note: „' + el.value + '“ (Format z. B. 8,433)', 'error');
+      toast(isDeduction ? 'Ungültiger E-Abzug: „' + el.value + '“ (0 bis 10, höchstens 2 Nachkommastellen, z. B. 1,35)'
+        : 'Ungültige Note: „' + el.value + '“ (Format z. B. 4,8)', 'error');
       return;
     }
     el.classList.remove('invalid');
@@ -577,17 +648,37 @@
 
   // ---------- Ansicht: Anzeigetafel ----------
 
-  function viewBoard(m) {
-    var r = S.matchResult(m);
-    // Aktuelles Gerät: erstes begonnenes, aber nicht vollständiges – sonst das zuletzt begonnene.
-    var current = null;
+  function latestReveal(m) {
+    var latest = { at: '', appKey: null, idx: -1 };
     S.APPARATUS.forEach(function (a) {
-      var ar = r.apparatus[a.key];
-      if (!current && ar.started && !ar.complete) current = a;
+      m.apparatus[a.key].duels.forEach(function (d, i) {
+        if (d.revealedAt && d.revealedAt > latest.at) latest = { at: d.revealedAt, appKey: a.key, idx: i };
+      });
     });
-    if (!current) {
-      S.APPARATUS.forEach(function (a) { if (r.apparatus[a.key].started) current = a; });
-    }
+    return latest;
+  }
+
+  /** Gerät, das gerade läuft: das erste mit Eintragungen, aber noch nicht vollständig freigegeben. */
+  function boardApparatus(m) {
+    var current = null;
+    var lastRevealed = null;
+    S.APPARATUS.forEach(function (a) {
+      var duels = m.apparatus[a.key].duels;
+      var touched = duels.some(function (d) {
+        return d.revealedAt || d.home.gymnastId || d.guest.gymnastId || S.sideFinal(d.home) !== null || S.sideFinal(d.guest) !== null;
+      });
+      var allRevealed = duels.every(function (d) { return d.revealedAt; });
+      if (!current && touched && !allRevealed) current = a;
+      if (duels.some(function (d) { return d.revealedAt; })) lastRevealed = a;
+    });
+    return current || lastRevealed;
+  }
+
+  function viewBoard(m) {
+    var view = S.revealedView(m);
+    var r = S.matchResult(view);
+    var current = boardApparatus(m);
+    var homeColor = teamColor(m.homeTeamId), guestColor = teamColor(m.guestTeamId);
     var rows = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
       return '<tr class="' + (current && current.key === a.key ? 'current' : '') + '"><td>' + a.name + '</td>' +
@@ -597,16 +688,16 @@
 
     var detail = '';
     if (current) {
-      var app = m.apparatus[current.key];
+      var app = view.apparatus[current.key];
       var ar = r.apparatus[current.key];
       detail = '<div class="board-detail"><h3>' + current.name + '</h3><table class="board-duels">' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
-          return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '">' + esc(d.home.name || '–') + '</td>' +
-            '<td class="num">' + fmt(dr.home) + '</td>' +
+          return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + esc(homeColor) + '">' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' +
+            '<td class="num">' + (dr.home === null ? '' : fmt(dr.home)) + '</td>' +
             '<td class="num pts">' + (dr.complete ? dr.homePoints + ' : ' + dr.guestPoints : '') + '</td>' +
-            '<td class="num">' + fmt(dr.guest) + '</td>' +
-            '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '">' + esc(d.guest.name || '–') + '</td></tr>';
+            '<td class="num">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
+            '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + esc(guestColor) + '">' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
         }).join('') + '</table></div>';
     }
 
@@ -615,12 +706,51 @@
       '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
       '<div class="board-title">' + esc(m.title || 'Wettkampf') + '</div>' +
       '<div class="board-score">' +
-      '<div class="board-team">' + esc(teamName(m.homeTeamId)) + '</div>' +
+      '<div class="board-team" style="color:' + esc(homeColor) + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
       '<div class="board-big">' + r.homePoints + '<span>:</span>' + r.guestPoints + '</div>' +
-      '<div class="board-team">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="board-team" style="color:' + esc(guestColor) + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '<div class="board-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + winnerText(m, r) + '</div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th><th class="num">GP</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       detail + '</div></div>';
+  }
+
+  /** Nach jedem Aufbau der Anzeigetafel prüfen, ob eine neue Wertung freigegeben wurde. */
+  function checkBoardFlash(m) {
+    var latest = latestReveal(m);
+    if (state.board.matchId !== m.id) {
+      // Beim Öffnen der Tafel keine bereits gezeigten Wertungen erneut einblenden.
+      state.board = { matchId: m.id, lastReveal: latest.at };
+      return;
+    }
+    if (!latest.at || latest.at <= state.board.lastReveal) return;
+    state.board.lastReveal = latest.at;
+    var res = S.duelResult(m.apparatus[latest.appKey].duels[latest.idx], m.rules);
+    if (!res.complete) return;
+    var points = res.winner === 'home' ? res.homePoints : res.winner === 'guest' ? res.guestPoints : 0;
+    var color = res.winner === 'home' ? teamColor(m.homeTeamId) : res.winner === 'guest' ? teamColor(m.guestTeamId) : '#a3a3a3';
+    showFlash(points, color);
+  }
+
+  var flashTimer = null;
+
+  /** Neue Scorepunkte 5 Sekunden bildschirmfüllend in der Mannschaftsfarbe zeigen. */
+  function showFlash(points, color) {
+    var el = document.getElementById('score-flash');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'score-flash';
+      el.setAttribute('aria-live', 'assertive');
+      el.innerHTML = '<span></span>';
+      document.body.appendChild(el);
+    }
+    var num = el.firstChild;
+    num.textContent = points;
+    num.style.color = color;
+    el.classList.remove('show');
+    void el.offsetWidth; // Animation neu starten
+    el.classList.add('show');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(function () { el.classList.remove('show'); }, FLASH_MS);
   }
 
   // ---------- Ansicht: Protokoll ----------
@@ -632,18 +762,18 @@
       var ar = r.apparatus[a.key];
       return '<div class="print-app"><h3>' + a.name + ' <span class="muted">– Scorepunkte ' + ar.homePoints + ':' + ar.guestPoints +
         (ar.complete ? ', Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></h3>' +
-        '<div class="table-wrap"><table class="table compact print-table"><thead><tr><th>#</th><th>Heim</th><th class="num">D</th><th class="num">E</th><th class="num">Abz.</th><th class="num">End</th>' +
-        '<th class="num">SP</th><th class="num">End</th><th class="num">Abz.</th><th class="num">E</th><th class="num">D</th><th>Gast</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table class="table compact print-table"><thead><tr><th>#</th><th>Heim</th><th class="num">D</th><th class="num">EA1</th><th class="num">EA2</th><th class="num">E</th><th class="num">NA</th><th class="num">End</th>' +
+        '<th class="num">SP</th><th class="num">End</th><th class="num">NA</th><th class="num">E</th><th class="num">EA2</th><th class="num">EA1</th><th class="num">D</th><th>Gast</th></tr></thead><tbody>' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
           function cells(s, reverse) {
-            var c = s.dns ? ['n.a.', '', '', ''] : [fmt(s.d), fmt(s.e), s.nd ? fmt(s.nd) : '', ''];
-            c[3] = fmt(S.sideFinal(s));
+            var c = s.dns ? ['n.a.', '', '', '', '', ''] : [fmt(s.d), fmt(s.e1), fmt(s.e2), fmt(S.eScore(s)), s.nd ? fmt(s.nd) : '', ''];
+            c[5] = fmt(S.sideFinal(s));
             return (reverse ? c.reverse() : c).map(function (x) { return '<td class="num">' + x + '</td>'; }).join('');
           }
-          return '<tr><td>' + (i + 1) + '</td><td>' + esc(d.home.name || '–') + '</td>' + cells(d.home, false) +
+          return '<tr><td>' + (i + 1) + '</td><td>' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' + cells(d.home, false) +
             '<td class="num"><strong>' + (dr.complete ? dr.homePoints + ':' + dr.guestPoints : '') + '</strong></td>' +
-            cells(d.guest, true) + '<td>' + esc(d.guest.name || '–') + '</td></tr>';
+            cells(d.guest, true) + '<td>' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
         }).join('') + '</tbody></table></div></div>';
     }).join('');
 
@@ -661,7 +791,7 @@
       (r.complete ? '<p>Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong></p>' : '<p class="warn">Wettkampf noch nicht vollständig gewertet.</p>') +
       apps +
       '<h3>Scorer-Wertung</h3>' + scorersHtml(m) +
-      '<p class="muted small">Wertungsregeln: Scorepunkte je Duell nach Notendifferenz (' + esc(th) + '); Gerätepunkte Sieg/Unentschieden ' +
+      '<p class="muted small">EA1/EA2 = E-Abzüge der Kampfrichter, E = 10 − Mittelwert, NA = neutraler Abzug, SP = Scorepunkte. Wertungsregeln: Scorepunkte je Duell nach Notendifferenz (' + esc(th) + '); Gerätepunkte Sieg/Unentschieden ' +
       m.rules.apparatusPoints.win + '/' + m.rules.apparatusPoints.draw + '. Status: ' + (m.status === 'final' ? 'abgeschlossen' : 'offen') +
       '. Stand: ' + esc(fmtDateTime(m.updatedAt || new Date().toISOString())) + '</p>' +
       '<div class="signatures"><div>Kampfgericht</div><div>Heimmannschaft</div><div>Gastmannschaft</div></div>' +
@@ -733,7 +863,7 @@
       '<button class="btn ghost" type="button" data-action="reset-rules">Auf Vorgabe zurücksetzen</button></div></form></section>' +
 
       '<section class="card"><h2>Alle Daten löschen</h2>' +
-      '<p class="muted">Löscht alle Mannschaften und Wettkämpfe auf diesem Gerät. Ein Sicherungspunkt wird vorher angelegt.</p>' +
+      '<p class="muted">Löscht alle Wettkämpfe, Turnernamen und gewählten Farben auf diesem Gerät. Die festen Mannschaften bleiben bestehen. Ein Sicherungspunkt wird vorher angelegt.</p>' +
       '<button class="btn danger" data-action="wipe">Alle Daten löschen …</button></section>';
   }
 
@@ -800,14 +930,31 @@
     if (tfield) {
       var t = team(el.getAttribute('data-team'));
       if (!t) return;
-      var val = el.value.trim();
-      if (!val) { toast('Name darf nicht leer sein.', 'error'); el.value = tfield === 'name' ? t.name : ''; return; }
-      if (tfield === 'name') t.name = val;
-      else {
-        var g = t.gymnasts.filter(function (x) { return x.id === el.getAttribute('data-gym'); })[0];
-        if (g) g.name = val;
+      if (tfield === 'color') {
+        if (!/^#[0-9a-fA-F]{6}$/.test(el.value)) return;
+        t.color = el.value;
+        save('teams', t).then(render);
+        return;
       }
-      save('teams', t).then(function () { toast('Gespeichert'); });
+      var number = parseInt(el.getAttribute('data-gym'), 10);
+      var g = t.gymnasts.filter(function (x) { return x.number === number; })[0];
+      if (!g) return;
+      g.name = el.value.trim();
+      el.value = g.name;
+      // Namen in noch offenen Wettkämpfen mitziehen, abgeschlossene bleiben unverändert.
+      state.matches.forEach(function (m) {
+        if (m.status === 'final') return;
+        var changed = false;
+        S.APPARATUS.forEach(function (a) {
+          m.apparatus[a.key].duels.forEach(function (d) {
+            ['home', 'guest'].forEach(function (k) {
+              if (d[k].gymnastId === g.id && d[k].name !== g.name) { d[k].name = g.name; changed = true; }
+            });
+          });
+        });
+        if (changed) save('matches', m);
+      });
+      save('teams', t);
     }
   });
 
@@ -832,24 +979,7 @@
     ev.preventDefault();
     var fd = new FormData(form);
 
-    if (kind === 'add-team') {
-      var name = String(fd.get('name')).trim();
-      if (!name) return;
-      var t = { id: uid(), name: name, gymnasts: [], createdAt: new Date().toISOString() };
-      state.teams.push(t);
-      state.teams.sort(function (a, b) { return a.name.localeCompare(b.name); });
-      save('teams', t).then(render);
-    } else if (kind === 'add-gym') {
-      var tm = team(form.getAttribute('data-team'));
-      var names = String(fd.get('name')).split(/[,\n;]/).map(function (s) { return s.trim(); }).filter(Boolean);
-      if (!tm || !names.length) return;
-      names.forEach(function (n) { tm.gymnasts.push({ id: uid(), name: n }); });
-      save('teams', tm).then(function () {
-        render();
-        var input = $app.querySelector('form[data-form="add-gym"][data-team="' + tm.id + '"] input');
-        if (input) input.focus();
-      });
-    } else if (kind === 'match') {
+    if (kind === 'match') {
       submitMatchForm(form);
     } else if (kind === 'rules') {
       try {
@@ -922,21 +1052,12 @@
           return remove('matches', m.id);
         }).then(function () { location.hash = '#/'; toast('Wettkampf gelöscht'); });
         break;
-      case 'del-team':
-        var tid = btn.getAttribute('data-team');
-        if (state.matches.some(function (x) { return x.homeTeamId === tid || x.guestTeamId === tid; })) {
-          toast('Mannschaft wird in Wettkämpfen verwendet und kann nicht gelöscht werden.', 'error');
-          return;
-        }
-        if (!confirm('Mannschaft „' + teamName(tid) + '“ löschen?')) return;
-        state.teams = state.teams.filter(function (x) { return x.id !== tid; });
-        remove('teams', tid).then(render);
-        break;
-      case 'del-gym':
-        var t = team(btn.getAttribute('data-team'));
-        var gid = btn.getAttribute('data-gym');
-        t.gymnasts = t.gymnasts.filter(function (g) { return g.id !== gid; });
-        save('teams', t).then(render);
+      case 'reveal':
+        var duel = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
+        if (!duel || m.status === 'final') return;
+        if (!S.duelResult(duel, m.rules).complete) { toast('Duell ist noch nicht vollständig gewertet.', 'error'); return; }
+        duel.revealedAt = new Date().toISOString();
+        save('matches', m).then(function () { refreshComputed(m); toast('Wertung wird auf der Anzeigetafel gezeigt'); });
         break;
       case 'fullscreen':
         if (document.fullscreenElement) document.exitFullscreen();
@@ -987,9 +1108,16 @@
       loadAll().then(function () {
         var active = document.activeElement;
         var editing = active && $app.contains(active) && /INPUT|SELECT|TEXTAREA/.test(active.tagName);
+        keepScroll = true;
         if (!editing) render();
       });
     };
+  } else {
+    // Ohne BroadcastChannel aktualisiert sich die Anzeigetafel per Abfrage.
+    setInterval(function () {
+      if (!document.body.classList.contains('board-mode')) return;
+      loadAll().then(function () { keepScroll = true; render(); });
+    }, 2000);
   }
 
   // Beim Verlassen/Verstecken der Seite noch ausstehenden Sicherungspunkt schreiben.

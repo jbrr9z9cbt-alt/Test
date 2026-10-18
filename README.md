@@ -5,16 +5,31 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
 
 ## Funktionen
 
-- **Mannschaften & Turner** verwalten (mehrere Turner auf einmal per Komma eintragen)
+- **7 feste Mannschaften** (Name und Standardfarbe in `js/config.js`, in der App nicht änderbar)
+- **20 Turner je Mannschaft** mit festen Startnummern 1–20; die Namen pflegen die Nutzer in der App
+- **Mannschaftsfarbe** frei wählbar (Farbwähler unter „Mannschaften“)
 - **Wettkampf Heim gegen Gast** an den sechs olympischen Geräten
   (Boden, Pauschenpferd, Ringe, Sprung, Barren, Reck)
-- **Duell-Erfassung** je Gerät: D-Note, E-Note, neutraler Abzug → Endnote; „nicht angetreten“ zählt 0,000
+- **Duell-Erfassung** je Gerät: D-Note, zwei E-Abzüge, neutraler Abzug → Endnote; „nicht angetreten“ zählt 0,000
+  - **E-Note = 10 − Mittelwert der beiden E-Abzüge** (Abzüge mit höchstens 2 Nachkommastellen)
+  - Endnote = D-Note + E-Note − neutraler Abzug
 - **Automatische Wertung**: Scorepunkte je Duell nach Notendifferenz, Gerätepunkte, Gesamtergebnis, Tabellenpunkte
 - **Scorer-Wertung** (bester Scorer des Wettkampfs)
-- **Anzeigetafel** für Beamer/Fernseher: aktualisiert sich live, wenn im anderen Tab Noten eingegeben werden
+- **Anzeigetafel** für Beamer/Fernseher (zweites Fenster bzw. Tab auf demselben Gerät):
+  - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung anzeigen“** gedrückt wird
+  - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der
+    siegreichen Mannschaft eingeblendet, leicht blinkend (bei Gleichstand eine graue 0)
+  - „Erneut anzeigen“ blendet die Wertung noch einmal ein
 - **Protokoll** zum Drucken bzw. Speichern als PDF, mit Unterschriftenfeldern
 - **Tabelle** aus allen abgeschlossenen Wettkämpfen
 - Abgeschlossene Wettkämpfe sind **schreibgeschützt** (lassen sich bewusst wieder öffnen)
+
+## Mannschaften festlegen (nur Betreiber)
+
+In `js/config.js` stehen die 7 Mannschaften mit `id`, `name` und Standardfarbe `color`.
+Namen und Farben dürfen dort geändert werden; die `id` bitte **nie** ändern, sonst verlieren
+bereits erfasste Wettkämpfe und Turnernamen die Zuordnung. Nach einer Änderung neu
+veröffentlichen (Push auf `main`) – die installierten Apps laden das Update beim nächsten Start mit Internet.
 
 ## Wertungsregeln (Standard, frei anpassbar)
 
@@ -78,6 +93,7 @@ verschlüsselte Sicherung.
 ```
 index.html            App-Gerüst
 css/style.css         Gestaltung (inkl. Anzeigetafel, Druck, Mobil)
+js/config.js          Feste Mannschaften (nur vom Betreiber zu ändern)
 js/scoring.js         Wertungslogik (ohne Abhängigkeiten, getestet)
 js/db.js              Speicherung in IndexedDB, Sicherungspunkte
 js/crypto.js          Verschlüsselte Sicherungen (Web Crypto)

@@ -5,6 +5,10 @@
  * (8,433 Punkte => 8433), damit keine Rundungsfehler durch Gleitkommazahlen
  * entstehen.
  *
+ * Noten:
+ *  - E-Note = 10 − Mittelwert der zwei E-Abzüge (Kampfrichter 1 und 2).
+ *  - Endnote = D-Note + E-Note − neutrale Abzüge.
+ *
  * Ablauf:
  *  - An jedem Gerät turnen Heim- und Gastturner paarweise im Duell.
  *  - Der Turner mit der höheren Endnote erhält Scorepunkte abhängig von der
@@ -65,19 +69,53 @@
   }
 
   function emptySide() {
-    return { gymnastId: null, name: '', d: null, e: null, nd: 0, dns: false };
+    return { gymnastId: null, number: null, name: '', d: null, e1: null, e2: null, nd: 0, dns: false };
   }
 
   function emptyDuel() {
-    return { home: emptySide(), guest: emptySide() };
+    return { home: emptySide(), guest: emptySide(), revealedAt: null };
+  }
+
+  function isSet(v) {
+    return v !== null && v !== undefined;
+  }
+
+  /** E-Note = 10 − Mittelwert der beiden E-Abzüge. null = noch offen. */
+  function eScore(side) {
+    if (!side || !isSet(side.e1) || !isSet(side.e2)) return null;
+    return Math.max(0, 10000 - Math.round((side.e1 + side.e2) / 2));
   }
 
   /** Endnote = D + E − neutrale Abzüge; "nicht angetreten" zählt 0. null = noch offen. */
   function sideFinal(side) {
     if (!side) return null;
     if (side.dns) return 0;
-    if (side.d === null || side.d === undefined || side.e === null || side.e === undefined) return null;
-    return Math.max(0, side.d + side.e - (side.nd || 0));
+    var e = eScore(side);
+    if (!isSet(side.d) || e === null) return null;
+    return Math.max(0, side.d + e - (side.nd || 0));
+  }
+
+  /**
+   * Sicht für die Anzeigetafel: Duelle, deren Wertung noch nicht freigegeben
+   * wurde ("Wertung anzeigen"), gelten als offen – nur die Turner sind sichtbar.
+   */
+  function revealedView(match) {
+    var view = clone(match);
+    APPARATUS.forEach(function (a) {
+      var app = view.apparatus[a.key];
+      if (!app) return;
+      app.duels.forEach(function (duel) {
+        if (duel.revealedAt) return;
+        ['home', 'guest'].forEach(function (k) {
+          var s = emptySide();
+          s.gymnastId = duel[k].gymnastId;
+          s.number = duel[k].number;
+          s.name = duel[k].name;
+          duel[k] = s;
+        });
+      });
+    });
+    return view;
   }
 
   function pointsForDiff(diff, thresholds) {
@@ -173,9 +211,10 @@
           var side = duel[pair[0]];
           if (!side.gymnastId && !side.name) return;
           var key = pair[0] + ':' + (side.gymnastId || side.name);
-          if (!map[key]) map[key] = { team: pair[0], gymnastId: side.gymnastId, name: side.name, points: 0, starts: 0, wins: 0 };
+          if (!map[key]) map[key] = { team: pair[0], gymnastId: side.gymnastId, number: side.number, name: side.name, points: 0, starts: 0, wins: 0 };
           var entry = map[key];
           if (side.name) entry.name = side.name;
+          if (side.number) entry.number = side.number;
           if (r.complete) {
             entry.starts++;
             entry.points += pair[1];
@@ -185,7 +224,7 @@
       });
     });
     return Object.keys(map).map(function (k) { return map[k]; })
-      .sort(function (a, b) { return b.points - a.points || b.wins - a.wins || a.name.localeCompare(b.name); });
+      .sort(function (a, b) { return b.points - a.points || b.wins - a.wins || (a.number || 0) - (b.number || 0); });
   }
 
   /** Tabelle aus abgeschlossenen Wettkämpfen. */
@@ -227,7 +266,9 @@
     formatScore: formatScore,
     emptySide: emptySide,
     emptyDuel: emptyDuel,
+    eScore: eScore,
     sideFinal: sideFinal,
+    revealedView: revealedView,
     pointsForDiff: pointsForDiff,
     duelResult: duelResult,
     apparatusResult: apparatusResult,

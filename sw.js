@@ -1,9 +1,10 @@
 /* Service Worker: hält die App vollständig offline verfügbar. */
-const CACHE = 'turnwettkampf-v2';
+const CACHE = 'turnwettkampf-v3';
 const ASSETS = [
   './',
   'index.html',
   'css/style.css',
+  'js/config.js',
   'js/scoring.js',
   'js/crypto.js',
   'js/db.js',
