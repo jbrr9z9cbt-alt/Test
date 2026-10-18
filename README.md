@@ -7,7 +7,8 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
 
 - **7 feste Mannschaften** (Name und Standardfarbe in `js/config.js`, in der App nicht änderbar)
 - **20 Turner je Mannschaft** mit festen Startnummern 1–20; die Namen pflegen die Nutzer in der App
-- **Mannschaftsfarbe** frei wählbar (Farbwähler unter „Mannschaften“)
+- **Mannschaftsfarben** werden beim Anlegen eines Wettkampfs gewählt – aus Rot, Blau, Orange, Hellgrau, Violett und Gelb
+  (Heim und Gast verschieden)
 - **Wettkampf Heim gegen Gast** an den sechs olympischen Geräten
   (Boden, Pauschenpferd, Ringe, Sprung, Barren, Reck)
 - **Duell-Erfassung** je Gerät: D-Note, zwei E-Abzüge, neutraler Abzug → Endnote; „nicht angetreten“ zählt 0,000
@@ -20,14 +21,18 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
   - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der
     siegreichen Mannschaft eingeblendet, leicht blinkend (bei Gleichstand eine graue 0)
   - „Erneut anzeigen“ blendet die Wertung noch einmal ein
+  - Das zuletzt angezeigte Duell steht mit **D-Note, E-Note, neutralem Abzug (falls vorhanden) und Endnote** auf der Tafel
+- **Nachträgliche Änderungen**: Wird eine bereits angezeigte Wertung geändert, zeigt die Tafel weiter den alten Stand.
+  Alle anderen Duelle sind gesperrt, bis die Korrektur mit **„Korrektur anzeigen“** auf die Tafel gebracht
+  oder mit „Änderung verwerfen“ zurückgenommen wurde. Auch das Abschließen des Wettkampfs ist bis dahin gesperrt.
 - **Protokoll** zum Drucken bzw. Speichern als PDF, mit Unterschriftenfeldern
 - **Tabelle** aus allen abgeschlossenen Wettkämpfen
 - Abgeschlossene Wettkämpfe sind **schreibgeschützt** (lassen sich bewusst wieder öffnen)
 
 ## Mannschaften festlegen (nur Betreiber)
 
-In `js/config.js` stehen die 7 Mannschaften mit `id`, `name` und Standardfarbe `color`.
-Namen und Farben dürfen dort geändert werden; die `id` bitte **nie** ändern, sonst verlieren
+In `js/config.js` stehen die 7 Mannschaften mit `id` und `name`.
+Die Namen dürfen dort geändert werden; die `id` bitte **nie** ändern, sonst verlieren
 bereits erfasste Wettkämpfe und Turnernamen die Zuordnung. Nach einer Änderung neu
 veröffentlichen (Push auf `main`) – die installierten Apps laden das Update beim nächsten Start mit Internet.
 

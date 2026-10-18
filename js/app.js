@@ -9,6 +9,17 @@
   var APP_VERSION = 2;
   var FLASH_MS = 5000;
 
+  // Feste Mannschaftsfarben; "onDark" ist der hellere Ton für die dunkle Anzeigetafel.
+  var COLORS = [
+    { key: 'rot', name: 'Rot', hex: '#d32f2f', onDark: '#ff5a5a', fg: '#fff' },
+    { key: 'blau', name: 'Blau', hex: '#1e63c6', onDark: '#5b9bff', fg: '#fff' },
+    { key: 'orange', name: 'Orange', hex: '#f07c00', onDark: '#ff9a2e', fg: '#171717' },
+    { key: 'hellgrau', name: 'Hellgrau', hex: '#c8c8c8', onDark: '#dcdcdc', fg: '#171717' },
+    { key: 'violett', name: 'Violett', hex: '#7b3fa0', onDark: '#b884e3', fg: '#fff' },
+    { key: 'gelb', name: 'Gelb', hex: '#f5c400', onDark: '#ffd60a', fg: '#171717' }
+  ];
+  var DEFAULT_COLORS = { home: 'rot', guest: 'blau' };
+
   var state = {
     teams: [],
     matches: [],
@@ -57,9 +68,18 @@
     return t ? t.name : (state.legacyTeamNames[id] || 'Unbekannte Mannschaft');
   }
 
-  function teamColor(id) {
-    var t = team(id);
-    return t && t.color ? t.color : '#737373';
+  function colorOf(key) {
+    return COLORS.filter(function (c) { return c.key === key; })[0] || COLORS[0];
+  }
+
+  /** Farbe einer Seite im Wettkampf (wird beim Anlegen gewählt). */
+  function sideColor(m, sideKey) {
+    var key = (m.colors && m.colors[sideKey]) || DEFAULT_COLORS[sideKey];
+    return colorOf(key);
+  }
+
+  function colorChip(c, text) {
+    return '<span class="chip" style="background:' + c.hex + ';color:' + c.fg + '">' + esc(text) + '</span>';
   }
 
   function gymnastLabel(number, name) {
@@ -171,7 +191,7 @@
         var old = (s.gymnasts || []).filter(function (g) { return g.number === n; })[0];
         gymnasts.push({ id: c.id + '-' + n, number: n, name: old ? old.name : '' });
       }
-      return { id: c.id, name: c.name, color: s.color || c.color, gymnasts: gymnasts };
+      return { id: c.id, name: c.name, gymnasts: gymnasts };
     });
     stored.forEach(function (t) { if (!known[t.id] && t.name) state.legacyTeamNames[t.id] = t.name; });
     return teams;
@@ -185,6 +205,10 @@
       if (!app) return;
       app.duels.forEach(function (d) {
         if (d.revealedAt === undefined) { d.revealedAt = null; changed = true; }
+        if (d.revealedAt && !d.shown) {
+          d.shown = { home: S.snapshotSide(d.home), guest: S.snapshotSide(d.guest) };
+          changed = true;
+        }
         ['home', 'guest'].forEach(function (k) {
           var side = d[k];
           if (side.e !== undefined) {
@@ -196,6 +220,7 @@
         });
       });
     });
+    if (!m.colors) { m.colors = { home: DEFAULT_COLORS.home, guest: DEFAULT_COLORS.guest }; changed = true; }
     return changed;
   }
 
@@ -264,7 +289,7 @@
       return '<a class="match-row" href="#/match/' + m.id + '">' +
         '<div><div class="match-title">' + esc(m.title || 'Wettkampf') + '</div>' +
         '<div class="muted">' + esc(fmtDate(m.date)) + (m.location ? ' · ' + esc(m.location) : '') + '</div></div>' +
-        '<div class="match-teams">' + teamTag(m.homeTeamId) + ' <span class="muted">vs.</span> ' + teamTag(m.guestTeamId) + '</div>' +
+        '<div class="match-teams">' + teamTag(m, 'home') + ' <span class="muted">vs.</span> ' + teamTag(m, 'guest') + '</div>' +
         '<div class="match-score">' + r.homePoints + ':' + r.guestPoints + '</div>' +
         '<div>' + statusBadge(m, r) + '</div></a>';
     }).join('') : '<p class="muted">Noch keine Wettkämpfe angelegt.</p>';
@@ -276,8 +301,9 @@
       '<section class="card"><h2>Datenspeicher</h2><div id="storage-box" class="muted">wird geprüft …</div></section>';
   }
 
-  function teamTag(id) {
-    return '<span class="team-tag"><span class="dot" style="background:' + esc(teamColor(id)) + '"></span>' + esc(teamName(id)) + '</span>';
+  function teamTag(m, sideKey) {
+    var id = sideKey === 'home' ? m.homeTeamId : m.guestTeamId;
+    return '<span class="team-tag"><span class="dot" style="background:' + sideColor(m, sideKey).hex + '"></span>' + esc(teamName(id)) + '</span>';
   }
 
   function statusBadge(m, r) {
@@ -318,20 +344,19 @@
   function viewTeams() {
     var cards = state.teams.map(function (t) {
       var rows = t.gymnasts.map(function (g) {
-        return '<li class="gym-row"><span class="startno" style="background:' + esc(t.color) + '">' + g.number + '</span>' +
+        return '<li class="gym-row"><span class="startno">' + g.number + '</span>' +
           '<input type="text" value="' + esc(g.name) + '" placeholder="Name Startnummer ' + g.number + '" data-team="' + t.id + '" data-gym="' + g.number + '" data-tfield="gname" aria-label="Name Startnummer ' + g.number + '"></li>';
       }).join('');
       var filled = t.gymnasts.filter(function (g) { return g.name; }).length;
-      return '<section class="card team-card" style="--team:' + esc(t.color) + '">' +
-        '<div class="card-head"><h3 class="team-title"><span class="dot" style="background:' + esc(t.color) + '"></span>' + esc(t.name) + '</h3>' +
-        '<label class="color-pick" title="Mannschaftsfarbe wählen">Farbe <input type="color" value="' + esc(t.color) + '" data-team="' + t.id + '" data-tfield="color"></label></div>' +
+      return '<section class="card team-card">' +
+        '<div class="card-head"><h3 class="team-title">' + esc(t.name) + '</h3></div>' +
         '<p class="muted small">' + filled + ' von ' + t.gymnasts.length + ' Turnern benannt</p>' +
         '<ul class="plain gym-list">' + rows + '</ul></section>';
     }).join('');
 
     return '<section class="card"><h2>Mannschaften</h2>' +
-      '<p class="muted">Die ' + state.teams.length + ' Mannschaften sind fest vorgegeben. Hier lassen sich die Mannschaftsfarbe und die Namen der Turner mit den Startnummern 1–' +
-      CFG.gymnastsPerTeam + ' anpassen. Jede Änderung wird sofort gespeichert.</p></section>' +
+      '<p class="muted">Die ' + state.teams.length + ' Mannschaften sind fest vorgegeben. Hier lassen sich die Namen der Turner mit den Startnummern 1–' +
+      CFG.gymnastsPerTeam + ' anpassen. Jede Änderung wird sofort gespeichert. Die Mannschaftsfarben werden beim Anlegen eines Wettkampfs gewählt.</p></section>' +
       '<div class="team-grid">' + cards + '</div>';
   }
 
@@ -354,11 +379,20 @@
       '<label>Ort<input type="text" name="location" value="' + esc(m ? m.location : '') + '"></label></div>' +
       '<div class="row2"><label>Heimmannschaft<select name="home" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(m && m.homeTeamId) + '</select></label>' +
       '<label>Gastmannschaft<select name="guest" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(m && m.guestTeamId) + '</select></label></div>' +
+      '<div class="row2">' + colorPicker('homeColor', 'Farbe Heim', m ? sideColor(m, 'home').key : DEFAULT_COLORS.home) +
+      colorPicker('guestColor', 'Farbe Gast', m ? sideColor(m, 'guest').key : DEFAULT_COLORS.guest) + '</div>' +
       '<label>Duelle pro Gerät<input type="number" name="duels" min="1" max="10" value="' + rules.duelsPerApparatus + '"></label>' +
       (isNew ? '<p class="muted small">Die Wertungsregeln (Scorepunkte-Schwellen usw.) werden aus den Standardregeln unter „Daten“ übernommen und gelten dann fest für diesen Wettkampf.</p>' : '') +
       '<div class="actions"><button class="btn primary" type="submit">' + (isNew ? 'Anlegen' : 'Speichern') + '</button>' +
       '<a class="btn ghost" href="' + (m ? '#/match/' + m.id : '#/') + '">Abbrechen</a></div>' +
       '</form></section>';
+  }
+
+  function colorPicker(name, label, selected) {
+    return '<fieldset class="color-choice"><legend>' + label + '</legend>' + COLORS.map(function (c) {
+      return '<label class="swatch" title="' + c.name + '"><input type="radio" name="' + name + '" value="' + c.key + '"' + (c.key === selected ? ' checked' : '') + '>' +
+        '<span style="background:' + c.hex + ';color:' + c.fg + '">' + c.name + '</span></label>';
+    }).join('') + '</fieldset>';
   }
 
   function submitMatchForm(form) {
@@ -370,6 +404,8 @@
     var guest = m && form.guest.disabled ? m.guestTeamId : fd.get('guest');
     if (!home || !guest) { toast('Bitte beide Mannschaften wählen.', 'error'); return; }
     if (home === guest) { toast('Heim- und Gastmannschaft müssen verschieden sein.', 'error'); return; }
+    var colors = { home: fd.get('homeColor') || DEFAULT_COLORS.home, guest: fd.get('guestColor') || DEFAULT_COLORS.guest };
+    if (colors.home === colors.guest) { toast('Heim und Gast brauchen verschiedene Farben.', 'error'); return; }
 
     if (!m) {
       var rules = S.clone(state.settings.rules);
@@ -398,6 +434,7 @@
       m.homeTeamId = home;
       m.guestTeamId = guest;
     }
+    m.colors = colors;
     m.title = String(fd.get('title') || '').trim();
     m.date = fd.get('date') || '';
     m.location = String(fd.get('location') || '').trim();
@@ -428,9 +465,9 @@
       '<div class="match-meta"><h2>' + esc(m.title || 'Wettkampf') + '</h2>' +
       '<div class="muted">' + esc(fmtDate(m.date)) + (m.location ? ' · ' + esc(m.location) : '') + ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
       '<div class="scoreline">' +
-      '<div class="team home"><div class="label">Heim</div><div class="name" style="color:' + esc(teamColor(m.homeTeamId)) + '">' + esc(teamName(m.homeTeamId)) + '</div></div>' +
+      '<div class="team home"><div class="label">Heim</div><div class="name">' + teamTag(m, 'home') + '</div></div>' +
       '<div class="big" data-out="score">' + r.homePoints + ' : ' + r.guestPoints + '</div>' +
-      '<div class="team guest"><div class="label">Gast</div><div class="name" style="color:' + esc(teamColor(m.guestTeamId)) + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="team guest"><div class="label">Gast</div><div class="name">' + teamTag(m, 'guest') + '</div></div>' +
       '</div>' +
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong> · Notensumme <span data-out="sum">' + fmt(r.homeSum) + ' : ' + fmt(r.guestSum) + '</span>' +
       '<span data-out="winner">' + winnerText(m, r) + '</span></div>' +
@@ -444,9 +481,29 @@
       '<span id="save-status" class="save-status"></span>' +
       '</div></section>' +
       (locked ? '<div class="banner info">Dieser Wettkampf ist abgeschlossen und schreibgeschützt.</div>' : '') +
+      '<div data-out="pending">' + pendingBanner(m) + '</div>' +
       '<nav class="tabs">' + tabs + '</nav>' +
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
       '<section class="card"><h3>Scorer-Wertung</h3><div data-out="scorers">' + scorersHtml(m) + '</div></section>';
+  }
+
+  /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
+  function duelBlocked(m, appKey, idx) {
+    if (m.status === 'final') return true;
+    var pending = S.pendingCorrections(m);
+    return pending.length > 0 && !pending.some(function (p) { return p.appKey === appKey && p.idx === idx; });
+  }
+
+  function apparatusName(key) {
+    return S.APPARATUS.filter(function (a) { return a.key === key; })[0].name;
+  }
+
+  function pendingBanner(m) {
+    var pending = S.pendingCorrections(m);
+    if (!pending.length) return '';
+    return '<div class="banner warn-banner">⚠ Nachträgliche Änderung: ' + pending.map(function (p) {
+      return apparatusName(p.appKey) + ', Duell ' + (p.idx + 1);
+    }).join('; ') + '. Bitte zuerst <strong>„Korrektur anzeigen“</strong> drücken (oder die Änderung verwerfen) – bis dahin sind alle anderen Duelle gesperrt.</div>';
   }
 
   function winnerText(m, r) {
@@ -486,9 +543,9 @@
 
   function sideHtml(m, appKey, idx, sideKey, side, locked) {
     var dis = locked || side.dns;
-    var color = teamColor(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
+    var color = sideColor(m, sideKey);
     var key = appKey + '-' + idx + '-' + sideKey;
-    return '<div class="side ' + sideKey + (side.dns ? ' dns' : '') + '" style="--team:' + esc(color) + '">' +
+    return '<div class="side ' + sideKey + (side.dns ? ' dns' : '') + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
       '<div class="side-head"><span class="side-label">' + (sideKey === 'home' ? 'Heim' : 'Gast') + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked) + '</div>' +
       '<div class="score-row">' +
@@ -504,16 +561,24 @@
   }
 
   function duelBadge(r, duel, appKey, idx, locked) {
-    if (!r.complete) return '<span class="duel-open">offen</span>';
-    var html = '<span class="duel-pts ' + (r.winner === 'home' ? 'win' : '') + '">' + r.homePoints + '</span>' +
+    var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '"';
+    var pending = S.hasPendingCorrection(duel);
+    var html = !r.complete ? '<span class="duel-open">offen</span>' :
+      '<span class="duel-pts ' + (r.winner === 'home' ? 'win' : '') + '">' + r.homePoints + '</span>' +
       '<span class="duel-sep">:</span>' +
       '<span class="duel-pts ' + (r.winner === 'guest' ? 'win' : '') + '">' + r.guestPoints + '</span>' +
       '<span class="duel-diff">Diff. ' + fmt(r.diff) + '</span>';
-    if (duel.revealedAt) {
+    if (pending) {
+      html += '<span class="changed">geändert – Tafel zeigt noch den alten Stand</span>';
+      if (!locked) {
+        html += '<button class="btn small primary"' + attrs + ' data-action="reveal"' + (r.complete ? '' : ' disabled') + '>Korrektur anzeigen</button>' +
+          '<button class="btn small ghost"' + attrs + ' data-action="discard">Änderung verwerfen</button>';
+      }
+    } else if (duel.revealedAt) {
       html += '<span class="revealed">✓ auf Anzeigetafel</span>';
-      if (!locked) html += '<button class="btn small ghost" data-action="reveal" data-app="' + appKey + '" data-duel="' + idx + '">Erneut anzeigen</button>';
-    } else if (!locked) {
-      html += '<button class="btn small primary reveal-btn" data-action="reveal" data-app="' + appKey + '" data-duel="' + idx + '">Wertung anzeigen</button>';
+      if (!locked) html += '<button class="btn small ghost"' + attrs + ' data-action="reveal">Erneut anzeigen</button>';
+    } else if (r.complete && !locked) {
+      html += '<button class="btn small primary reveal-btn"' + attrs + ' data-action="reveal">Wertung anzeigen</button>';
     }
     return html;
   }
@@ -522,9 +587,10 @@
     var a = S.APPARATUS.filter(function (x) { return x.key === appKey; })[0];
     var app = m.apparatus[appKey];
     var ar = S.apparatusResult(app, m.rules);
-    var locked = m.status === 'final';
     var duels = app.duels.map(function (d, i) {
-      return '<div class="duel">' +
+      var locked = duelBlocked(m, appKey, i);
+      var cls = 'duel' + (S.hasPendingCorrection(d) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '');
+      return '<div class="' + cls + '">' +
         '<div class="duel-no">Duell ' + (i + 1) + '</div>' +
         sideHtml(m, appKey, i, 'home', d.home, locked) +
         '<div class="duel-result" data-out="duel-' + appKey + '-' + i + '">' + duelBadge(ar.duels[i], d, appKey, i, locked) + '</div>' +
@@ -573,9 +639,9 @@
     var tab = currentTab(m);
     var ar = r.apparatus[tab];
     out('app-sum', appSumHtml(ar));
-    var locked = m.status === 'final';
+    out('pending', pendingBanner(m));
     m.apparatus[tab].duels.forEach(function (d, i) {
-      out('duel-' + tab + '-' + i, duelBadge(ar.duels[i], d, tab, i, locked));
+      out('duel-' + tab + '-' + i, duelBadge(ar.duels[i], d, tab, i, duelBlocked(m, tab, i)));
       ['home', 'guest'].forEach(function (k) {
         out('enote-' + tab + '-' + i + '-' + k, fmt(S.eScore(d[k])));
         out('final-' + tab + '-' + i + '-' + k, fmt(S.sideFinal(d[k])));
@@ -592,6 +658,8 @@
     var sideKey = el.getAttribute('data-side');
     var field = el.getAttribute('data-field');
     var side = m.apparatus[appKey].duels[idx][sideKey];
+    if (duelBlocked(m, appKey, idx)) { toast('Erst die nachträgliche Änderung auf der Anzeigetafel anzeigen.', 'error'); render(); return; }
+    var pendingBefore = S.pendingCorrections(m).length;
 
     if (field === 'gymnast') {
       var tm = team(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
@@ -623,7 +691,10 @@
     el.classList.remove('invalid');
     side[field] = v;
     if (v !== null && !(field === 'nd' && v === 0)) el.value = fmt(v);
-    save('matches', m).then(function () { refreshComputed(m); });
+    save('matches', m).then(function () {
+      if (S.pendingCorrections(m).length !== pendingBefore) rerenderPanel(m);
+      else refreshComputed(m);
+    });
   }
 
   function rerenderPanel(m) {
@@ -674,11 +745,35 @@
     return current || lastRevealed;
   }
 
+  /** Detailkarte des zuletzt angezeigten Duells: D-Note, E-Note, neutrale Abzüge, Endnote. */
+  function currentDuelCard(m, view) {
+    var latest = latestReveal(m);
+    if (!latest.appKey) return '<div class="cur-duel empty">Noch keine Wertung angezeigt</div>';
+    var duel = view.apparatus[latest.appKey].duels[latest.idx];
+    var res = S.duelResult(duel, m.rules);
+    function col(sideKey) {
+      var s = duel[sideKey];
+      var c = sideColor(m, sideKey);
+      var won = res.winner === sideKey;
+      var lines = s.dns ? '<div class="cd-dns">nicht angetreten</div>' :
+        '<div class="cd-row"><span>D-Note</span><strong>' + fmt(s.d) + '</strong></div>' +
+        '<div class="cd-row"><span>E-Note</span><strong>' + fmt(S.eScore(s)) + '</strong></div>' +
+        (s.nd ? '<div class="cd-row nd"><span>Neutr. Abzug</span><strong>−' + fmt(s.nd) + '</strong></div>' : '');
+      return '<div class="cd-side" style="--team:' + c.onDark + '">' +
+        '<div class="cd-name">' + esc(gymnastLabel(s.number, s.name) || '–') + '</div>' + lines +
+        '<div class="cd-final' + (won ? ' win' : '') + '"><span>Endnote</span><strong>' + fmt(S.sideFinal(s)) + '</strong></div></div>';
+    }
+    return '<div class="cur-duel"><div class="cd-head">' + apparatusName(latest.appKey) + ' · Duell ' + (latest.idx + 1) + '</div>' +
+      '<div class="cd-grid">' + col('home') +
+      '<div class="cd-pts">' + res.homePoints + '<span>:</span>' + res.guestPoints + '</div>' +
+      col('guest') + '</div></div>';
+  }
+
   function viewBoard(m) {
     var view = S.revealedView(m);
     var r = S.matchResult(view);
     var current = boardApparatus(m);
-    var homeColor = teamColor(m.homeTeamId), guestColor = teamColor(m.guestTeamId);
+    var homeColor = sideColor(m, 'home').onDark, guestColor = sideColor(m, 'guest').onDark;
     var rows = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
       return '<tr class="' + (current && current.key === a.key ? 'current' : '') + '"><td>' + a.name + '</td>' +
@@ -693,11 +788,11 @@
       detail = '<div class="board-detail"><h3>' + current.name + '</h3><table class="board-duels">' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
-          return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + esc(homeColor) + '">' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' +
+          return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + homeColor + '">' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' +
             '<td class="num">' + (dr.home === null ? '' : fmt(dr.home)) + '</td>' +
             '<td class="num pts">' + (dr.complete ? dr.homePoints + ' : ' + dr.guestPoints : '') + '</td>' +
             '<td class="num">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
-            '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + esc(guestColor) + '">' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
+            '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
         }).join('') + '</table></div>';
     }
 
@@ -706,12 +801,12 @@
       '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
       '<div class="board-title">' + esc(m.title || 'Wettkampf') + '</div>' +
       '<div class="board-score">' +
-      '<div class="board-team" style="color:' + esc(homeColor) + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
+      '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
       '<div class="board-big">' + r.homePoints + '<span>:</span>' + r.guestPoints + '</div>' +
-      '<div class="board-team" style="color:' + esc(guestColor) + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '<div class="board-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + winnerText(m, r) + '</div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th><th class="num">GP</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      detail + '</div></div>';
+      '<div>' + currentDuelCard(m, view) + detail + '</div></div></div>';
   }
 
   /** Nach jedem Aufbau der Anzeigetafel prüfen, ob eine neue Wertung freigegeben wurde. */
@@ -724,10 +819,11 @@
     }
     if (!latest.at || latest.at <= state.board.lastReveal) return;
     state.board.lastReveal = latest.at;
-    var res = S.duelResult(m.apparatus[latest.appKey].duels[latest.idx], m.rules);
+    var duel = S.revealedView(m).apparatus[latest.appKey].duels[latest.idx];
+    var res = S.duelResult(duel, m.rules);
     if (!res.complete) return;
     var points = res.winner === 'home' ? res.homePoints : res.winner === 'guest' ? res.guestPoints : 0;
-    var color = res.winner === 'home' ? teamColor(m.homeTeamId) : res.winner === 'guest' ? teamColor(m.guestTeamId) : '#a3a3a3';
+    var color = res.winner === 'draw' ? '#a3a3a3' : sideColor(m, res.winner).onDark;
     showFlash(points, color);
   }
 
@@ -930,12 +1026,6 @@
     if (tfield) {
       var t = team(el.getAttribute('data-team'));
       if (!t) return;
-      if (tfield === 'color') {
-        if (!/^#[0-9a-fA-F]{6}$/.test(el.value)) return;
-        t.color = el.value;
-        save('teams', t).then(render);
-        return;
-      }
       var number = parseInt(el.getAttribute('data-gym'), 10);
       var g = t.gymnasts.filter(function (x) { return x.number === number; })[0];
       if (!g) return;
@@ -1035,6 +1125,7 @@
         document.getElementById('apparatus-panel').innerHTML = apparatusPanel(m, currentTab(m));
         break;
       case 'finalize':
+        if (S.pendingCorrections(m).length) { toast('Erst die nachträgliche Änderung auf der Anzeigetafel anzeigen.', 'error'); return; }
         var res = S.matchResult(m);
         if (!res.complete && !confirm('Es sind noch nicht alle Duelle gewertet. Trotzdem abschließen? (Unvollständige Wettkämpfe zählen nicht in der Tabelle.)')) return;
         m.status = 'final';
@@ -1056,8 +1147,26 @@
         var duel = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
         if (!duel || m.status === 'final') return;
         if (!S.duelResult(duel, m.rules).complete) { toast('Duell ist noch nicht vollständig gewertet.', 'error'); return; }
+        var wasCorrection = S.hasPendingCorrection(duel);
         duel.revealedAt = new Date().toISOString();
-        save('matches', m).then(function () { refreshComputed(m); toast('Wertung wird auf der Anzeigetafel gezeigt'); });
+        duel.shown = { home: S.snapshotSide(duel.home), guest: S.snapshotSide(duel.guest) };
+        save('matches', m).then(function () {
+          rerenderPanel(m);
+          toast(wasCorrection ? 'Korrektur wird auf der Anzeigetafel gezeigt' : 'Wertung wird auf der Anzeigetafel gezeigt');
+        });
+        break;
+      case 'discard':
+        var dd = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
+        if (!dd || !dd.shown) return;
+        if (!confirm('Änderung verwerfen und den angezeigten Stand wiederherstellen?')) return;
+        ['home', 'guest'].forEach(function (k) {
+          ['gymnastId', 'd', 'e1', 'e2', 'nd', 'dns'].forEach(function (f) { dd[k][f] = dd.shown[k][f]; });
+          var tm = team(k === 'home' ? m.homeTeamId : m.guestTeamId);
+          var g = tm && tm.gymnasts.filter(function (x) { return x.id === dd[k].gymnastId; })[0];
+          dd[k].number = g ? g.number : dd.shown[k].number;
+          dd[k].name = g ? g.name : dd.shown[k].name;
+        });
+        save('matches', m).then(function () { rerenderPanel(m); toast('Änderung verworfen'); });
         break;
       case 'fullscreen':
         if (document.fullscreenElement) document.exitFullscreen();

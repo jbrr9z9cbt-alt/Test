@@ -95,9 +95,47 @@
     return Math.max(0, side.d + e - (side.nd || 0));
   }
 
+  // Werte, die auf der Anzeigetafel angezeigt werden. Ändert sich einer davon nach
+  // dem Anzeigen, muss die Korrektur erst angezeigt werden.
+  var SHOWN_FIELDS = ['gymnastId', 'd', 'e1', 'e2', 'nd', 'dns'];
+
+  function norm(field, v) {
+    if (field === 'nd') return v || 0;
+    if (field === 'dns') return !!v;
+    return v === undefined ? null : v;
+  }
+
+  /** Stand einer Seite, wie er beim Anzeigen festgehalten wird. */
+  function snapshotSide(side) {
+    var o = { number: side.number || null, name: side.name || '' };
+    SHOWN_FIELDS.forEach(function (f) { o[f] = norm(f, side[f]); });
+    return o;
+  }
+
+  function sideDiffers(live, shown) {
+    return SHOWN_FIELDS.some(function (f) { return norm(f, live[f]) !== norm(f, shown[f]); });
+  }
+
+  /** Wurde ein bereits angezeigtes Duell nachträglich geändert? */
+  function hasPendingCorrection(duel) {
+    return !!duel.shown && (sideDiffers(duel.home, duel.shown.home) || sideDiffers(duel.guest, duel.shown.guest));
+  }
+
+  function pendingCorrections(match) {
+    var list = [];
+    APPARATUS.forEach(function (a) {
+      var app = match.apparatus[a.key];
+      if (!app) return;
+      app.duels.forEach(function (duel, i) {
+        if (hasPendingCorrection(duel)) list.push({ appKey: a.key, idx: i });
+      });
+    });
+    return list;
+  }
+
   /**
-   * Sicht für die Anzeigetafel: Duelle, deren Wertung noch nicht freigegeben
-   * wurde ("Wertung anzeigen"), gelten als offen – nur die Turner sind sichtbar.
+   * Sicht für die Anzeigetafel: Je Duell gilt der zuletzt angezeigte Stand.
+   * Noch nie angezeigte Duelle gelten als offen – nur die Turner sind sichtbar.
    */
   function revealedView(match) {
     var view = clone(match);
@@ -105,12 +143,18 @@
       var app = view.apparatus[a.key];
       if (!app) return;
       app.duels.forEach(function (duel) {
-        if (duel.revealedAt) return;
         ['home', 'guest'].forEach(function (k) {
+          var live = duel[k];
           var s = emptySide();
-          s.gymnastId = duel[k].gymnastId;
-          s.number = duel[k].number;
-          s.name = duel[k].name;
+          if (duel.shown) {
+            Object.assign(s, duel.shown[k]);
+            // Namensänderungen im Kader direkt übernehmen, solange es derselbe Turner ist.
+            if (live.gymnastId === s.gymnastId) { s.name = live.name; s.number = live.number; }
+          } else {
+            s.gymnastId = live.gymnastId;
+            s.number = live.number;
+            s.name = live.name;
+          }
           duel[k] = s;
         });
       });
@@ -269,6 +313,9 @@
     eScore: eScore,
     sideFinal: sideFinal,
     revealedView: revealedView,
+    snapshotSide: snapshotSide,
+    hasPendingCorrection: hasPendingCorrection,
+    pendingCorrections: pendingCorrections,
     pointsForDiff: pointsForDiff,
     duelResult: duelResult,
     apparatusResult: apparatusResult,

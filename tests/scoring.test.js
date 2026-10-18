@@ -40,12 +40,14 @@ test('E-Note = 10 − Mittelwert der zwei Abzüge', () => {
   assert.equal(S.sideFinal(s), null);
 });
 
-test('Anzeigetafel zeigt nur freigegebene Duelle', () => {
+const reveal = (duel, at) => { duel.revealedAt = at; duel.shown = { home: S.snapshotSide(duel.home), guest: S.snapshotSide(duel.guest) }; };
+
+test('Anzeigetafel zeigt nur angezeigte Duelle', () => {
   const m = buildMatch((key, i) => ({ home: side('5', '8', 0, { name: 'H' + i, number: i + 1 }), guest: side('4', '8', 0, { name: 'G' + i, number: i + 1 }) }));
   assert.equal(S.matchResult(m).homePoints, 6 * 4 * 4);
   assert.equal(S.matchResult(S.revealedView(m)).homePoints, 0);
-  m.apparatus.FX.duels[0].revealedAt = '2026-10-18T10:00:00Z';
-  m.apparatus.FX.duels[2].revealedAt = '2026-10-18T10:01:00Z';
+  reveal(m.apparatus.FX.duels[0], '2026-10-18T10:00:00Z');
+  reveal(m.apparatus.FX.duels[2], '2026-10-18T10:01:00Z');
   const view = S.revealedView(m);
   const r = S.matchResult(view);
   assert.equal(r.homePoints, 8);
@@ -53,6 +55,26 @@ test('Anzeigetafel zeigt nur freigegebene Duelle', () => {
   assert.equal(view.apparatus.FX.duels[1].home.name, 'H1');
   assert.equal(view.apparatus.FX.duels[1].home.d, null);
   assert.equal(m.apparatus.FX.duels[1].home.d, 5000, 'Original bleibt unverändert');
+});
+
+test('Nachträgliche Änderung: Tafel behält alten Stand bis zur Korrektur', () => {
+  const m = buildMatch(() => ({ home: side('5', '8', 0, { gymnastId: 'T1-1', name: 'H' }), guest: side('4', '8', 0, { gymnastId: 'T2-1', name: 'G' }) }));
+  const duel = m.apparatus.FX.duels[0];
+  reveal(duel, '2026-10-18T10:00:00Z');
+  assert.equal(S.pendingCorrections(m).length, 0);
+  duel.guest.d = 5500; // Gast jetzt 0,5 vorne
+  assert.ok(S.hasPendingCorrection(duel));
+  assert.deepEqual(S.pendingCorrections(m), [{ appKey: 'FX', idx: 0 }]);
+  let shown = S.duelResult(S.revealedView(m).apparatus.FX.duels[0], m.rules);
+  assert.deepEqual([shown.homePoints, shown.guestPoints], [4, 0], 'Tafel zeigt noch den alten Stand');
+  duel.home.name = 'Neuer Name'; // reine Namensänderung ist keine Korrektur
+  reveal(duel, '2026-10-18T10:05:00Z');
+  assert.equal(S.hasPendingCorrection(duel), false);
+  shown = S.duelResult(S.revealedView(m).apparatus.FX.duels[0], m.rules);
+  assert.deepEqual([shown.homePoints, shown.guestPoints], [0, 2]);
+  assert.equal(S.revealedView(m).apparatus.FX.duels[0].home.name, 'Neuer Name');
+  duel.home.nd = 0; duel.home.dns = false; // gleichwertige Werte lösen nichts aus
+  assert.equal(S.hasPendingCorrection(duel), false);
 });
 
 test('Scorepunkte nach Differenz-Schwellen', () => {
