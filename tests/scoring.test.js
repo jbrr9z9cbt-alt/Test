@@ -146,10 +146,11 @@ test('Gerätepunkte erst bei vollständigem Gerät, Gleichstand-Regel', () => {
 });
 
 test('Verschlüsselte Sicherung: Roundtrip und falsches Passwort', async () => {
-  const data = { format: 'turnwettkampf-backup', teams: [{ id: 'x', name: 'TV Ä' }], matches: [] };
+  const data = { format: 'turnwettkampf-backup', teams: [{ id: 'x', name: 'Klartext-Mannschaft Ä' }], matches: [] };
   const env = await SB.encryptJSON(data, 'geheim123');
   assert.ok(SB.isEncrypted(env));
-  assert.ok(!JSON.stringify(env).includes('TV'));
+  // Ein langer, eindeutiger Text kann nicht zufällig im verschlüsselten Base64-Text auftauchen.
+  assert.ok(!JSON.stringify(env).includes('Klartext-Mannschaft'));
   assert.deepEqual(await SB.decryptJSON(env, 'geheim123'), data);
   await assert.rejects(() => SB.decryptJSON(env, 'falsch'), /Falsches Passwort/);
 });
