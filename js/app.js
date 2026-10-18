@@ -8,6 +8,8 @@
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
   var FLASH_MS = 5000;
+  var CORRECTION_MS = 10000;
+  var LEAGUE = CFG.league || '';
 
   // Feste Mannschaftsfarben; "onDark" ist der hellere Ton für die dunkle Anzeigetafel.
   var COLORS = [
@@ -258,12 +260,12 @@
         if (!m) { html = notFound(); break; }
         html = r.sub === 'board' ? viewBoard(m) : r.sub === 'print' ? viewPrint(m) : viewMatch(m);
         break;
-      case 'table': html = viewTable(); break;
       case 'data': html = viewData(); break;
       default: html = viewHome();
     }
     $app.innerHTML = (state.persistent ? '' : warningBanner()) + html;
     if (r.name === 'data') refreshDataView();
+    if (r.name === 'match' && r.sub === 'print') fitPrintToA4();
     if (r.name === 'home') refreshStorageBox();
     var isBoard = r.name === 'match' && r.sub === 'board' && match(r.id);
     if (isBoard) checkBoardFlash(match(r.id));
@@ -288,7 +290,7 @@
       var r = S.matchResult(m);
       return '<a class="match-row" href="#/match/' + m.id + '">' +
         '<div><div class="match-title">' + esc(m.title || 'Wettkampf') + '</div>' +
-        '<div class="muted">' + esc(fmtDate(m.date)) + (m.location ? ' · ' + esc(m.location) : '') + '</div></div>' +
+        '<div class="muted">' + esc(fmtDate(m.date)) + '</div></div>' +
         '<div class="match-teams">' + teamTag(m, 'home') + ' <span class="muted">vs.</span> ' + teamTag(m, 'guest') + '</div>' +
         '<div class="match-score">' + r.homePoints + ':' + r.guestPoints + '</div>' +
         '<div>' + statusBadge(m, r) + '</div></a>';
@@ -374,9 +376,8 @@
     var hasScores = m && S.APPARATUS.some(function (a) { return S.matchResult(m).apparatus[a.key].started; });
     return '<section class="card narrow"><h2>' + (isNew ? 'Neuer Wettkampf' : 'Wettkampf bearbeiten') + '</h2>' +
       '<form data-form="match" data-id="' + (m ? m.id : '') + '" class="stack">' +
-      '<label>Bezeichnung<input type="text" name="title" value="' + esc(m ? m.title : '') + '" placeholder="z. B. 3. Wettkampftag Landesliga"></label>' +
-      '<div class="row2"><label>Datum<input type="date" name="date" value="' + esc(m ? m.date : new Date().toISOString().slice(0, 10)) + '"></label>' +
-      '<label>Ort<input type="text" name="location" value="' + esc(m ? m.location : '') + '"></label></div>' +
+      '<div class="row2"><label>Bezeichnung<input type="text" name="title" value="' + esc(m ? m.title : '') + '" placeholder="z. B. 3. Wettkampftag"></label>' +
+      '<label>Datum<input type="date" name="date" value="' + esc(m ? m.date : new Date().toISOString().slice(0, 10)) + '"></label></div>' +
       '<div class="row2"><label>Heimmannschaft<select name="home" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(m && m.homeTeamId) + '</select></label>' +
       '<label>Gastmannschaft<select name="guest" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(m && m.guestTeamId) + '</select></label></div>' +
       '<div class="row2">' + colorPicker('homeColor', 'Farbe Heim', m ? sideColor(m, 'home').key : DEFAULT_COLORS.home) +
@@ -411,7 +412,7 @@
       var rules = S.clone(state.settings.rules);
       rules.duelsPerApparatus = duels;
       m = {
-        id: uid(), title: '', date: '', location: '', homeTeamId: home, guestTeamId: guest,
+        id: uid(), title: '', date: '', homeTeamId: home, guestTeamId: guest,
         rules: rules, status: 'open', apparatus: {}, createdAt: new Date().toISOString()
       };
       S.APPARATUS.forEach(function (a) {
@@ -437,7 +438,6 @@
     m.colors = colors;
     m.title = String(fd.get('title') || '').trim();
     m.date = fd.get('date') || '';
-    m.location = String(fd.get('location') || '').trim();
     save('matches', m).then(function () { location.hash = '#/match/' + m.id; });
   }
 
@@ -463,7 +463,7 @@
 
     return '<section class="card match-head">' +
       '<div class="match-meta"><h2>' + esc(m.title || 'Wettkampf') + '</h2>' +
-      '<div class="muted">' + esc(fmtDate(m.date)) + (m.location ? ' · ' + esc(m.location) : '') + ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
+      '<div class="muted">' + (LEAGUE ? esc(LEAGUE) + ' · ' : '') + esc(fmtDate(m.date)) + ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
       '<div class="scoreline">' +
       '<div class="team home"><div class="label">Heim</div><div class="name">' + teamTag(m, 'home') + '</div></div>' +
       '<div class="big" data-out="score">' + r.homePoints + ' : ' + r.guestPoints + '</div>' +
@@ -576,7 +576,6 @@
       }
     } else if (duel.revealedAt) {
       html += '<span class="revealed">✓ auf Anzeigetafel</span>';
-      if (!locked) html += '<button class="btn small ghost"' + attrs + ' data-action="reveal">Erneut anzeigen</button>';
     } else if (r.complete && !locked) {
       html += '<button class="btn small primary reveal-btn"' + attrs + ' data-action="reveal">Wertung anzeigen</button>';
     }
@@ -799,7 +798,7 @@
     return '<div class="board">' +
       '<div class="board-bar"><a href="#/match/' + m.id + '" class="btn small ghost">← zurück</a>' +
       '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
-      '<div class="board-title">' + esc(m.title || 'Wettkampf') + '</div>' +
+      '<div class="board-title">' + esc([LEAGUE, m.title].filter(Boolean).join(' · ') || 'Wettkampf') + '</div>' +
       '<div class="board-score">' +
       '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
       '<div class="board-big">' + r.homePoints + '<span>:</span>' + r.guestPoints + '</div>' +
@@ -819,12 +818,60 @@
     }
     if (!latest.at || latest.at <= state.board.lastReveal) return;
     state.board.lastReveal = latest.at;
+    var raw = m.apparatus[latest.appKey].duels[latest.idx];
     var duel = S.revealedView(m).apparatus[latest.appKey].duels[latest.idx];
     var res = S.duelResult(duel, m.rules);
     if (!res.complete) return;
+    if (raw.revealKind === 'correction') { showCorrection(m, latest.appKey, latest.idx, duel, raw.prevShown); return; }
     var points = res.winner === 'home' ? res.homePoints : res.winner === 'guest' ? res.guestPoints : 0;
     var color = res.winner === 'draw' ? '#a3a3a3' : sideColor(m, res.winner).onDark;
     showFlash(points, color);
+  }
+
+  var correctionTimer = null;
+
+  /** Korrigierte Wertung 10 Sekunden als Overlay über der Anzeigetafel zeigen (alt → neu). */
+  function showCorrection(m, appKey, idx, duel, prev) {
+    var res = S.duelResult(duel, m.rules);
+    var prevRes = null;
+    if (prev) {
+      var old = { home: Object.assign(S.emptySide(), prev.home), guest: Object.assign(S.emptySide(), prev.guest) };
+      prevRes = S.duelResult(old, m.rules);
+    }
+    function val(label, now, before, cls) {
+      var changed = before !== undefined && before !== now;
+      return '<div class="cd-row ' + (cls || '') + '"><span>' + label + '</span><strong>' +
+        (changed ? '<s>' + before + '</s> ' : '') + now + '</strong></div>';
+    }
+    function col(sideKey) {
+      var s = duel[sideKey];
+      var p = prev ? Object.assign(S.emptySide(), prev[sideKey]) : null;
+      var c = sideColor(m, sideKey);
+      var nd = function (x) { return x.nd ? '−' + fmt(x.nd) : '–'; };
+      var body = s.dns ? '<div class="cd-dns">nicht angetreten</div>' :
+        val('D-Note', fmt(s.d), p && !p.dns ? fmt(p.d) : undefined) +
+        val('E-Note', fmt(S.eScore(s)), p && !p.dns ? fmt(S.eScore(p)) : undefined) +
+        ((s.nd || (p && p.nd)) ? val('Neutr. Abzug', nd(s), p ? nd(p) : undefined, 'nd') : '');
+      return '<div class="cd-side" style="--team:' + c.onDark + '">' +
+        '<div class="cd-name">' + esc(gymnastLabel(s.number, s.name) || '–') + '</div>' + body +
+        '<div class="cd-final' + (res.winner === sideKey ? ' win' : '') + '"><span>Endnote</span><strong>' +
+        (p && fmt(S.sideFinal(p)) !== fmt(S.sideFinal(s)) ? '<s>' + fmt(S.sideFinal(p)) + '</s> ' : '') + fmt(S.sideFinal(s)) + '</strong></div></div>';
+    }
+    var el = document.getElementById('correction-overlay');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'correction-overlay';
+      el.setAttribute('aria-live', 'assertive');
+      document.body.appendChild(el);
+    }
+    el.innerHTML = '<div class="corr-box"><div class="corr-title">Korrektur</div>' +
+      '<div class="cd-head">' + apparatusName(appKey) + ' · Duell ' + (idx + 1) + '</div>' +
+      '<div class="cd-grid">' + col('home') +
+      '<div class="cd-pts">' + (prevRes && prevRes.complete ? '<div class="corr-old">' + prevRes.homePoints + ' : ' + prevRes.guestPoints + '</div>' : '') +
+      res.homePoints + '<span>:</span>' + res.guestPoints + '</div>' + col('guest') + '</div></div>';
+    el.classList.add('show');
+    clearTimeout(correctionTimer);
+    correctionTimer = setTimeout(function () { el.classList.remove('show'); }, CORRECTION_MS);
   }
 
   var flashTimer = null;
@@ -856,61 +903,75 @@
     var apps = S.APPARATUS.map(function (a) {
       var app = m.apparatus[a.key];
       var ar = r.apparatus[a.key];
-      return '<div class="print-app"><h3>' + a.name + ' <span class="muted">– Scorepunkte ' + ar.homePoints + ':' + ar.guestPoints +
-        (ar.complete ? ', Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></h3>' +
-        '<div class="table-wrap"><table class="table compact print-table"><thead><tr><th>#</th><th>Heim</th><th class="num">D</th><th class="num">EA1</th><th class="num">EA2</th><th class="num">E</th><th class="num">NA</th><th class="num">End</th>' +
-        '<th class="num">SP</th><th class="num">End</th><th class="num">NA</th><th class="num">E</th><th class="num">EA2</th><th class="num">EA1</th><th class="num">D</th><th>Gast</th></tr></thead><tbody>' +
+      return '<div class="print-app"><div class="pa-head"><strong>' + a.name + '</strong> <span>Scorepunkte ' + ar.homePoints + ':' + ar.guestPoints +
+        (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
+        '<table class="print-table"><thead><tr><th>Heim</th><th class="num">D</th><th class="num">EA1</th><th class="num">EA2</th><th class="num">E</th><th class="num">NA</th><th class="num">End</th>' +
+        '<th class="num sp">SP</th><th class="num">End</th><th class="num">NA</th><th class="num">E</th><th class="num">EA2</th><th class="num">EA1</th><th class="num">D</th><th class="right">Gast</th></tr></thead><tbody>' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
           function cells(s, reverse) {
             var c = s.dns ? ['n.a.', '', '', '', '', ''] : [fmt(s.d), fmt(s.e1), fmt(s.e2), fmt(S.eScore(s)), s.nd ? fmt(s.nd) : '', ''];
-            c[5] = fmt(S.sideFinal(s));
+            c[5] = '<strong>' + fmt(S.sideFinal(s)) + '</strong>';
             return (reverse ? c.reverse() : c).map(function (x) { return '<td class="num">' + x + '</td>'; }).join('');
           }
-          return '<tr><td>' + (i + 1) + '</td><td>' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' + cells(d.home, false) +
-            '<td class="num"><strong>' + (dr.complete ? dr.homePoints + ':' + dr.guestPoints : '') + '</strong></td>' +
-            cells(d.guest, true) + '<td>' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
-        }).join('') + '</tbody></table></div></div>';
+          return '<tr><td class="pn">' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' + cells(d.home, false) +
+            '<td class="num sp"><strong>' + (dr.complete ? dr.homePoints + ':' + dr.guestPoints : '') + '</strong></td>' +
+            cells(d.guest, true) + '<td class="pn right">' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
     }).join('');
+
+    var scorers = S.scorers(m).filter(function (x) { return x.starts > 0; });
+    function scorerTable(sideKey) {
+      var list = scorers.filter(function (x) { return x.team === sideKey; });
+      return '<table class="print-table scorer-table"><thead><tr><th>' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</th>' +
+        '<th class="num">Starts</th><th class="num">Siege</th><th class="num">SP</th></tr></thead><tbody>' +
+        (list.length ? list.map(function (x) {
+          return '<tr><td class="pn">' + esc(gymnastLabel(x.number, x.name) || '–') + '</td><td class="num">' + x.starts + '</td><td class="num">' + x.wins + '</td><td class="num"><strong>' + x.points + '</strong></td></tr>';
+        }).join('') : '<tr><td colspan="4">–</td></tr>') + '</tbody></table>';
+    }
+    var scorerHtml = '<div class="print-scorers">' + scorerTable('home') + scorerTable('guest') + '</div>';
 
     var th = m.rules.thresholds.slice().sort(function (a, b) { return a.min - b.min; })
       .map(function (t) { return 'ab ' + fmt(t.min) + ' → ' + t.points; }).join(', ');
 
     return '<div class="print-actions no-print"><a class="btn ghost" href="#/match/' + m.id + '">← zurück</a>' +
       '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>' +
-      '<section class="card print-sheet"><h2>Wettkampfprotokoll</h2>' +
-      '<p><strong>' + esc(m.title || 'Wettkampf') + '</strong><br>' + esc(fmtDate(m.date)) + (m.location ? ', ' + esc(m.location) : '') + '</p>' +
-      '<table class="table compact"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Notensumme</th><th class="num">Tabellenpunkte</th></tr></thead><tbody>' +
+      '<div class="print-page"><section class="print-sheet" id="print-sheet">' +
+      '<div class="ps-head"><div><div class="ps-league">' + esc(LEAGUE) + '</div><h2>Wettkampfprotokoll</h2></div>' +
+      '<div class="ps-meta">' + esc(m.title || '') + (m.title ? '<br>' : '') + esc(fmtDate(m.date)) + '</div></div>' +
+      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Notensumme</th><th class="num">Punkte</th></tr></thead><tbody>' +
       '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + r.homePoints + '</strong></td><td class="num">' + r.homeApp + '</td><td class="num">' + fmt(r.homeSum) + '</td><td class="num">' + (r.complete ? r.homeMatch : '–') + '</td></tr>' +
       '<tr><td>Gast</td><td>' + esc(teamName(m.guestTeamId)) + '</td><td class="num"><strong>' + r.guestPoints + '</strong></td><td class="num">' + r.guestApp + '</td><td class="num">' + fmt(r.guestSum) + '</td><td class="num">' + (r.complete ? r.guestMatch : '–') + '</td></tr>' +
       '</tbody></table>' +
-      (r.complete ? '<p>Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong></p>' : '<p class="warn">Wettkampf noch nicht vollständig gewertet.</p>') +
+      '<p class="ps-result">' + (r.complete ? 'Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong>' : 'Wettkampf noch nicht vollständig gewertet.') + '</p>' +
       apps +
-      '<h3>Scorer-Wertung</h3>' + scorersHtml(m) +
-      '<p class="muted small">EA1/EA2 = E-Abzüge der Kampfrichter, E = 10 − Mittelwert, NA = neutraler Abzug, SP = Scorepunkte. Wertungsregeln: Scorepunkte je Duell nach Notendifferenz (' + esc(th) + '); Gerätepunkte Sieg/Unentschieden ' +
+      '<div class="pa-head"><strong>Scorer-Wertung</strong></div>' + scorerHtml +
+      '<p class="ps-note">EA1/EA2 = E-Abzüge, E = 10 − Mittelwert, NA = neutraler Abzug, SP = Scorepunkte (' + esc(th) + '); Gerätepunkte Sieg/Unentschieden ' +
       m.rules.apparatusPoints.win + '/' + m.rules.apparatusPoints.draw + '. Status: ' + (m.status === 'final' ? 'abgeschlossen' : 'offen') +
       '. Stand: ' + esc(fmtDateTime(m.updatedAt || new Date().toISOString())) + '</p>' +
-      '<div class="signatures"><div>Kampfgericht</div><div>Heimmannschaft</div><div>Gastmannschaft</div></div>' +
-      '</section>';
+      '</section></div>';
   }
 
-  // ---------- Ansicht: Tabelle ----------
-
-  function viewTable() {
-    var rows = S.leagueTable(state.matches);
-    var finals = state.matches.filter(function (m) { return m.status === 'final'; }).length;
-    var body = rows.length ? rows.map(function (r, i) {
-      return '<tr><td>' + (i + 1) + '</td><td>' + esc(teamName(r.teamId)) + '</td><td class="num">' + r.played + '</td>' +
-        '<td class="num">' + r.won + '/' + r.draw + '/' + r.lost + '</td>' +
-        '<td class="num"><strong>' + r.points + ':' + r.pointsAgainst + '</strong></td>' +
-        '<td class="num">' + r.app + ':' + r.appAgainst + '</td>' +
-        '<td class="num">' + r.score + ':' + r.scoreAgainst + '</td>' +
-        '<td class="num">' + (r.score - r.scoreAgainst > 0 ? '+' : '') + (r.score - r.scoreAgainst) + '</td></tr>';
-    }).join('') : '<tr><td colspan="8" class="muted">Noch keine abgeschlossenen Wettkämpfe.</td></tr>';
-    return '<section class="card"><h2>Tabelle</h2>' +
-      '<div class="table-wrap"><table class="table"><thead><tr><th>Pl.</th><th>Mannschaft</th><th class="num">WK</th><th class="num">S/U/N</th>' +
-      '<th class="num">Punkte</th><th class="num">Gerätepunkte</th><th class="num">Scorepunkte</th><th class="num">Diff.</th></tr></thead><tbody>' + body + '</tbody></table></div>' +
-      '<p class="muted small">Berücksichtigt werden ' + finals + ' abgeschlossene Wettkämpfe. Reihenfolge: Punkte, Gerätepunkte-Differenz, Scorepunkte-Differenz.</p></section>';
+  /** Protokoll so verkleinern, dass es auf eine DIN-A4-Seite (Hochformat) passt. */
+  function fitPrintToA4() {
+    var sheet = document.getElementById('print-sheet');
+    if (!sheet) return;
+    var probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;width:100mm;height:100mm';
+    document.body.appendChild(probe);
+    var pxPerMm = probe.offsetHeight / 100;
+    probe.remove();
+    var maxH = 277 * pxPerMm; // 297 mm minus 2 × 10 mm Rand
+    var zoom = 1;
+    sheet.style.zoom = '';
+    sheet.style.width = '';
+    for (var i = 0; i < 4; i++) {
+      var h = sheet.scrollHeight * zoom;
+      if (h <= maxH) break;
+      zoom = zoom * maxH / h * 0.99;
+      sheet.style.zoom = zoom;
+      sheet.style.width = (190 / zoom) + 'mm';
+    }
   }
 
   // ---------- Ansicht: Daten & Regeln ----------
@@ -1148,6 +1209,9 @@
         if (!duel || m.status === 'final') return;
         if (!S.duelResult(duel, m.rules).complete) { toast('Duell ist noch nicht vollständig gewertet.', 'error'); return; }
         var wasCorrection = S.hasPendingCorrection(duel);
+        if (duel.shown && !wasCorrection) return;
+        duel.prevShown = wasCorrection ? duel.shown : null;
+        duel.revealKind = wasCorrection ? 'correction' : 'first';
         duel.revealedAt = new Date().toISOString();
         duel.shown = { home: S.snapshotSide(duel.home), guest: S.snapshotSide(duel.guest) };
         save('matches', m).then(function () {
@@ -1210,6 +1274,7 @@
   });
 
   window.addEventListener('hashchange', render);
+  window.addEventListener('beforeprint', fitPrintToA4);
 
   // Änderungen aus anderen Tabs (z. B. Anzeigetafel) übernehmen.
   if (channel) {
@@ -1233,6 +1298,9 @@
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'hidden') takeSnapshot();
   });
+
+  var leagueEl = document.getElementById('league-name');
+  if (leagueEl) leagueEl.textContent = LEAGUE;
 
   function updateNetStatus() {
     var el = document.getElementById('net-status');

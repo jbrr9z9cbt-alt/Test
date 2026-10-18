@@ -1,5 +1,5 @@
 /*
- * Feste Mannschaften der App.
+ * Liga und feste Mannschaften der App.
  *
  * Diese Datei legt der Betreiber fest – in der App selbst können Mannschaften
  * weder angelegt, umbenannt noch gelöscht werden. Nutzer pflegen nur die
@@ -11,6 +11,7 @@
  * geändert werden.
  */
 window.TEAM_CONFIG = {
+  league: 'WTB Oberliga 2026',
   gymnastsPerTeam: 20,
   teams: [
     { id: 'T1', name: 'Mannschaft 1' },

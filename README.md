@@ -1,4 +1,4 @@
-# Turnwettkampf – Gerätturnen männlich
+# Turnwettkampf – Gerätturnen männlich (WTB Oberliga 2026)
 
 Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätturnen männlich
 mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
@@ -20,18 +20,18 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung anzeigen“** gedrückt wird
   - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der
     siegreichen Mannschaft eingeblendet, leicht blinkend (bei Gleichstand eine graue 0)
-  - „Erneut anzeigen“ blendet die Wertung noch einmal ein
   - Das zuletzt angezeigte Duell steht mit **D-Note, E-Note, neutralem Abzug (falls vorhanden) und Endnote** auf der Tafel
 - **Nachträgliche Änderungen**: Wird eine bereits angezeigte Wertung geändert, zeigt die Tafel weiter den alten Stand.
   Alle anderen Duelle sind gesperrt, bis die Korrektur mit **„Korrektur anzeigen“** auf die Tafel gebracht
   oder mit „Änderung verwerfen“ zurückgenommen wurde. Auch das Abschließen des Wettkampfs ist bis dahin gesperrt.
-- **Protokoll** zum Drucken bzw. Speichern als PDF, mit Unterschriftenfeldern
-- **Tabelle** aus allen abgeschlossenen Wettkämpfen
+  Die Korrektur erscheint **10 Sekunden als Overlay** über der Anzeigetafel (alte Werte durchgestrichen, neue Werte daneben).
+- **Protokoll** zum Drucken bzw. Speichern als PDF – passt immer auf **eine DIN-A4-Seite im Hochformat**
+  (wird bei Bedarf automatisch verkleinert)
 - Abgeschlossene Wettkämpfe sind **schreibgeschützt** (lassen sich bewusst wieder öffnen)
 
 ## Mannschaften festlegen (nur Betreiber)
 
-In `js/config.js` stehen die 7 Mannschaften mit `id` und `name`.
+In `js/config.js` stehen der Liganame (`league`) und die 7 Mannschaften mit `id` und `name`.
 Die Namen dürfen dort geändert werden; die `id` bitte **nie** ändern, sonst verlieren
 bereits erfasste Wettkämpfe und Turnernamen die Zuordnung. Nach einer Änderung neu
 veröffentlichen (Push auf `main`) – die installierten Apps laden das Update beim nächsten Start mit Internet.
@@ -49,7 +49,8 @@ veröffentlichen (Push auf `main`) – die installierten Apps laden das Update b
 
 - 4 Duelle pro Gerät
 - Gerätepunkte: Sieg 2, Unentschieden je 1 (werden vergeben, sobald alle Duelle eines Geräts gewertet sind)
-- Tabellenpunkte: Sieg 2, Unentschieden je 1. Sieger ist, wer mehr Scorepunkte hat.
+- Mannschaftspunkte: Sieg 2, Unentschieden je 1. Sieger ist, wer mehr Scorepunkte hat.
+- Die Ligatabelle gehört nicht zur App, sie ist für eine separate Liga-Webseite vorgesehen.
 
 > **Hinweis:** Die Werte sind an die DTL angelehnt, aber **nicht** mit der aktuellen
 > DTL-Wettkampfordnung abgeglichen. Bitte unter **„Daten & Regeln“** an die gültige
