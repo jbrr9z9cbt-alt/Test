@@ -88,6 +88,7 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .btn.ghost { background: transparent; border-color: transparent; }
 .btn.ghost:hover { background: rgba(0,0,0,.05); }
 .btn.small { padding: .2rem .55rem; font-size: .8rem; }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
 
 .banner { padding: .75rem 1rem; border-radius: var(--radius); margin-bottom: 1rem; }
 .banner.danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
@@ -173,12 +174,12 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .result-row strong { color: var(--text); font-variant-numeric: tabular-nums; }
 .result-row .final strong { font-size: 1.3rem; }
 .duel-result { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; text-align: center; gap: .2rem; grid-column: 2; grid-row: 1; }
-.duel .pos-home { grid-column: 1; grid-row: 1; }
-.duel .pos-guest { grid-column: 3; grid-row: 1; }
-.duel-actions { grid-row: 2; display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; justify-content: flex-end; }
+/* Vorlegender Turner links, nachlegender rechts; Knöpfe unter der zweiten Übung */
+.duel .side.first { grid-column: 1; grid-row: 1; box-shadow: 0 0 0 2px var(--team) inset; }
+.duel .side.second { grid-column: 3; grid-row: 1; }
+.duel-actions { grid-row: 2; grid-column: 3; display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; justify-content: flex-end; }
 .duel-actions:empty { display: none; }
-.duel-actions.under-home { grid-column: 1; }
-.duel-actions.under-guest { grid-column: 3; }
+.lead-tag { background: #171717; color: #fff; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: .15rem .4rem; border-radius: 4px; flex: none; }
 .duel-actions .btn { padding: .55rem 1.1rem; }
 .duel-actions .btn:focus-visible, .check input:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
 .order-no { font-weight: 800; font-size: .9rem; color: var(--muted); min-width: 1.4rem; }
@@ -329,6 +330,7 @@ body.board-mode .update-banner { display: none; }
 .print-table .num { text-align: right; }
 .print-table .right { text-align: right; }
 .print-table .pn { white-space: normal; width: 22%; line-height: 1.15; }
+.print-table .pn.lead { font-weight: 700; }
 .print-table .sp { text-align: center !important; background: #f0f0f0; }
 .print-scorers { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin: .5mm 0 2mm; align-items: start; }
 .scorer-table .pn { width: auto; }
@@ -342,7 +344,7 @@ body.board-mode .update-banner { display: none; }
 /* ---------- Responsiv ---------- */
 @media (max-width: 820px) {
   .duel { grid-template-columns: 1fr; grid-template-rows: none; }
-  .duel .pos-home, .duel .pos-guest, .duel-result, .duel-actions.under-home, .duel-actions.under-guest { grid-column: 1; grid-row: auto; }
+  .duel .side.first, .duel .side.second, .duel-result, .duel-actions { grid-column: 1; grid-row: auto; }
   .duel-result { padding: .25rem 0; }
   .match-row { grid-template-columns: 1fr auto; }
   .match-row .match-teams { grid-column: 1; }
@@ -367,3 +369,5 @@ body.board-mode .update-banner { display: none; }
   .print-sheet { box-shadow: none; margin: 0; page-break-after: avoid; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+.rules-table { max-width: 420px; margin-bottom: .75rem; }

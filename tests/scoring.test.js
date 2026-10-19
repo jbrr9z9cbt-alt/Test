@@ -21,6 +21,10 @@ test('parseScore / formatScore', () => {
   assert.equal(S.formatScore(8433), '8,433');
   assert.equal(S.formatScore(50), '0,050');
   assert.equal(S.formatScore(null), '–');
+  assert.equal(S.formatScore(4500, 1), '4,5');
+  assert.equal(S.formatScore(8650, 2), '8,65');
+  assert.equal(S.formatScore(12600, 2), '12,60');
+  assert.equal(S.formatScore(8625, 2), '8,63');
 });
 
 test('Endnote = D + E − Abzug, nicht angetreten = 0', () => {
@@ -44,13 +48,13 @@ const reveal = (duel, at) => { duel.revealedAt = at; duel.shown = { home: S.snap
 
 test('Anzeigetafel zeigt nur angezeigte Duelle', () => {
   const m = buildMatch((key, i) => ({ home: side('5', '8', 0, { name: 'H' + i, number: i + 1 }), guest: side('4', '8', 0, { name: 'G' + i, number: i + 1 }) }));
-  assert.equal(S.matchResult(m).homePoints, 6 * 4 * 4);
+  assert.equal(S.matchResult(m).homePoints, 6 * 4 * 2);
   assert.equal(S.matchResult(S.revealedView(m)).homePoints, 0);
   reveal(m.apparatus.FX.duels[0], '2026-10-18T10:00:00Z');
   reveal(m.apparatus.FX.duels[2], '2026-10-18T10:01:00Z');
   const view = S.revealedView(m);
   const r = S.matchResult(view);
-  assert.equal(r.homePoints, 8);
+  assert.equal(r.homePoints, 4);
   assert.equal(r.apparatus.FX.complete, false);
   assert.equal(view.apparatus.FX.duels[1].home.name, 'H1');
   assert.equal(view.apparatus.FX.duels[1].home.d, null);
@@ -66,7 +70,7 @@ test('Nachträgliche Änderung: Tafel behält alten Stand bis zur Korrektur', ()
   assert.ok(S.hasPendingCorrection(duel));
   assert.deepEqual(S.pendingCorrections(m), [{ appKey: 'FX', idx: 0 }]);
   let shown = S.duelResult(S.revealedView(m).apparatus.FX.duels[0], m.rules);
-  assert.deepEqual([shown.homePoints, shown.guestPoints], [4, 0], 'Tafel zeigt noch den alten Stand');
+  assert.deepEqual([shown.homePoints, shown.guestPoints], [2, 0], 'Tafel zeigt noch den alten Stand');
   duel.home.name = 'Neuer Name'; // reine Namensänderung ist keine Korrektur
   reveal(duel, '2026-10-18T10:05:00Z');
   assert.equal(S.hasPendingCorrection(duel), false);
@@ -103,23 +107,25 @@ test('Startreihenfolge: je 2 Duelle im Block, Gerät für Gerät gewechselt', ()
   assert.deepEqual(S.startOrder({}, 'PH', 0), ['guest', 'home']);
 });
 
-test('Scorepunkte nach Differenz-Schwellen', () => {
+test('Scorepunkte nach WTB-Oberliga-Scoresystem', () => {
   const p = (diff) => S.pointsForDiff(S.parseScore(diff), rules.thresholds);
   assert.equal(p('0'), 0);
-  assert.equal(p('0,049'), 0);
-  assert.equal(p('0,05'), 1);
-  assert.equal(p('0,30'), 1);
-  assert.equal(p('0,35'), 2);
-  assert.equal(p('0,65'), 3);
-  assert.equal(p('0,999'), 3);
-  assert.equal(p('1,0'), 4);
-  assert.equal(p('1,5'), 5);
+  assert.equal(p('0,10'), 0, 'unter 0,15 unentschieden');
+  assert.equal(p('0,15'), 1);
+  assert.equal(p('0,40'), 1);
+  assert.equal(p('0,45'), 2);
+  assert.equal(p('1,00'), 2);
+  assert.equal(p('1,05'), 3);
+  assert.equal(p('2,00'), 3);
+  assert.equal(p('2,05'), 4);
+  assert.equal(p('3,00'), 4);
+  assert.equal(p('3,05'), 5);
   assert.equal(p('7'), 5);
 });
 
 test('Duell: Sieger erhält Punkte, Verlierer 0, Gleichstand 0:0', () => {
   let r = S.duelResult({ home: side('5', '8,5'), guest: side('4,5', '8,3') }, rules);
-  assert.deepEqual([r.homePoints, r.guestPoints, r.winner, r.diff], [3, 0, 'home', 700]);
+  assert.deepEqual([r.homePoints, r.guestPoints, r.winner, r.diff], [2, 0, 'home', 700]);
   r = S.duelResult({ home: side('5', '8'), guest: side('5', '8') }, rules);
   assert.deepEqual([r.homePoints, r.guestPoints, r.winner], [0, 0, 'draw']);
   r = S.duelResult({ home: side('5', ''), guest: side('5', '8') }, rules);
@@ -135,14 +141,14 @@ function buildMatch(fill) {
 }
 
 test('Gerät und Wettkampf: Score-, Geräte- und Tabellenpunkte', () => {
-  // Heim gewinnt jedes Duell mit 0,40 Differenz (2 Punkte), außer am Reck: Gast gewinnt mit 1,60 (5 Punkte)
+  // Heim gewinnt jedes Duell mit 0,40 Differenz (1 Punkt), außer am Reck: Gast gewinnt mit 1,60 (3 Punkte)
   const m = buildMatch((key, i) => key === 'HB'
     ? { home: side('4', '8', 0, { name: 'H' + i }), guest: side('5', '8,6', 0, { name: 'G' + i }) }
     : { home: side('4', '8,4', 0, { name: 'H' + i }), guest: side('4', '8', 0, { name: 'G' + i }) });
   const r = S.matchResult(m);
   assert.equal(r.complete, true);
-  assert.equal(r.homePoints, 5 * 4 * 2);
-  assert.equal(r.guestPoints, 4 * 5);
+  assert.equal(r.homePoints, 5 * 4 * 1);
+  assert.equal(r.guestPoints, 4 * 3);
   assert.equal(r.homeApp, 10);
   assert.equal(r.guestApp, 2);
   assert.equal(r.winner, 'home');
@@ -151,10 +157,10 @@ test('Gerät und Wettkampf: Score-, Geräte- und Tabellenpunkte', () => {
   const table = S.leagueTable([Object.assign({ id: 1 }, m)]);
   assert.equal(table[0].teamId, 'A');
   assert.equal(table[0].points, 2);
-  assert.equal(table[1].score, 20);
+  assert.equal(table[1].score, 12);
 
   const sc = S.scorers(m);
-  assert.equal(sc[0].points, 10);
+  assert.equal(sc[0].points, 5);
   assert.equal(sc[0].team, 'home');
 });
 

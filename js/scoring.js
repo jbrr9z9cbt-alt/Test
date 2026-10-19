@@ -1,5 +1,5 @@
 /*
- * Wertungslogik nach einem Scoresystem ähnlich der Deutschen Turnliga (DTL).
+ * Wertungslogik nach dem Scoresystem der WTB-Oberliga (Stand 20.09.2025).
  *
  * Alle Noten werden intern als ganze Zahlen in Tausendsteln gespeichert
  * (8,433 Punkte => 8433), damit keine Rundungsfehler durch Gleitkommazahlen
@@ -30,15 +30,17 @@
     { key: 'HB', name: 'Reck', short: 'RE' }
   ];
 
-  // Schwellen: ab dieser Differenz (in Tausendsteln) gibt es so viele Scorepunkte.
+  // Feste Regeln der WTB-Oberliga – in der App nicht änderbar.
+  // Schwellen: ab dieser Differenz (in Tausendsteln) gibt es so viele Scorepunkte;
+  // unter 0,15 endet das Duell unentschieden.
   var DEFAULT_RULES = {
     duelsPerApparatus: 4,
     thresholds: [
-      { min: 50, points: 1 },
-      { min: 350, points: 2 },
-      { min: 650, points: 3 },
-      { min: 1000, points: 4 },
-      { min: 1500, points: 5 }
+      { min: 150, points: 1 },
+      { min: 450, points: 2 },
+      { min: 1050, points: 3 },
+      { min: 2050, points: 4 },
+      { min: 3050, points: 5 }
     ],
     apparatusPoints: { win: 2, draw: 1, loss: 0 },
     matchPoints: { win: 2, draw: 1, loss: 0 },
@@ -67,12 +69,23 @@
     return parseInt(parts[0], 10) * 1000 + parseInt(frac, 10);
   }
 
-  /** 8433 -> "8,433" */
-  function formatScore(value) {
+  /** 8433 -> "8,433"; mit decimals 2 -> "8,43", mit 1 -> "8,4" (kaufmännisch gerundet) */
+  function formatScore(value, decimals) {
     if (value === null || value === undefined || Number.isNaN(value)) return '–';
+    var d = decimals === undefined ? 3 : decimals;
+    var unit = Math.pow(10, 3 - d);
     var sign = value < 0 ? '-' : '';
-    var v = Math.abs(value);
-    return sign + Math.floor(v / 1000) + ',' + String(v % 1000).padStart(3, '0');
+    var v = Math.round(Math.abs(value) / unit);
+    var base = Math.pow(10, d);
+    var whole = Math.floor(v / base);
+    return d === 0 ? sign + whole : sign + whole + ',' + String(v % base).padStart(d, '0');
+  }
+
+  /** Regeln eines Wettkampfs: immer die festen Ligaregeln, nur die Zahl der E-Kampfrichter variiert. */
+  function leagueRules(eJudges) {
+    var r = clone(DEFAULT_RULES);
+    r.eJudges = eJudges === 3 ? 3 : 2;
+    return r;
   }
 
   function emptySide() {
@@ -345,6 +358,7 @@
     APPARATUS: APPARATUS,
     DEFAULT_RULES: DEFAULT_RULES,
     clone: clone,
+    leagueRules: leagueRules,
     parseScore: parseScore,
     formatScore: formatScore,
     emptySide: emptySide,

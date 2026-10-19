@@ -14,8 +14,11 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
 - **Wettkampf anlegen**: Datum, beginnende Mannschaft, Heim/Gast mit Farbe und Mannschaftsführer,
   Kampfgericht (E1 Oberkampfrichter, E2 neutral, D1 Vereinskampfrichter Heim, D2 Vereinskampfrichter Gast).
   Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen.
-- **Startreihenfolge**: je 2 Duelle im Block – Gerät 1: Duell 1+2 beginnt A, Duell 3+4 beginnt B;
-  am nächsten Gerät umgekehrt usw. Die Erfassung zeigt 1./2. und folgt dieser Reihenfolge.
+- **Startreihenfolge** (lt. Scoresystem): Die am Gerät beginnende Mannschaft beginnt Duell 1+2, die andere
+  Duell 3+4; bei jedem Gerätewechsel wechselt die beginnende Mannschaft.
+  In der Erfassung steht der **vorlegende Turner** links (bzw. oben auf schmalen Bildschirmen) und ist markiert;
+  im Protokoll ist er fett mit ▶/◀ gekennzeichnet. Auf der Anzeigetafel bleiben Heim links und Gast rechts.
+- **Zahlenformat**: D-Note, E-Abzüge und neutraler Abzug mit einer Nachkommastelle, E-Note und Endnote mit zwei.
 - **Duell-Erfassung** je Gerät: D-Note, E-Abzüge, neutraler Abzug, Standbonus → Endnote; „nicht angetreten“ zählt 0,000
   - **E-Note mit neutralem E2: 10 − Mittelwert von E1 und E2**
   - **E-Note mit drei E-Kampfrichtern: höchster und niedrigster Abzug gestrichen, 10 − mittlerer Abzug**
@@ -47,26 +50,22 @@ Die Namen dürfen dort geändert werden; die `id` bitte **nie** ändern, sonst v
 bereits erfasste Wettkämpfe und Turnernamen die Zuordnung. Nach einer Änderung neu
 veröffentlichen (Push auf `main`) – die installierten Apps laden das Update beim nächsten Start mit Internet.
 
-## Wertungsregeln (Standard, frei anpassbar)
+## Wertungsregeln (fest, WTB-Oberliga-Scoresystem Stand 20.09.2025)
+
+Die Regeln sind in der App **nicht änderbar** (unter „Daten & Regeln“ nur angezeigt).
 
 | Notendifferenz | Scorepunkte für den Sieger des Duells |
 |---|---|
-| unter 0,05 | 0 (Unentschieden) |
-| ab 0,05 | 1 |
-| ab 0,35 | 2 |
-| ab 0,65 | 3 |
-| ab 1,00 | 4 |
-| ab 1,50 | 5 |
+| unter 0,15 | 0 (unentschieden) |
+| von 0,15 bis 0,40 | 1 |
+| von 0,45 bis 1,00 | 2 |
+| von 1,05 bis 2,00 | 3 |
+| von 2,05 bis 3,00 | 4 |
+| ab 3,05 | 5 |
 
-- 4 Duelle pro Gerät
-- Gerätepunkte: Sieg 2, Unentschieden je 1 (werden vergeben, sobald alle Duelle eines Geräts gewertet sind)
-- Mannschaftspunkte: Sieg 2, Unentschieden je 1. Sieger ist, wer mehr Scorepunkte hat.
+- 4 Duelle pro Gerät; eine nicht besetzte Übung zählt 0 Punkte
+- Gerät und Wettkampf gewinnt, wer mehr Scorepunkte hat; bei Gleichstand unentschieden
 - Die Ligatabelle gehört nicht zur App, sie ist für eine separate Liga-Webseite vorgesehen.
-
-> **Hinweis:** Die Werte sind an die DTL angelehnt, aber **nicht** mit der aktuellen
-> DTL-Wettkampfordnung abgeglichen. Bitte unter **„Daten & Regeln“** an die gültige
-> Ausschreibung eurer Liga anpassen. Jeder Wettkampf speichert beim Anlegen eine eigene
-> Kopie der Regeln, spätere Änderungen verändern also keine alten Ergebnisse.
 
 ## Offline-Betrieb und Datensicherheit
 

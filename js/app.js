@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '6';
+  var APP_BUILD = '7';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var LEAGUE = CFG.league || '';
@@ -49,7 +49,9 @@
     return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
   }
 
-  var fmt = S.formatScore;
+  // Anzeigeformate: D-Note, neutraler Abzug und E-Abzüge mit einer, E-Note und Endnote mit zwei Nachkommastellen.
+  function fmt(v) { return S.formatScore(v, 2); }
+  function fmt1(v) { return S.formatScore(v, 1); }
 
   function fmtDate(iso) {
     if (!iso) return '';
@@ -229,7 +231,8 @@
     if (!m.startTeam) { m.startTeam = 'home'; changed = true; }
     if (!m.judges) { m.judges = {}; changed = true; }
     if (!m.captains) { m.captains = {}; changed = true; }
-    if (!m.rules.eJudges) { m.rules.eJudges = 2; changed = true; }
+    var fixed = S.leagueRules(m.rules && m.rules.eJudges);
+    if (JSON.stringify(m.rules) !== JSON.stringify(fixed)) { m.rules = fixed; changed = true; }
     return changed;
   }
 
@@ -382,7 +385,7 @@
 
   function viewMatchForm(m) {
     var isNew = !m;
-    var rules = m ? m.rules : state.settings.rules;
+    var rules = m ? m.rules : S.DEFAULT_RULES;
     var hasScores = m && S.APPARATUS.some(function (a) { return S.matchResult(m).apparatus[a.key].started; });
     var j = (m && m.judges) || {};
     var cap = (m && m.captains) || {};
@@ -413,8 +416,7 @@
       '<p class="muted small judge-hint">' + (neutral ? 'E-Note: 10 − Mittelwert der Abzüge von E1 und E2.' : 'E-Note: höchster und niedrigster Abzug werden gestrichen, der mittlere zählt.') + '</p>' +
       '<div class="row2">' + input('judgeD1', 'D1 – Vereinskampfrichter Heim', j.d1) + input('judgeD2', 'D2 – Vereinskampfrichter Gast', j.d2) + '</div>' +
       '</fieldset>' +
-      '<label>Duelle pro Gerät<input type="number" name="duels" min="1" max="10" value="' + rules.duelsPerApparatus + '"></label>' +
-      (isNew ? '<p class="muted small">Die Wertungsregeln (Scorepunkte-Schwellen usw.) werden aus den Standardregeln unter „Daten“ übernommen und gelten dann fest für diesen Wettkampf.</p>' : '') +
+
       '<div class="actions"><button class="btn primary" type="submit">' + (isNew ? 'Anlegen' : 'Speichern') + '</button>' +
       '<a class="btn ghost" href="' + (m ? '#/match/' + m.id : '#/') + '">Abbrechen</a></div>' +
       '</form></section>';
@@ -441,7 +443,7 @@
   function submitMatchForm(form) {
     var fd = new FormData(form);
     var id = form.getAttribute('data-id');
-    var duels = Math.max(1, Math.min(10, parseInt(fd.get('duels'), 10) || 4));
+    var duels = S.DEFAULT_RULES.duelsPerApparatus;
     var m = id ? match(id) : null;
     var home = m && form.home.disabled ? m.homeTeamId : fd.get('home');
     var guest = m && form.guest.disabled ? m.guestTeamId : fd.get('guest');
@@ -460,8 +462,7 @@
     };
 
     if (!m) {
-      var rules = S.clone(state.settings.rules);
-      rules.duelsPerApparatus = duels;
+      var rules = S.leagueRules(neutral ? 2 : 3);
       m = {
         id: uid(), date: '', homeTeamId: home, guestTeamId: guest,
         rules: rules, status: 'open', apparatus: {}, createdAt: new Date().toISOString()
@@ -487,7 +488,7 @@
       m.guestTeamId = guest;
     }
     m.colors = colors;
-    m.rules.eJudges = neutral ? 2 : 3;
+    m.rules = S.leagueRules(neutral ? 2 : 3);
     m.judges = judges;
     m.captains = { home: text('captainHome'), guest: text('captainGuest') };
     m.startTeam = fd.get('startTeam') === 'guest' ? 'guest' : 'home';
@@ -589,7 +590,7 @@
   }
 
   function scoreInput(appKey, idx, sideKey, field, value, locked, label) {
-    var v = value === null || value === undefined ? '' : fmt(value);
+    var v = value === null || value === undefined ? '' : fmt1(value);
     if (field === 'nd' && !value) v = '';
     return '<label class="score-field"><span>' + label + '</span>' +
       '<input type="text" inputmode="decimal" autocomplete="off" ' + fieldAttrs(appKey, idx, sideKey, field) +
@@ -602,8 +603,9 @@
     var key = appKey + '-' + idx + '-' + sideKey;
     var three = S.eJudgeCount(m.rules) === 3;
     var bonusAllowed = appKey !== S.NO_BONUS_APPARATUS;
-    return '<div class="side ' + sideKey + ' pos-' + sideKey + (side.dns ? ' dns' : '') + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
+    return '<div class="side ' + sideKey + (position === 1 ? ' first' : ' second') + (side.dns ? ' dns' : '') + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
       '<div class="side-head"><span class="order-no" title="Startreihenfolge im Duell">' + position + '.</span>' +
+      (position === 1 ? '<span class="lead-tag">vorlegend</span>' : '') +
       '<span class="side-label">' + (sideKey === 'home' ? 'Heim' : 'Gast') + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked) + '</div>' +
       '<div class="score-row' + (three ? ' cols5' : '') + '">' +
@@ -617,15 +619,18 @@
       (bonusAllowed ? '<label class="check bonus"><input type="checkbox" ' + fieldAttrs(appKey, idx, sideKey, 'bonus') + (side.bonus ? ' checked' : '') + (dis ? ' disabled' : '') + '> Standbonus +0,1</label>' : '') +
       '<span>E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</strong></span>' +
       '<span class="final">Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
-      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked ? ' disabled' : '') + '> nicht angetreten / nicht besetzt (0,000)</label>' +
+      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked ? ' disabled' : '') + '> nicht angetreten / nicht besetzt (0,00)</label>' +
       '</div>';
   }
 
-  function duelPoints(r) {
+  /** Scorepunkte des Duells, in derselben Reihenfolge wie die Übungen (vorlegender Turner zuerst). */
+  function duelPoints(r, first) {
     if (!r.complete) return '<span class="duel-open">offen</span>';
-    return '<span class="duel-pts ' + (r.winner === 'home' ? 'win' : '') + '">' + r.homePoints + '</span>' +
+    var order = first === 'guest' ? ['guest', 'home'] : ['home', 'guest'];
+    var pts = { home: r.homePoints, guest: r.guestPoints };
+    return '<span class="duel-pts ' + (r.winner === order[0] ? 'win' : '') + '">' + pts[order[0]] + '</span>' +
       '<span class="duel-sep">:</span>' +
-      '<span class="duel-pts ' + (r.winner === 'guest' ? 'win' : '') + '">' + r.guestPoints + '</span>' +
+      '<span class="duel-pts ' + (r.winner === order[1] ? 'win' : '') + '">' + pts[order[1]] + '</span>' +
       '<span class="duel-diff">Diff. ' + fmt(r.diff) + '</span>';
   }
 
@@ -658,15 +663,15 @@
         '<div class="duel-no">Duell ' + (i + 1) + '</div>' +
         sideHtml(m, appKey, i, order[0], d[order[0]], locked, 1) +
         sideHtml(m, appKey, i, order[1], d[order[1]], locked, 2) +
-        '<div class="duel-result" data-out="duel-' + appKey + '-' + i + '">' + duelPoints(ar.duels[i]) + '</div>' +
-        '<div class="duel-actions under-' + order[1] + '" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked) + '</div>' +
+        '<div class="duel-result" data-out="duel-' + appKey + '-' + i + '" data-first="' + order[0] + '">' + duelPoints(ar.duels[i], order[0]) + '</div>' +
+        '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked) + '</div>' +
         '</div>';
     }).join('');
     return '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(ar) + '</div></div>' + duels +
-      '<p class="muted small">Eingabe mit Komma oder Punkt, z. B. <code>4,8</code> oder <code>1.35</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
+      '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
       (S.eJudgeCount(m.rules) === 3 ? 'E-Note = 10 − mittlerer der drei E-Abzüge (höchster und niedrigster gestrichen). ' : 'E-Note = 10 − Mittelwert der Abzüge E1 und E2. ') +
-      'Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. Die Nummer 1./2. zeigt, wer im Duell zuerst turnt. ' +
+      'Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. Der vorlegende Turner (1.) steht links bzw. oben. ' +
       'Die Scorepunkte eines Duells erscheinen auf der Anzeigetafel erst nach „Wertung anzeigen“. Jede Eingabe wird sofort gespeichert.</p>';
   }
 
@@ -708,7 +713,7 @@
     out('app-sum', appSumHtml(ar));
     out('pending', pendingBanner(m));
     m.apparatus[tab].duels.forEach(function (d, i) {
-      out('duel-' + tab + '-' + i, duelPoints(ar.duels[i]));
+      out('duel-' + tab + '-' + i, duelPoints(ar.duels[i], S.startOrder(m, tab, i)[0]));
       // Knöpfe nur neu aufbauen, wenn sich etwas ändert – sonst ginge ein Fokus darauf verloren.
       var act = $app.querySelector('[data-out="duelact-' + tab + '-' + i + '"]');
       var html = duelActions(ar.duels[i], d, tab, i, duelBlocked(m, tab, i));
@@ -761,16 +766,16 @@
     if (field === 'nd' && v === null) v = 0;
     var isDeduction = field === 'e1' || field === 'e2' || field === 'e3';
     var max = field === 'd' ? 20000 : 10000;
-    var invalid = Number.isNaN(v) || v > max || (isDeduction && v !== null && v % 10 !== 0);
+    var invalid = Number.isNaN(v) || v > max || (v !== null && v % 100 !== 0);
     if (invalid) {
       el.classList.add('invalid');
-      toast(isDeduction ? 'Ungültiger E-Abzug: „' + el.value + '“ (0 bis 10, höchstens 2 Nachkommastellen, z. B. 1,35)'
-        : 'Ungültige Note: „' + el.value + '“ (Format z. B. 4,8)', 'error');
+      toast((isDeduction ? 'Ungültiger E-Abzug' : field === 'nd' ? 'Ungültiger neutraler Abzug' : 'Ungültige D-Note') +
+        ': „' + el.value + '“ (eine Nachkommastelle, z. B. ' + (field === 'd' ? '4,5' : '1,3') + ')', 'error');
       return;
     }
     el.classList.remove('invalid');
     side[field] = v;
-    if (v !== null && !(field === 'nd' && v === 0)) el.value = fmt(v);
+    if (v !== null && !(field === 'nd' && v === 0)) el.value = fmt1(v);
     save('matches', m).then(function () {
       if (S.pendingCorrections(m).length !== pendingBefore) rerenderPanel(m);
       else refreshComputed(m);
@@ -836,10 +841,10 @@
       var c = sideColor(m, sideKey);
       var won = res.winner === sideKey;
       var lines = s.dns ? '<div class="cd-dns">nicht angetreten</div>' :
-        '<div class="cd-row"><span>D-Note</span><strong>' + fmt(s.d) + '</strong></div>' +
-        (s.bonus ? '<div class="cd-row bonus"><span>Standbonus</span><strong>+0,100</strong></div>' : '') +
+        '<div class="cd-row"><span>D-Note</span><strong>' + fmt1(s.d) + '</strong></div>' +
+        (s.bonus ? '<div class="cd-row bonus"><span>Standbonus</span><strong>+0,1</strong></div>' : '') +
         '<div class="cd-row"><span>E-Note</span><strong>' + fmt(S.eScore(s, m.rules)) + '</strong></div>' +
-        (s.nd ? '<div class="cd-row nd"><span>Neutr. Abzug</span><strong>−' + fmt(s.nd) + '</strong></div>' : '');
+        (s.nd ? '<div class="cd-row nd"><span>Neutr. Abzug</span><strong>−' + fmt1(s.nd) + '</strong></div>' : '');
       return '<div class="cd-side" style="--team:' + c.onDark + '">' +
         '<div class="cd-name">' + esc(gymnastLabel(s.number, s.name) || '–') + '</div>' + lines +
         '<div class="cd-final' + (won ? ' win' : '') + '"><span>Endnote</span><strong>' + fmt(S.sideFinal(s, m.rules)) + '</strong></div></div>';
@@ -929,10 +934,10 @@
       var s = duel[sideKey];
       var p = prev ? Object.assign(S.emptySide(), prev[sideKey]) : null;
       var c = sideColor(m, sideKey);
-      var nd = function (x) { return x.nd ? '−' + fmt(x.nd) : '–'; };
+      var nd = function (x) { return x.nd ? '−' + fmt1(x.nd) : '–'; };
       var body = s.dns ? '<div class="cd-dns">nicht angetreten</div>' :
-        val('D-Note', fmt(s.d), p && !p.dns ? fmt(p.d) : undefined) +
-        ((s.bonus || (p && p.bonus)) ? val('Standbonus', s.bonus ? '+0,100' : '–', p ? (p.bonus ? '+0,100' : '–') : undefined, 'bonus') : '') +
+        val('D-Note', fmt1(s.d), p && !p.dns ? fmt1(p.d) : undefined) +
+        ((s.bonus || (p && p.bonus)) ? val('Standbonus', s.bonus ? '+0,1' : '–', p ? (p.bonus ? '+0,1' : '–') : undefined, 'bonus') : '') +
         val('E-Note', fmt(S.eScore(s, m.rules)), p && !p.dns ? fmt(S.eScore(p, m.rules)) : undefined) +
         ((s.nd || (p && p.nd)) ? val('Neutr. Abzug', nd(s), p ? nd(p) : undefined, 'nd') : '');
       return '<div class="cd-side" style="--team:' + c.onDark + '">' +
@@ -1002,14 +1007,20 @@
           var dr = ar.duels[i];
           function cells(s, reverse) {
             var c = s.dns ? head.map(function (h, n) { return n === 0 ? 'n.a.' : ''; }) :
-              [fmt(s.d), s.bonus ? '0,1' : '', fmt(s.e1), fmt(s.e2)].concat(three ? [fmt(s.e3)] : [])
-                .concat([fmt(S.eScore(s, m.rules)), s.nd ? fmt(s.nd) : '', '']);
+              [fmt1(s.d), s.bonus ? '0,1' : '', fmt1(s.e1), fmt1(s.e2)].concat(three ? [fmt1(s.e3)] : [])
+                .concat([fmt(S.eScore(s, m.rules)), s.nd ? fmt1(s.nd) : '', '']);
             c[c.length - 1] = '<strong>' + fmt(S.sideFinal(s, m.rules)) + '</strong>';
             return (reverse ? c.reverse() : c).map(function (x) { return '<td class="num">' + x + '</td>'; }).join('');
           }
-          return '<tr><td class="pn">' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' + cells(d.home, false) +
+          var first = S.startOrder(m, a.key, i)[0];
+          function nameCell(k, right) {
+            var lead = first === k;
+            return '<td class="pn' + (right ? ' right' : '') + (lead ? ' lead' : '') + '">' + (lead && !right ? '▶ ' : '') +
+              esc(gymnastLabel(d[k].number, d[k].name) || '–') + (lead && right ? ' ◀' : '') + '</td>';
+          }
+          return '<tr>' + nameCell('home', false) + cells(d.home, false) +
             '<td class="num sp"><strong>' + (dr.complete ? dr.homePoints + ':' + dr.guestPoints : '') + '</strong></td>' +
-            cells(d.guest, true) + '<td class="pn right">' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
+            cells(d.guest, true) + nameCell('guest', true) + '</tr>';
         }).join('') + '</tbody></table></div>';
     }).join('');
 
@@ -1039,7 +1050,7 @@
       '<p class="ps-result">' + (r.complete ? 'Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong>' : 'Wettkampf noch nicht vollständig gewertet.') + '</p>' +
       apps +
       '<div class="pa-head"><strong>Scorer-Wertung</strong></div>' + scorerHtml +
-      '<p class="ps-note">D = D-Note, SB = Standbonus, E1–E' + (three ? '3' : '2') + ' = Abzüge der E-Kampfrichter, E = ' +
+      '<p class="ps-note">▶ ◀ = vorlegender Turner, D = D-Note, SB = Standbonus, E1–E' + (three ? '3' : '2') + ' = Abzüge der E-Kampfrichter, E = ' +
       (three ? '10 − mittlerer Abzug' : '10 − Mittelwert') + ', NA = neutraler Abzug, SP = Scorepunkte (' + esc(th) + '); Gerätepunkte Sieg/Unentschieden ' +
       m.rules.apparatusPoints.win + '/' + m.rules.apparatusPoints.draw + '. Status: ' + (m.status === 'final' ? 'abgeschlossen' : 'offen') +
       '. Stand: ' + esc(fmtDateTime(m.updatedAt || new Date().toISOString())) + '</p>' +
@@ -1070,13 +1081,8 @@
 
   // ---------- Ansicht: Daten & Regeln ----------
 
-  function thresholdsText(list) {
-    return list.slice().sort(function (a, b) { return a.min - b.min; })
-      .map(function (t) { return fmt(t.min) + ' = ' + t.points; }).join('\n');
-  }
-
   function viewData() {
-    var r = state.settings.rules;
+    var r = S.DEFAULT_RULES;
     return '<section class="card"><h2>Datensicherung</h2>' +
       '<p>Alle Daten liegen ausschließlich lokal auf diesem Gerät. Zusätzlich legt die App automatisch Sicherungspunkte an. ' +
       'Für Sicherheit gegen Geräteverlust bitte regelmäßig eine Sicherungsdatei exportieren (z. B. auf einen USB-Stick).</p>' +
@@ -1097,21 +1103,18 @@
       '<h3>Automatische Sicherungspunkte</h3><div id="snapshots" class="muted">wird geladen …</div>' +
       '</section>' +
 
-      '<section class="card"><h2>Standard-Wertungsregeln</h2>' +
-      '<p class="muted">Gelten für <strong>neu angelegte</strong> Wettkämpfe. Bestehende Wettkämpfe behalten ihre Regeln.</p>' +
-      '<form class="stack" data-form="rules">' +
-      '<label>Duelle pro Gerät<input type="number" name="duels" min="1" max="10" value="' + r.duelsPerApparatus + '"></label>' +
-      '<label>Scorepunkte nach Notendifferenz (je Zeile: „ab Differenz = Punkte“)' +
-      '<textarea name="thresholds" rows="6">' + esc(thresholdsText(r.thresholds)) + '</textarea></label>' +
-      '<div class="row2"><label>Gerätepunkte Sieg<input type="number" name="appWin" min="0" value="' + r.apparatusPoints.win + '"></label>' +
-      '<label>Gerätepunkte Unentschieden<input type="number" name="appDraw" min="0" value="' + r.apparatusPoints.draw + '"></label></div>' +
-      '<div class="row2"><label>Tabellenpunkte Sieg<input type="number" name="mWin" min="0" value="' + r.matchPoints.win + '"></label>' +
-      '<label>Tabellenpunkte Unentschieden<input type="number" name="mDraw" min="0" value="' + r.matchPoints.draw + '"></label></div>' +
-      '<label>Bei Gleichstand der Scorepunkte<select name="tieBreak">' +
-      '<option value="none"' + (r.tieBreak === 'none' ? ' selected' : '') + '>Unentschieden</option>' +
-      '<option value="apparatus"' + (r.tieBreak === 'apparatus' ? ' selected' : '') + '>Gerätepunkte entscheiden</option></select></label>' +
-      '<div class="actions"><button class="btn primary" type="submit">Regeln speichern</button>' +
-      '<button class="btn ghost" type="button" data-action="reset-rules">Auf Vorgabe zurücksetzen</button></div></form></section>' +
+      '<section class="card"><h2>Wertungsregeln</h2>' +
+      '<p class="muted">Fest nach dem Scoresystem der ' + esc(LEAGUE || 'Liga') + ' – in der App nicht änderbar.</p>' +
+      '<table class="table compact rules-table"><thead><tr><th>Notendifferenz</th><th class="num">Scorepunkte</th></tr></thead><tbody>' +
+      '<tr><td>unter ' + fmt(r.thresholds[0].min) + '</td><td class="num">0 (unentschieden)</td></tr>' +
+      r.thresholds.map(function (t, n) {
+        var next = r.thresholds[n + 1];
+        return '<tr><td>' + (next ? 'von ' + fmt(t.min) + ' bis ' + fmt(next.min - 50) : 'ab ' + fmt(t.min)) + '</td><td class="num">' + t.points + '</td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<ul class="plain small muted"><li>' + r.duelsPerApparatus + ' Duelle pro Gerät; eine nicht besetzte Übung zählt 0 Punkte.</li>' +
+      '<li>Gerät und Wettkampf gewinnt, wer mehr Scorepunkte hat; bei Gleichstand unentschieden.</li>' +
+      '<li>E-Note: mit neutralem E2 10 − Mittelwert der Abzüge, mit drei E-Kampfrichtern 10 − mittlerer Abzug.</li>' +
+      '<li>Standbonus +0,1 (nicht am Pauschenpferd).</li></ul></section>' +
 
       '<section class="card"><h2>Alle Daten löschen</h2>' +
       '<p class="muted">Löscht alle Wettkämpfe, Turnernamen und gewählten Farben auf diesem Gerät. Die festen Mannschaften bleiben bestehen. Ein Sicherungspunkt wird vorher angelegt.</p>' +
@@ -1134,20 +1137,6 @@
             '<button class="btn small ghost" data-action="export-snap" data-snap="' + s.id + '">Export</button></td></tr>';
         }).join('') + '</tbody></table></div>';
     });
-  }
-
-  function parseThresholds(text) {
-    var out = [];
-    var lines = text.split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
-    for (var i = 0; i < lines.length; i++) {
-      var m = lines[i].match(/^([\d.,]+)\s*[=:→>-]+\s*(\d+)$/);
-      if (!m) throw new Error('Zeile „' + lines[i] + '“ nicht verständlich. Format: 0,35 = 2');
-      var min = S.parseScore(m[1]);
-      if (min === null || Number.isNaN(min) || min <= 0) throw new Error('Ungültige Differenz in „' + lines[i] + '“');
-      out.push({ min: min, points: parseInt(m[2], 10) });
-    }
-    if (!out.length) throw new Error('Mindestens eine Schwelle angeben.');
-    return out.sort(function (a, b) { return a.min - b.min; });
   }
 
   function validateBackup(data) {
@@ -1231,7 +1220,7 @@
       if (cur === null || Number.isNaN(cur)) cur = 0;
       var max = field === 'd' ? 20000 : 10000;
       var v = Math.min(max, Math.max(0, cur + (ev.key === 'ArrowUp' ? 100 : -100)));
-      el.value = fmt(v);
+      el.value = fmt1(v);
       handleScoreChange(el);
       el.select();
     }
@@ -1250,18 +1239,6 @@
 
     if (kind === 'match') {
       submitMatchForm(form);
-    } else if (kind === 'rules') {
-      try {
-        var rules = {
-          duelsPerApparatus: Math.max(1, Math.min(10, parseInt(fd.get('duels'), 10) || 4)),
-          thresholds: parseThresholds(String(fd.get('thresholds'))),
-          apparatusPoints: { win: parseInt(fd.get('appWin'), 10) || 0, draw: parseInt(fd.get('appDraw'), 10) || 0, loss: 0 },
-          matchPoints: { win: parseInt(fd.get('mWin'), 10) || 0, draw: parseInt(fd.get('mDraw'), 10) || 0, loss: 0 },
-          tieBreak: fd.get('tieBreak') === 'apparatus' ? 'apparatus' : 'none'
-        };
-        state.settings.rules = rules;
-        save('meta', state.settings).then(function () { toast('Regeln gespeichert'); render(); });
-      } catch (e) { toast(e.message, 'error'); }
     } else if (kind === 'export-enc') {
       var pw = String(fd.get('pw'));
       if (pw !== String(fd.get('pw2'))) { toast('Die Passwörter stimmen nicht überein.', 'error'); return; }
@@ -1385,11 +1362,6 @@
           if (!confirm('Stand vom ' + fmtDateTime(s.ts) + ' wiederherstellen? Der aktuelle Stand wird vorher gesichert.')) return;
           return restoreData(validateBackup(s.data), 'Wiederherstellung').then(function () { toast('Wiederhergestellt'); });
         }).catch(function (e) { toast(e.message, 'error'); });
-        break;
-      case 'reset-rules':
-        if (!confirm('Standardregeln auf die Vorgabe zurücksetzen?')) return;
-        state.settings.rules = S.clone(S.DEFAULT_RULES);
-        save('meta', state.settings).then(render);
         break;
       case 'wipe':
         var answer = prompt('Zum Bestätigen bitte LÖSCHEN eingeben:');
