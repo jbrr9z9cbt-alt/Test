@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '23';
+  var APP_BUILD = '24';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -1407,9 +1407,13 @@
     },
     /** Kurzer, deutlicher Doppelton (Sturz-Timer nach 30 s). */
     beep: function (ctx) {
-      var t0 = ctx.currentTime + 0.02;
-      tone(ctx, 1320, 'triangle', t0, 0.16, 0.6);
-      tone(ctx, 1320, 'triangle', t0 + 0.24, 0.16, 0.6);
+      var t0 = ctx.currentTime + 0.05;
+      var lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 4000; lp.connect(ctx.destination);
+      [0, 0.3].forEach(function (d) {
+        tone(ctx, 1046, 'square', t0 + d, 0.22, 0.3, lp);
+        tone(ctx, 2093, 'sine', t0 + d, 0.22, 0.25);
+      });
     },
     /** Kurzer Fehlerton, zwei absteigende Töne (Sturz-Timer nach 60 s). */
     error: function (ctx) {
@@ -1428,14 +1432,39 @@
   }
 
   var soundsPlayed = {};
+  var keepAlive = null;
+
+  /**
+   * Solange ein Timer läuft, hält ein unhörbar leises Signal den Audioausgang wach.
+   * Viele Geräte (Laptops, HDMI, Bluetooth) schalten ihn sonst nach Stille ab und
+   * verschlucken beim Aufwachen den Anfang – bei kurzen Signalen den ganzen Ton.
+   */
+  function setKeepAlive(on) {
+    if (on && !keepAlive) {
+      var ctx = audio();
+      if (!ctx) return;
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = 40;
+      g.gain.value = 0.0005;
+      o.connect(g); g.connect(ctx.destination);
+      o.start();
+      keepAlive = o;
+    } else if (!on && keepAlive) {
+      try { keepAlive.stop(); } catch (e) { /* bereits gestoppt */ }
+      keepAlive = null;
+    }
+  }
 
   /** Spielt jedes Signal genau einmal, wenn ein laufender Timer die jeweilige Grenze erreicht. */
   function checkTimerSounds() {
     if (document.body.classList.contains('board-mode')) return;
     var now = Date.now();
+    var active = false;
     state.matches.forEach(function (m) {
       var tm = m.timers;
       if (!tm) return;
+      if (tm.warmup && now - tm.warmup.start < WARMUP_MS + 6000) active = true;
+      if (tm.fall && now - tm.fall.start < 2 * FALL_PHASE_MS + 3000) active = true;
       [['warmup', WARMUP_MS, 'bell'], ['fall', FALL_PHASE_MS, 'beep'], ['fall', 2 * FALL_PHASE_MS, 'error']].forEach(function (c) {
         var t = tm[c[0]];
         if (!t) return;
@@ -1448,6 +1477,7 @@
         }
       });
     });
+    setKeepAlive(active);
   }
 
   setInterval(function () { tickTimers(); checkTimerSounds(); }, 250);
