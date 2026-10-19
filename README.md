@@ -35,11 +35,16 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
   - Abzüge mit höchstens 2 Nachkommastellen
   - **Standbonus** +0,1 (nicht am Pauschenpferd)
   - Endnote = D-Note + Standbonus + E-Note − neutraler Abzug
-  - **Tastatur**: Tab springt nacheinander durch D, E-Abzüge, neutralen Abzug, Standbonus beider Turner
-    und zuletzt „Wertung anzeigen“ (unter der zweiten Übung); Enter wirkt wie Tab;
-    Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten (nie unter 0)
+  - **Tastatur**: Tab springt je Übung durch Turnerauswahl, D, E-Abzüge, neutralen Abzug und Standbonus,
+    danach zum zweiten Turner und zuletzt zu „Wertung anzeigen“ (unter der zweiten Übung).
+    Enter öffnet die Turnerauswahl, Pfeiltasten wählen, Enter übernimmt (weiter zur D-Note);
+    Enter schaltet den Standbonus um und wirkt in Notenfeldern wie Tab;
+    Pfeiltasten ↑/↓ ändern Noten in 0,1-Schritten (nie unter 0)
 - **Automatische Wertung**: Scorepunkte je Duell nach Notendifferenz, Gerätepunkte, Gesamtergebnis, Tabellenpunkte
 - **Anzeigetafel** für Beamer/Fernseher (zweites Fenster bzw. Tab auf demselben Gerät):
+  - Knopf „Anzeigetafel“ öffnet das Fenster und schaltet danach zwischen Anzeige und Ruhebild um
+  - Knopf „Topscorer auf Tafel“ blendet die Topscorer als Overlay ein bzw. aus
+  - passt sich automatisch ins Fenster ein (keine Scrollbalken); Timer und Detailwertungen haben feste Plätze
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung anzeigen“** gedrückt wird
   - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der
     siegreichen Mannschaft eingeblendet, leicht blinkend (bei Gleichstand eine graue 0)

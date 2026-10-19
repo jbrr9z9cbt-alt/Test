@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '9';
+  var APP_BUILD = '10';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -231,6 +231,7 @@
       if (!app) return;
       app.duels.forEach(function (d) {
         if (d.revealedAt === undefined) { d.revealedAt = null; changed = true; }
+        if (d.revealedAt && !d.firstRevealedAt) { d.firstRevealedAt = d.revealedAt; changed = true; }
         if (d.revealedAt && !d.shown) {
           d.shown = { home: S.snapshotSide(d.home), guest: S.snapshotSide(d.guest) };
           changed = true;
@@ -302,10 +303,11 @@
     if (r.name === 'match' && r.sub === 'print') fitPrintToA4();
     if (r.name === 'home') refreshStorageBox();
     var isBoard = r.name === 'match' && r.sub === 'board' && match(r.id);
-    if (isBoard) checkBoardFlash(match(r.id));
+    if (isBoard) { checkBoardFlash(match(r.id)); fitBoard(); }
     else state.board = { matchId: null, lastReveal: '' };
     if (!keepScroll) window.scrollTo(0, 0);
     tickTimers();
+    if (isBoard) fitBoard();
     keepScroll = false;
   }
 
@@ -551,7 +553,10 @@
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong>' +
       '<span data-out="winner">' + winnerText(m, r) + '</span></div>' +
       '<div class="actions wrap">' +
-      '<a class="btn" href="#/match/' + m.id + '/board" target="_blank" rel="noopener">Anzeigetafel ↗</a>' +
+      '<button class="btn toggle' + (boardOn(m) && state.boardWin && !state.boardWin.closed ? ' on' : '') + '" data-action="toggle-board">Anzeigetafel: ' +
+      (boardOn(m) && state.boardWin && !state.boardWin.closed ? 'an' : 'aus') + '</button>' +
+      '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">Topscorer auf Tafel: ' +
+      (m.display && m.display.scorers ? 'an' : 'aus') + '</button>' +
       '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a>' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Bearbeiten</a>') +
       (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
@@ -605,7 +610,7 @@
         esc(gymnastLabel(g.number, g.name || '(ohne Name)')) + (used[g.id] ? ' (bereits eingesetzt)' : '') + '</option>';
     });
     if (side.gymnastId && !found) opts += '<option value="' + esc(side.gymnastId) + '" selected>' + esc(gymnastLabel(side.number, side.name)) + '</option>';
-    return '<select tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'gymnast') + (locked ? ' disabled' : '') + ' aria-label="Turner">' + opts + '</select>';
+    return '<select ' + fieldAttrs(appKey, idx, sideKey, 'gymnast') + (locked ? ' disabled' : '') + ' aria-label="Turner">' + opts + '</select>';
   }
 
   function fieldAttrs(appKey, idx, sideKey, field) {
@@ -770,8 +775,16 @@
       side.gymnastId = el.value || null;
       side.number = gy ? gy.number : null;
       side.name = gy ? gy.name : '';
+      var viaKeyboard = lastInputKeyboard;
       el.blur();
-      save('matches', m).then(function () { rerenderPanel(m); });
+      save('matches', m).then(function () {
+        rerenderPanel(m);
+        // Per Tastatur gleich mit der D-Note weitermachen; bei Touch nichts fokussieren (iOS).
+        if (viaKeyboard) {
+          var d = $app.querySelector('input[data-app="' + appKey + '"][data-duel="' + idx + '"][data-side="' + sideKey + '"][data-field="d"]:not([disabled])');
+          if (d) d.focus();
+        }
+      });
       return;
     }
 
@@ -846,11 +859,22 @@
 
   // ---------- Ansicht: Anzeigetafel ----------
 
+  /** Zuletzt freigegebene Wertung (auch Korrekturen) – steuert die Einblendungen. */
   function latestReveal(m) {
+    return latestBy(m, 'revealedAt');
+  }
+
+  /** Zuletzt geturntes Duell (erste Anzeige) – Korrekturen ändern das nicht. */
+  function latestPerformed(m) {
+    return latestBy(m, 'firstRevealedAt');
+  }
+
+  function latestBy(m, field) {
     var latest = { at: '', appKey: null, idx: -1 };
     S.APPARATUS.forEach(function (a) {
       m.apparatus[a.key].duels.forEach(function (d, i) {
-        if (d.revealedAt && d.revealedAt > latest.at) latest = { at: d.revealedAt, appKey: a.key, idx: i };
+        var at = d[field] || (field === 'firstRevealedAt' ? d.revealedAt : null);
+        if (at && at > latest.at) latest = { at: at, appKey: a.key, idx: i };
       });
     });
     return latest;
@@ -872,32 +896,59 @@
     return current || lastRevealed;
   }
 
-  /** Detailkarte des zuletzt angezeigten Duells: D-Note, E-Note, neutrale Abzüge, Endnote. */
+  /**
+   * Eine Seite der Detailkarte. Alle Zeilen haben einen festen Platz (auch wenn leer),
+   * damit sich die Größe nicht ändert; der Standbonus steht in der Zeile der D-Note.
+   * prev (optional): vorheriger Stand für die Korrekturanzeige (alt durchgestrichen).
+   */
+  function duelSideHtml(m, s, sideKey, won, prev) {
+    var c = sideColor(m, sideKey);
+    var out = s.dns || s.zero;
+    function cell(now, before) {
+      return (before !== undefined && before !== now ? '<s>' + before + '</s> ' : '') + now;
+    }
+    function dText(x) { return x.dns || x.zero ? '–' : fmt1(x.d) + (x.bonus ? ' <small>+0,1</small>' : ''); }
+    function eText(x) { return x.dns || x.zero ? '–' : fmt(S.eScore(x, m.rules)); }
+    function ndText(x) { return x.nd && !x.dns && !x.zero ? '−' + fmt1(x.nd) : ''; }
+    var p = prev ? Object.assign(S.emptySide(), prev) : null;
+    var nd = ndText(s), ndBefore = p ? ndText(p) : undefined;
+    return '<div class="cd-side" style="--team:' + c.onDark + '">' +
+      '<div class="cd-name">' + esc(gymnastLabel(s.number, s.name) || '–') +
+      (s.dns ? ' <span class="cd-tag">nicht angetreten</span>' : s.zero ? ' <span class="cd-tag">Wertung 0,00</span>' : '') + '</div>' +
+      '<div class="cd-row"><span>D-Note</span><strong>' + cell(dText(s), p ? dText(p) : undefined) + '</strong></div>' +
+      '<div class="cd-row"><span>E-Note</span><strong>' + cell(eText(s), p ? eText(p) : undefined) + '</strong></div>' +
+      '<div class="cd-row nd' + (nd || ndBefore ? '' : ' empty') + '"><span>Neutr. Abzug</span><strong>' + cell(nd || '–', ndBefore === undefined ? undefined : (ndBefore || '–')) + '</strong></div>' +
+      '<div class="cd-final' + (won ? ' win' : '') + '"><span>Endnote</span><strong>' +
+      cell(fmt(S.sideFinal(s, m.rules)), p ? fmt(S.sideFinal(p, m.rules)) : undefined) + '</strong></div></div>';
+  }
+
+  /** Detailkarte des zuletzt geturnten Duells (nach einer Korrektur bleibt es beim letzten Duell). */
   function currentDuelCard(m, view) {
-    var latest = latestReveal(m);
-    if (!latest.appKey) return '<div class="cur-duel empty">Noch keine Wertung angezeigt</div>';
+    var latest = latestPerformed(m);
+    if (!latest.appKey) {
+      // Gleiche Größe wie eine gefüllte Karte: Platzhalter unsichtbar, Hinweis darüber.
+      return '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' +
+        duelSideHtml(m, S.emptySide(), 'home', false) + '<div class="cd-pts">' + ptsPair(m, 0, 0, true) + '</div>' +
+        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
+    }
     var duel = view.apparatus[latest.appKey].duels[latest.idx];
     var res = S.duelResult(duel, m.rules);
-    function col(sideKey) {
-      var s = duel[sideKey];
-      var c = sideColor(m, sideKey);
-      var won = res.winner === sideKey;
-      var lines = s.dns ? '<div class="cd-dns">nicht angetreten</div>' : s.zero ? '<div class="cd-dns">Wertung 0,00</div>' :
-        '<div class="cd-row"><span>D-Note</span><strong>' + fmt1(s.d) + '</strong></div>' +
-        (s.bonus ? '<div class="cd-row bonus"><span>Standbonus</span><strong>+0,1</strong></div>' : '') +
-        '<div class="cd-row"><span>E-Note</span><strong>' + fmt(S.eScore(s, m.rules)) + '</strong></div>' +
-        (s.nd ? '<div class="cd-row nd"><span>Neutr. Abzug</span><strong>−' + fmt1(s.nd) + '</strong></div>' : '');
-      return '<div class="cd-side" style="--team:' + c.onDark + '">' +
-        '<div class="cd-name">' + esc(gymnastLabel(s.number, s.name) || '–') + '</div>' + lines +
-        '<div class="cd-final' + (won ? ' win' : '') + '"><span>Endnote</span><strong>' + fmt(S.sideFinal(s, m.rules)) + '</strong></div></div>';
-    }
     return '<div class="cur-duel"><div class="cd-head">' + apparatusName(latest.appKey) + ' · Duell ' + (latest.idx + 1) + '</div>' +
-      '<div class="cd-grid">' + col('home') +
+      '<div class="cd-grid">' + duelSideHtml(m, duel.home, 'home', res.winner === 'home') +
       '<div class="cd-pts">' + ptsPair(m, res.homePoints, res.guestPoints, true) + '</div>' +
-      col('guest') + '</div></div>';
+      duelSideHtml(m, duel.guest, 'guest', res.winner === 'guest') + '</div></div>';
+  }
+
+  function boardOn(m) {
+    return !(m.display && m.display.board === false);
   }
 
   function viewBoard(m) {
+    if (!boardOn(m)) {
+      return '<div class="board board-standby"><div class="board-bar"><a href="#/match/' + m.id + '" class="btn small ghost">← zurück</a>' +
+        '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
+        '<div class="standby"><img src="icons/icon.svg" alt="" width="120" height="120"><div>' + esc(LEAGUE) + '</div></div></div>';
+    }
     var view = S.revealedView(m);
     var r = S.matchResult(view);
     var current = boardApparatus(m);
@@ -933,10 +984,40 @@
       '<div class="board-big">' + ptsPair(m, r.homePoints, r.guestPoints, true) + '</div>' +
       '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '<div class="board-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + winnerText(m, r) + '</div>' +
-      '<div id="board-timers" class="board-timers" hidden></div>' +
+      '<div id="board-timers" class="board-timers"><div class="bt warm off" data-slot="warm"><span>&nbsp;</span><strong>0:00</strong></div>' +
+      '<div class="bt fall off" data-slot="fall"><span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em></div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th><th class="num">GP</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      '<div>' + currentDuelCard(m, view) + detail + '</div></div></div>';
+      '<div>' + currentDuelCard(m, view) + detail + '</div></div>' +
+      boardScorers(m, view) + '</div>';
   }
+
+  /** Topscorer-Overlay auf der Tafel (nur angezeigte Wertungen), per Knopf ein-/ausschaltbar. */
+  function boardScorers(m, view) {
+    if (!(m.display && m.display.scorers)) return '';
+    var list = S.topScorers(view, 3);
+    return '<div class="scorer-overlay"><div class="so-box"><div class="so-title">Topscorer</div>' +
+      (list.length ? '<table class="so-table">' + list.map(function (x) {
+        return '<tr><td class="so-rank">' + x.rank + '.</td><td class="so-name">' + esc(gymnastLabel(x.number, x.name) || '–') +
+          '<small>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</small></td>' +
+          '<td class="so-pts">' + pts(m, x.team, x.points, true) + '</td></tr>';
+      }).join('') + '</table>' : '<div class="so-empty">Noch keine Scorepunkte</div>') + '</div></div>';
+  }
+
+  /** Anzeigetafel ohne Scrollbalken ins Fenster einpassen (misst die tatsächlich dargestellte Größe). */
+  function fitBoard() {
+    var b = document.querySelector('.board');
+    if (!b || b.classList.contains('board-standby')) return;
+    b.style.zoom = '';
+    var z = 1;
+    for (var i = 0; i < 6; i++) {
+      var rect = b.getBoundingClientRect();
+      var over = Math.max(rect.height / window.innerHeight, b.scrollWidth / b.clientWidth);
+      if (over <= 1.001) break;
+      z = z / over * 0.99;
+      b.style.zoom = z;
+    }
+  }
+  window.addEventListener('resize', fitBoard);
 
   /** Nach jedem Aufbau der Anzeigetafel prüfen, ob eine neue Wertung freigegeben wurde. */
   function checkBoardFlash(m) {
@@ -968,25 +1049,8 @@
       var old = { home: Object.assign(S.emptySide(), prev.home), guest: Object.assign(S.emptySide(), prev.guest) };
       prevRes = S.duelResult(old, m.rules);
     }
-    function val(label, now, before, cls) {
-      var changed = before !== undefined && before !== now;
-      return '<div class="cd-row ' + (cls || '') + '"><span>' + label + '</span><strong>' +
-        (changed ? '<s>' + before + '</s> ' : '') + now + '</strong></div>';
-    }
     function col(sideKey) {
-      var s = duel[sideKey];
-      var p = prev ? Object.assign(S.emptySide(), prev[sideKey]) : null;
-      var c = sideColor(m, sideKey);
-      var nd = function (x) { return x.nd ? '−' + fmt1(x.nd) : '–'; };
-      var body = s.dns ? '<div class="cd-dns">nicht angetreten</div>' : s.zero ? '<div class="cd-dns">Wertung 0,00</div>' :
-        val('D-Note', fmt1(s.d), p && !p.dns ? fmt1(p.d) : undefined) +
-        ((s.bonus || (p && p.bonus)) ? val('Standbonus', s.bonus ? '+0,1' : '–', p ? (p.bonus ? '+0,1' : '–') : undefined, 'bonus') : '') +
-        val('E-Note', fmt(S.eScore(s, m.rules)), p && !p.dns ? fmt(S.eScore(p, m.rules)) : undefined) +
-        ((s.nd || (p && p.nd)) ? val('Neutr. Abzug', nd(s), p ? nd(p) : undefined, 'nd') : '');
-      return '<div class="cd-side" style="--team:' + c.onDark + '">' +
-        '<div class="cd-name">' + esc(gymnastLabel(s.number, s.name) || '–') + '</div>' + body +
-        '<div class="cd-final' + (res.winner === sideKey ? ' win' : '') + '"><span>Endnote</span><strong>' +
-        (p && fmt(S.sideFinal(p, m.rules)) !== fmt(S.sideFinal(s, m.rules)) ? '<s>' + fmt(S.sideFinal(p, m.rules)) + '</s> ' : '') + fmt(S.sideFinal(s, m.rules)) + '</strong></div></div>';
+      return duelSideHtml(m, duel[sideKey], sideKey, res.winner === sideKey, prev ? prev[sideKey] : null);
     }
     var el = document.getElementById('correction-overlay');
     if (!el) {
@@ -1053,6 +1117,15 @@
     return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
   }
 
+  function refreshDisplayButtons(m) {
+    var b = $app.querySelector('[data-action="toggle-board"]');
+    var on = boardOn(m) && state.boardWin && !state.boardWin.closed;
+    if (b) { b.textContent = 'Anzeigetafel: ' + (on ? 'an' : 'aus'); b.classList.toggle('on', !!on); }
+    var t = $app.querySelector('[data-action="toggle-scorers"]');
+    var son = !!(m.display && m.display.scorers);
+    if (t) { t.textContent = 'Topscorer auf Tafel: ' + (son ? 'an' : 'aus'); t.classList.toggle('on', son); }
+  }
+
   function tickTimers() {
     var r = route();
     var m = r.name === 'match' ? match(r.id) : null;
@@ -1073,7 +1146,23 @@
       wb.classList.toggle('t-running', won);
     }
     var bt = document.getElementById('board-timers');
-    if (bt) {
+    if (bt && bt.querySelector('[data-slot]')) {
+      // Feste Plätze: Inhalt wird nur sichtbar/unsichtbar geschaltet, die Größe bleibt gleich.
+      var ws = bt.querySelector('[data-slot="warm"]'), fs = bt.querySelector('[data-slot="fall"]');
+      var wh = warm ? '<span>Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong>' : '<span>&nbsp;</span><strong>0:00</strong>';
+      if (ws.innerHTML !== wh) ws.innerHTML = wh;
+      ws.classList.toggle('off', !warm);
+      var fh = '<span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em>';
+      if (fall) {
+        var fsd = m.apparatus[fall.t.appKey].duels[fall.t.idx][fall.t.side];
+        fh = '<span>Sturz · ' + esc(gymnastLabel(fsd.number, fsd.name) || teamName(fall.t.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
+          '<strong>' + clock(fall.remaining) + '</strong><em' + (fall.phase === 2 ? '' : ' class="hide"') + '>Abzug 0,3</em>';
+      }
+      if (fs.innerHTML !== fh) fs.innerHTML = fh;
+      fs.classList.toggle('off', !fall);
+      fs.classList.toggle('phase1', !!fall && fall.phase === 1);
+      fs.classList.toggle('phase2', !!fall && fall.phase === 2);
+    } else if (bt) {
       var html = '';
       if (warm) html += '<div class="bt warm"><span>Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong></div>';
       if (fall) {
@@ -1260,6 +1349,7 @@
 
   $app.addEventListener('change', function (ev) {
     var el = ev.target;
+    if (el.dataset && el.dataset.picking) return; // erst mit Enter übernehmen
     if (el.hasAttribute('data-field')) { handleScoreChange(el); return; }
     if (el.name === 'neutralE2' && el.form) { syncJudgeFields(el.form); return; }
     var tfield = el.getAttribute('data-tfield');
@@ -1290,22 +1380,70 @@
 
   var SCORE_FIELDS = ['d', 'e1', 'e2', 'e3', 'nd'];
 
-  /** Reihenfolge wie mit der Tabulatortaste: Notenfelder, Standbonus, „Wertung anzeigen“. */
+  /** Reihenfolge wie mit der Tabulatortaste: Turner, Notenfelder, Standbonus – je Übung –, dann „Wertung anzeigen“. */
   function entrySequence() {
     return Array.prototype.slice.call($app.querySelectorAll(
-      'input[data-field]:not([type=checkbox]):not([disabled]), input[data-field="bonus"]:not([disabled]), button[data-action="reveal"]:not([disabled])'));
+      'select[data-field="gymnast"]:not([disabled]), input[data-field]:not([type=checkbox]):not([disabled]), input[data-field="bonus"]:not([disabled]), button[data-action="reveal"]:not([disabled])'));
   }
+
+  function focusNext(el) {
+    var seq = entrySequence();
+    var next = seq[seq.indexOf(el) + 1];
+    if (next) next.focus(); else el.blur();
+  }
+
+  // Turnerauswahl per Tastatur: Enter öffnet die Liste, Pfeiltasten wählen, Enter übernimmt.
+  // Wo der Browser keine native Liste per Skript öffnen kann, klappt das Feld als Liste auf.
+  function openPicker(sel) {
+    if (typeof sel.showPicker === 'function') {
+      try { sel.showPicker(); return; } catch (e) { /* Rückfall unten */ }
+    }
+    sel.dataset.picking = '1';
+    sel.dataset.orig = sel.value;
+    sel.size = Math.min(9, sel.options.length);
+    sel.classList.add('picking');
+  }
+
+  function closePicker(sel, commit) {
+    if (!sel.dataset.picking) return;
+    delete sel.dataset.picking;
+    sel.size = 1;
+    sel.classList.remove('picking');
+    if (!commit) { sel.value = sel.dataset.orig; return; }
+    if (sel.value !== sel.dataset.orig) handleScoreChange(sel);
+  }
+
+  var lastInputKeyboard = false;
+  document.addEventListener('keydown', function () { lastInputKeyboard = true; }, true);
+  document.addEventListener('pointerdown', function () { lastInputKeyboard = false; }, true);
+
+  $app.addEventListener('focusout', function (ev) {
+    if (ev.target.dataset && ev.target.dataset.picking) closePicker(ev.target, true);
+  });
 
   $app.addEventListener('keydown', function (ev) {
     var el = ev.target;
+    if (el.matches && el.matches('select[data-field="gymnast"]')) {
+      if (el.dataset.picking) {
+        if (ev.key === 'Enter') { ev.preventDefault(); closePicker(el, true); }
+        else if (ev.key === 'Escape') { ev.preventDefault(); closePicker(el, false); }
+        return;
+      }
+      if (ev.key === 'Enter') { ev.preventDefault(); openPicker(el); return; }
+      // Geschlossenes Feld nicht versehentlich per Pfeiltaste umstellen.
+      if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') ev.preventDefault();
+      return;
+    }
     if (!el.matches || !el.matches('input[data-field]')) return;
     var field = el.getAttribute('data-field');
-    // Enter springt wie die Tabulatortaste zum nächsten Feld.
     if (ev.key === 'Enter') {
       ev.preventDefault();
-      var seq = entrySequence();
-      var next = seq[seq.indexOf(el) + 1];
-      if (next) next.focus(); else el.blur();
+      // Enter schaltet den Standbonus um, sonst springt Enter wie Tab zum nächsten Feld.
+      if (field === 'bonus') {
+        if (!el.disabled) { el.checked = !el.checked; handleScoreChange(el); }
+        return;
+      }
+      focusNext(el);
       return;
     }
     // Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten, nie unter 0.
@@ -1402,6 +1540,7 @@
         duel.prevShown = wasCorrection ? duel.shown : null;
         duel.revealKind = wasCorrection ? 'correction' : 'first';
         duel.revealedAt = new Date().toISOString();
+        if (!duel.firstRevealedAt) duel.firstRevealedAt = duel.revealedAt;
         duel.shown = { home: S.snapshotSide(duel.home), guest: S.snapshotSide(duel.guest) };
         var revealedIdx = parseInt(btn.getAttribute('data-duel'), 10);
         var revealedApp = btn.getAttribute('data-app');
@@ -1412,6 +1551,25 @@
           if (next && !wasCorrection) next.focus();
           toast(wasCorrection ? 'Korrektur wird auf der Anzeigetafel gezeigt' : 'Wertung wird auf der Anzeigetafel gezeigt');
         });
+        break;
+      case 'toggle-board':
+        // Erstes Einschalten öffnet das Tafel-Fenster; danach wechselt die Tafel zwischen Anzeige und Ruhebild.
+        m.display = m.display || {};
+        var winOpen = state.boardWin && !state.boardWin.closed;
+        if (!winOpen) {
+          state.boardWin = window.open(location.href.split('#')[0] + '#/match/' + m.id + '/board', 'anzeigetafel-' + m.id);
+          m.display.board = true;
+        } else {
+          m.display.board = !boardOn(m);
+        }
+        save('matches', m).then(function () { refreshDisplayButtons(m); });
+        refreshDisplayButtons(m);
+        break;
+      case 'toggle-scorers':
+        m.display = m.display || {};
+        m.display.scorers = !m.display.scorers;
+        save('matches', m).then(function () { refreshDisplayButtons(m); });
+        refreshDisplayButtons(m);
         break;
       case 'fall-timer':
         if (!m || m.status === 'final') return;
