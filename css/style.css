@@ -445,7 +445,7 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
 .rules-table { max-width: 420px; margin-bottom: .75rem; }
 
 /* Startseite */
-body.no-league .topbar nav, body.no-league .app-version { visibility: hidden; }
+body.no-league .topbar nav { visibility: hidden; }
 .start { max-width: 720px; margin: 2rem auto; text-align: center; }
 .start h1 { margin: .5rem 0 .25rem; font-size: 2rem; }
 .start-logo { border-radius: 20px; }

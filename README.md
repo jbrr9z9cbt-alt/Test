@@ -98,9 +98,17 @@ Die Regeln sind in der App **nicht änderbar** (unter „Daten & Regeln“ nur a
 - **Dauerhafter Speicher**: die App fordert beim Browser an, dass die Daten nicht automatisch gelöscht werden.
 - **Automatische Sicherungspunkte**: die letzten 30 Stände werden aufbewahrt und lassen sich wiederherstellen.
   Vor Import, Wiederherstellung und Löschen wird immer zuerst gesichert.
-- **Export/Import** als JSON-Datei. Nach dem Abschließen eines Wettkampfs fragt die App (Ja/Nein), ob gleich
-  eine Sicherung erstellt werden soll – die Daten bleiben aber auch ohne diese Sicherung gespeichert. Ältere, verschlüsselt exportierte Dateien lassen sich weiterhin
+- **Export/Import** als JSON-Datei, wahlweise
+  - **Gesamtsicherung** (`wtb-oberliga_GESAMTSICHERUNG_<Datum>_<Uhrzeit>.json`): alle Mannschaften,
+    Turnernamen und Wettkämpfe; beim Import werden alle Daten ersetzt.
+  - **Einzelner Wettkampf** (`wtb-oberliga_EINZELWETTKAMPF_<Datum>_<Heim>_<Gast>.json`): nur dieser
+    Wettkampf; beim Import wird er hinzugefügt bzw. ersetzt nur denselben Wettkampf, alles andere bleibt.
+
+  Nach dem Abschließen eines Wettkampfs fragt die App „Nur diesen Wettkampf“ / „Alles sichern“ / „Nein“ –
+  die Daten bleiben auch ohne diese Sicherung gespeichert. Ältere, verschlüsselt exportierte Dateien lassen sich weiterhin
   importieren (die App fragt dann nach dem Passwort).
+- **Alle Wettkämpfe löschen** entfernt nur die Wettkämpfe; Mannschaften und Turnernamen
+  (auch eigene Korrekturen) bleiben erhalten.
 - **Offline-fähig (PWA)**: ein Service Worker hält die App im Cache. Nach dem ersten Aufruf
   funktioniert sie ohne Internet und lässt sich als App installieren („Zum Startbildschirm hinzufügen“).
 - **Updates**: Die App sucht beim Start und alle 30 Minuten (wenn online) nach einer neuen Version,

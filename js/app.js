@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '16';
+  var APP_BUILD = '17';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -122,29 +122,38 @@
     setTimeout(function () { item.remove(); }, kind === 'error' ? 6000 : 3000);
   }
 
-  /** Abfrage mit den Antworten „Ja“ und „Nein“ (Escape = Nein). */
-  function askYesNo(title, text, hint) {
+  /**
+   * Abfrage mit frei wählbaren Antworten. buttons: [{ value, label, primary }].
+   * Escape liefert die Antwort des letzten Knopfs.
+   */
+  function askChoice(title, text, hint, buttons) {
     return new Promise(function (resolve) {
       var wrap = document.createElement('div');
       wrap.className = 'modal-backdrop';
       wrap.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">' +
         '<h3 id="modal-title">' + esc(title) + '</h3><p>' + esc(text) + '</p>' + (hint ? '<p class="muted small">' + esc(hint) + '</p>' : '') +
-        '<div class="actions"><button type="button" class="btn primary" data-answer="yes">Ja</button>' +
-        '<button type="button" class="btn" data-answer="no">Nein</button></div></div>';
+        '<div class="actions wrap">' + buttons.map(function (b, n) {
+          return '<button type="button" class="btn' + (b.primary ? ' primary' : '') + '" data-answer="' + n + '">' + esc(b.label) + '</button>';
+        }).join('') + '</div></div>';
       document.body.appendChild(wrap);
-      function close(answer) {
+      function close(n) {
         document.removeEventListener('keydown', onKey, true);
         wrap.remove();
-        resolve(answer);
+        resolve(buttons[n].value);
       }
-      function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(false); } }
+      function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(buttons.length - 1); } }
       wrap.addEventListener('click', function (e) {
         var b = e.target.closest('[data-answer]');
-        if (b) close(b.getAttribute('data-answer') === 'yes');
+        if (b) close(parseInt(b.getAttribute('data-answer'), 10));
       });
       document.addEventListener('keydown', onKey, true);
-      wrap.querySelector('[data-answer="yes"]').focus();
+      wrap.querySelector('[data-answer="0"]').focus();
     });
+  }
+
+  /** Abfrage mit den Antworten „Ja“ und „Nein“ (Escape = Nein). */
+  function askYesNo(title, text, hint) {
+    return askChoice(title, text, hint, [{ value: true, label: 'Ja', primary: true }, { value: false, label: 'Nein' }]);
   }
 
   function download(filename, text) {
@@ -179,12 +188,29 @@
     };
   }
 
-  /** Sicherungsdatei aller Daten herunterladen; nach einem Wettkampf mit dessen Datum und Mannschaften im Namen. */
-  function exportBackup(m) {
-    var slug = function (t) { return String(t).toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, ''); };
-    var name = 'wtb-oberliga-sicherung-' + (m ? (m.date || '') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) : stamp()) + '.json';
-    download(name, JSON.stringify(exportData(), null, 2));
-    toast('Sicherung erstellt');
+  var MATCH_FORMAT = 'turnwettkampf-match';
+
+  function slug(t) { return String(t).toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, ''); }
+
+  /** Gesamtsicherung: alle Mannschaften, Turnernamen und Wettkämpfe. */
+  function exportBackup() {
+    download('wtb-oberliga_GESAMTSICHERUNG_' + stamp() + '.json', JSON.stringify(exportData(), null, 2));
+    toast('Gesamtsicherung erstellt');
+  }
+
+  /** Einzelsicherung: nur ein Wettkampf (mit den Mannschaftsnamen zur Kontrolle). */
+  function exportMatch(m) {
+    var data = {
+      format: MATCH_FORMAT,
+      version: APP_VERSION,
+      exportedAt: new Date().toISOString(),
+      league: LEAGUE,
+      teams: { home: teamName(m.homeTeamId), guest: teamName(m.guestTeamId) },
+      match: S.clone(m)
+    };
+    download('wtb-oberliga_EINZELWETTKAMPF_' + (m.date || 'ohne-datum') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) + '.json',
+      JSON.stringify(data, null, 2));
+    toast('Wettkampf gesichert');
   }
 
   function scheduleSnapshot() {
@@ -1379,13 +1405,21 @@
       'Für Sicherheit gegen Geräteverlust bitte regelmäßig eine Sicherungsdatei exportieren (z. B. auf einen USB-Stick).</p>' +
       '<div id="data-storage" class="muted">wird geprüft …</div>' +
       '<h3>Exportieren</h3>' +
-      '<div class="actions wrap"><button class="btn primary" data-action="export">Sicherung exportieren</button></div>' +
-      '<p class="muted small">Die Sicherungsdatei (JSON) enthält alle Mannschaften, Turnernamen und Wettkämpfe.</p>' +
+      '<div class="actions wrap"><button class="btn primary" data-action="export">Alles sichern</button></div>' +
+      '<p class="muted small">Gesamtsicherung mit allen Mannschaften, Turnernamen und Wettkämpfen – Dateiname beginnt mit <b>wtb-oberliga_GESAMTSICHERUNG_</b>.</p>' +
+      (state.matches.length
+        ? '<div class="actions wrap"><select id="export-match-select" aria-label="Wettkampf auswählen">' +
+          state.matches.map(function (m) {
+            return '<option value="' + esc(m.id) + '">' + esc(fmtDate(m.date) + ' – ' + teamName(m.homeTeamId) + ' : ' + teamName(m.guestTeamId)) + '</option>';
+          }).join('') + '</select><button class="btn" data-action="export-match">Einzelnen Wettkampf sichern</button></div>' +
+          '<p class="muted small">Enthält nur den gewählten Wettkampf – Dateiname beginnt mit <b>wtb-oberliga_EINZELWETTKAMPF_</b>.</p>'
+        : '') +
       '<h3>Importieren / Wiederherstellen</h3>' +
       '<form class="stack" data-form="import">' +
       '<input type="file" name="file" accept=".json,application/json" required>' +
-      '<div class="actions"><button class="btn" type="submit">Importieren (ersetzt alle Daten)</button></div></form>' +
-      '<p class="muted small">Vor jedem Import wird automatisch ein Sicherungspunkt des aktuellen Stands angelegt.</p>' +
+      '<div class="actions"><button class="btn" type="submit">Importieren</button></div></form>' +
+      '<p class="muted small">Eine Gesamtsicherung ersetzt alle Daten. Ein einzelner Wettkampf wird hinzugefügt bzw. ersetzt nur denselben Wettkampf – alles andere bleibt unverändert. ' +
+      'Vor jedem Import wird automatisch ein Sicherungspunkt des aktuellen Stands angelegt.</p>' +
       '<h3>Automatische Sicherungspunkte</h3><div id="snapshots" class="muted">wird geladen …</div>' +
       '</section>' +
 
@@ -1402,9 +1436,9 @@
       '<li>E-Note: mit neutralem E2 10 − Mittelwert der Abzüge, mit drei E-Kampfrichtern 10 − mittlerer Abzug.</li>' +
       '<li>Standbonus +0,1 (nicht am Pauschenpferd).</li></ul></section>' +
 
-      '<section class="card"><h2>Alle Daten löschen</h2>' +
-      '<p class="muted">Löscht alle Wettkämpfe, Turnernamen und gewählten Farben auf diesem Gerät. Die festen Mannschaften bleiben bestehen. Ein Sicherungspunkt wird vorher angelegt.</p>' +
-      '<button class="btn danger" data-action="wipe">Alle Daten löschen …</button></section>';
+      '<section class="card"><h2>Alle Wettkämpfe löschen</h2>' +
+      '<p class="muted">Löscht alle Wettkämpfe auf diesem Gerät. Mannschaften und Turnernamen (einschließlich eigener Korrekturen) bleiben erhalten. Ein Sicherungspunkt wird vorher angelegt.</p>' +
+      '<button class="btn danger" data-action="wipe">Alle Wettkämpfe löschen …</button></section>';
   }
 
   function refreshDataView() {
@@ -1444,6 +1478,29 @@
     }).then(function () {
       if (channel) channel.postMessage({ type: 'changed' });
       render();
+    });
+  }
+
+  /** Einzelnen Wettkampf einlesen: ergänzt ihn oder ersetzt nur denselben Wettkampf. */
+  function importMatch(data) {
+    var m = data.match;
+    if (!m || !m.id || !m.apparatus || !m.rules) throw new Error('Datei enthält keinen gültigen Wettkampf.');
+    var exists = state.matches.some(function (x) { return x.id === m.id; });
+    var label = fmtDate(m.date) + ' (' + ((data.teams && data.teams.home) || teamName(m.homeTeamId)) + ' – ' + ((data.teams && data.teams.guest) || teamName(m.guestTeamId)) + ')';
+    var question = exists
+      ? 'Der Wettkampf vom ' + label + ' ist bereits vorhanden. Durch den Stand aus der Datei ersetzen? Alle anderen Daten bleiben unverändert.'
+      : 'Wettkampf vom ' + label + ' hinzufügen? Alle anderen Daten bleiben unverändert.';
+    if (!confirm(question)) return Promise.resolve();
+    return takeSnapshot('vor Import eines Wettkampfs').then(function () {
+      migrateMatch(m);
+      return DB.put('matches', S.clone(m));
+    }).then(loadAll).then(function () {
+      dirty = true;
+      return takeSnapshot('nach Import eines Wettkampfs');
+    }).then(function () {
+      if (channel) channel.postMessage({ type: 'changed' });
+      render();
+      toast(exists ? 'Wettkampf ersetzt' : 'Wettkampf hinzugefügt');
     });
   }
 
@@ -1589,6 +1646,7 @@
         }
         return obj;
       }).then(function (data) {
+        if (data && data.format === MATCH_FORMAT) return importMatch(data);
         validateBackup(data);
         if (!confirm('Import ersetzt alle aktuellen Daten durch ' + data.teams.length + ' Mannschaften und ' + data.matches.length + ' Wettkämpfe. Fortfahren?')) return;
         return restoreData(data, 'Import').then(function () { toast('Import erfolgreich'); });
@@ -1619,9 +1677,13 @@
           takeSnapshot('Wettkampf abgeschlossen');
           render();
           toast('Wettkampf abgeschlossen');
-          askYesNo('Sicherung erstellen?', 'Der Wettkampf ist abgeschlossen. Soll jetzt eine Sicherungsdatei erstellt werden?',
-            'Hinweis: Alle Daten bleiben auch ohne diese Sicherung in der App auf diesem Gerät gespeichert.')
-            .then(function (yes) { if (yes) exportBackup(m); });
+          askChoice('Sicherung erstellen?', 'Der Wettkampf ist abgeschlossen. Soll jetzt eine Sicherungsdatei erstellt werden?',
+            'Hinweis: Alle Daten bleiben auch ohne diese Sicherung in der App auf diesem Gerät gespeichert.',
+            [{ value: 'match', label: 'Nur diesen Wettkampf', primary: true }, { value: 'all', label: 'Alles sichern' }, { value: null, label: 'Nein' }])
+            .then(function (choice) {
+              if (choice === 'match') exportMatch(m);
+              else if (choice === 'all') exportBackup();
+            });
         });
         break;
       case 'reopen':
@@ -1730,9 +1792,14 @@
       case 'export':
         exportBackup();
         break;
+      case 'export-match':
+        var sel = document.getElementById('export-match-select');
+        var em = sel && match(sel.value);
+        if (em) exportMatch(em);
+        break;
       case 'export-snap':
         DB.getSnapshot(parseInt(btn.getAttribute('data-snap'), 10)).then(function (s) {
-          if (s) download('wtb-oberliga-sicherungspunkt-' + s.id + '.json', JSON.stringify(s.data, null, 2));
+          if (s) download('wtb-oberliga_GESAMTSICHERUNG_sicherungspunkt-' + s.id + '.json', JSON.stringify(s.data, null, 2));
         });
         break;
       case 'restore':
@@ -1745,7 +1812,7 @@
       case 'wipe':
         var answer = prompt('Zum Bestätigen bitte LÖSCHEN eingeben:');
         if (answer !== 'LÖSCHEN') return;
-        restoreData({ teams: [], matches: [], meta: [state.settings] }, 'Löschen aller Daten').then(function () { toast('Alle Daten gelöscht'); });
+        restoreData({ teams: S.clone(state.teams), matches: [], meta: [state.settings] }, 'Löschen aller Wettkämpfe').then(function () { toast('Alle Wettkämpfe gelöscht'); });
         break;
     }
   });
