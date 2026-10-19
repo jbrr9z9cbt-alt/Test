@@ -1,4 +1,4 @@
-/* WTB-Oberliga – Oberfläche und Ablaufsteuerung */
+/* WTB-Liga – Oberfläche und Ablaufsteuerung */
 (function () {
   'use strict';
 
@@ -7,13 +7,14 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '12';
+  var APP_BUILD = '13';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
   var WARMUP_MS = 4 * 60 * 1000;   // Einturnzeit je Gerät
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
   var LEAGUE = CFG.league || '';
+  var APP_NAME = 'WTB-Liga';
 
   // Feste Mannschaftsfarben; "onDark" ist der hellere Ton für die dunkle Anzeigetafel.
   var COLORS = [
@@ -238,12 +239,15 @@
     var teams = CFG.teams.map(function (c) {
       known[c.id] = true;
       var s = byId[c.id] || {};
+      // Gespeicherte Änderungen gelten nur, solange die vorgegebene Turnerliste gleich geblieben ist.
+      var useStored = s.rosterVersion === CFG.rosterVersion;
+      var preset = c.gymnasts || {};
       var gymnasts = [];
       for (var n = 1; n <= CFG.gymnastsPerTeam; n++) {
-        var old = (s.gymnasts || []).filter(function (g) { return g.number === n; })[0];
-        gymnasts.push({ id: c.id + '-' + n, number: n, name: old ? old.name : '' });
+        var old = useStored ? (s.gymnasts || []).filter(function (g) { return g.number === n; })[0] : null;
+        gymnasts.push({ id: c.id + '-' + n, number: n, name: old ? old.name : (preset[n] || '') });
       }
-      return { id: c.id, name: c.name, gymnasts: gymnasts };
+      return { id: c.id, name: c.name, rosterVersion: CFG.rosterVersion, gymnasts: gymnasts };
     });
     stored.forEach(function (t) { if (!known[t.id] && t.name) state.legacyTeamNames[t.id] = t.name; });
     return teams;
@@ -298,7 +302,7 @@
 
   function route() {
     var parts = (location.hash.replace(/^#\/?/, '') || '').split('/');
-    return { name: parts[0] || 'home', id: parts[1], sub: parts[2] };
+    return { name: parts[0] || 'start', id: parts[1], sub: parts[2] };
   }
 
   var keepScroll = false;
@@ -309,6 +313,11 @@
     document.querySelectorAll('.topbar nav a').forEach(function (a) {
       a.classList.toggle('active', a.getAttribute('data-route') === r.name);
     });
+    // Auf der Startseite und im Landesliga-Bereich gibt es keine Oberliga-Navigation.
+    var inOberliga = r.name !== 'start' && r.name !== 'landesliga';
+    document.body.classList.toggle('no-league', !inOberliga);
+    var ln = document.getElementById('league-name');
+    if (ln) ln.textContent = r.name === 'landesliga' ? 'WTB-Landesliga' : inOberliga ? LEAGUE : APP_NAME;
     var html;
     switch (r.name) {
       case 'teams': html = viewTeams(); break;
@@ -320,14 +329,16 @@
         html = r.sub === 'board' ? viewBoard(m) : r.sub === 'print' ? viewPrint(m) : viewMatch(m);
         break;
       case 'data': html = viewData(); break;
-      default: html = viewHome();
+      case 'oberliga': html = viewHome(); break;
+      case 'landesliga': html = viewLandesliga(); break;
+      default: html = viewStart();
     }
     $app.innerHTML = (state.persistent ? '' : warningBanner()) + html;
     if (r.name === 'data') refreshDataView();
     var mf = $app.querySelector('form[data-form="match"]');
     if (mf) syncJudgeFields(mf);
     if (r.name === 'match' && r.sub === 'print') fitPrintToA4();
-    if (r.name === 'home') refreshStorageBox();
+    if (r.name === 'oberliga') refreshStorageBox();
     var isBoard = r.name === 'match' && r.sub === 'board' && match(r.id);
     if (isBoard) { checkBoardFlash(match(r.id)); fitBoard(); }
     else state.board = { matchId: null, lastReveal: '' };
@@ -342,8 +353,25 @@
       'Daten gehen beim Schließen verloren – bitte regelmäßig unter „Daten“ exportieren.</div>';
   }
 
+  // ---------- Startseite ----------
+
+  function viewStart() {
+    return '<section class="start">' +
+      '<img src="icons/icon.svg" alt="" width="96" height="96" class="start-logo">' +
+      '<h1>' + esc(APP_NAME) + '</h1><p class="muted">Bitte die Liga wählen</p>' +
+      '<div class="start-grid">' +
+      '<a class="start-tile" href="#/oberliga"><span class="st-title">Oberliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
+      '<a class="start-tile" href="#/landesliga"><span class="st-title">Landesliga</span><span class="st-sub">folgt in Kürze</span></a>' +
+      '</div></section>';
+  }
+
+  function viewLandesliga() {
+    return '<section class="card narrow"><h2>Landesliga</h2><p class="muted">Dieser Bereich wird später ergänzt.</p>' +
+      '<a class="btn" href="#/">← Zur Startseite</a></section>';
+  }
+
   function notFound() {
-    return '<section class="card"><h2>Nicht gefunden</h2><p>Dieser Wettkampf existiert nicht (mehr).</p><a class="btn" href="#/">Zur Übersicht</a></section>';
+    return '<section class="card"><h2>Nicht gefunden</h2><p>Dieser Wettkampf existiert nicht (mehr).</p><a class="btn" href="#/oberliga">Zur Übersicht</a></section>';
   }
 
   // ---------- Ansicht: Übersicht ----------
@@ -469,7 +497,7 @@
       '</fieldset>' +
 
       '<div class="actions"><button class="btn primary" type="submit">' + (isNew ? 'Anlegen' : 'Speichern') + '</button>' +
-      '<a class="btn ghost" href="' + (m ? '#/match/' + m.id : '#/') + '">Abbrechen</a></div>' +
+      '<a class="btn ghost" href="' + (m ? '#/match/' + m.id : '#/oberliga') + '">Abbrechen</a></div>' +
       '</form></section>';
   }
 
@@ -632,8 +660,10 @@
     var found = false;
     (t ? t.gymnasts : []).forEach(function (g) {
       if (g.id === side.gymnastId) found = true;
+      // Der eingesetzte Turner erscheint mit dem im Wettkampf gespeicherten Namen (bleibt nach Listen-Updates gleich).
+      var label = g.id === side.gymnastId && side.name ? side.name : (g.name || '(ohne Name)');
       opts += '<option value="' + g.id + '"' + (g.id === side.gymnastId ? ' selected' : '') + (used[g.id] ? ' disabled' : '') + '>' +
-        esc(gymnastLabel(g.number, g.name || '(ohne Name)')) + (used[g.id] ? ' (bereits eingesetzt)' : '') + '</option>';
+        esc(gymnastLabel(g.number, label)) + (used[g.id] ? ' (bereits eingesetzt)' : '') + '</option>';
     });
     if (side.gymnastId && !found) opts += '<option value="' + esc(side.gymnastId) + '" selected>' + esc(gymnastLabel(side.number, side.name)) + '</option>';
     return '<select ' + fieldAttrs(appKey, idx, sideKey, 'gymnast') + (locked ? ' disabled' : '') + ' aria-label="Turner">' + opts + '</select>';
@@ -942,7 +972,7 @@
     return '<div class="cd-side" style="--team:' + c.onDark + '">' +
       '<div class="cd-name">' + esc(gymnastLabel(s.number, s.name) || '–') +
       (s.dns ? ' <span class="cd-tag">nicht angetreten</span>' : s.zero ? ' <span class="cd-tag">Wertung 0,00</span>' : '') + '</div>' +
-      '<div class="cd-row"><span>D-Note</span><strong>' + cell(dText(s), p ? dText(p) : undefined) + '</strong></div>' +
+      '<div class="cd-row"><span>D-Note' + (s.bonus && !out ? ' <small class="sb">+SB</small>' : '') + '</span><strong>' + cell(dText(s), p ? dText(p) : undefined) + '</strong></div>' +
       '<div class="cd-row"><span>E-Note</span><strong>' + cell(eText(s), p ? eText(p) : undefined) + '</strong></div>' +
       '<div class="cd-row nd' + (nd || ndBefore ? '' : ' empty') + '"><span>Neutr. Abzug</span><strong>' + cell(nd || '–', ndBefore === undefined ? undefined : (ndBefore || '–')) + '</strong></div>' +
       '<div class="cd-final' + (won ? ' win' : '') + '"><span>Endnote</span><strong>' +
@@ -1370,7 +1400,7 @@
 
   function validateBackup(data) {
     if (!data || data.format !== 'turnwettkampf-backup' || !Array.isArray(data.teams) || !Array.isArray(data.matches)) {
-      throw new Error('Keine gültige WTB-Oberliga-Sicherungsdatei.');
+      throw new Error('Keine gültige WTB-Liga-Sicherungsdatei.');
     }
     data.matches.forEach(function (m) {
       if (!m.id || !m.apparatus || !m.rules) throw new Error('Sicherungsdatei enthält ungültige Wettkampfdaten.');
@@ -1576,7 +1606,7 @@
         takeSnapshot('vor Löschen eines Wettkampfs').then(function () {
           state.matches = state.matches.filter(function (x) { return x.id !== m.id; });
           return remove('matches', m.id);
-        }).then(function () { location.hash = '#/'; toast('Wettkampf gelöscht'); });
+        }).then(function () { location.hash = '#/oberliga'; toast('Wettkampf gelöscht'); });
         break;
       case 'reveal':
         var duel = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
@@ -1719,7 +1749,7 @@
   });
 
   var leagueEl = document.getElementById('league-name');
-  if (leagueEl) leagueEl.textContent = LEAGUE;
+  if (leagueEl) leagueEl.textContent = APP_NAME;
   var versionEl = document.getElementById('app-version');
   if (versionEl) versionEl.textContent = 'Version ' + APP_BUILD;
 

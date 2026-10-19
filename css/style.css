@@ -306,7 +306,7 @@ body.board-mode .update-banner { display: none; }
 .cd-row, .cd-final { display: flex; justify-content: space-between; gap: 1rem; font-variant-numeric: tabular-nums; }
 .cd-row span, .cd-final span { color: #a3a3a3; }
 .cd-row.nd strong { color: #fca5a5; }
-.cd-row strong small { color: #86efac; font-size: .8em; }
+.cd-row strong small, .cd-row span small.sb { color: #86efac; font-size: .8em; font-weight: 700; }
 .cd-row.nd.empty { visibility: hidden; }
 .cd-tag { font-size: .65em; color: #a3a3a3; font-weight: 600; text-transform: uppercase; }
 .cur-duel { position: relative; }
@@ -438,3 +438,16 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
 }
 
 .rules-table { max-width: 420px; margin-bottom: .75rem; }
+
+/* Startseite */
+body.no-league .topbar nav, body.no-league .app-version { visibility: hidden; }
+.start { max-width: 720px; margin: 2rem auto; text-align: center; }
+.start h1 { margin: .5rem 0 .25rem; font-size: 2rem; }
+.start-logo { border-radius: 20px; }
+.start-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+.start-tile { display: flex; flex-direction: column; gap: .4rem; padding: 2rem 1rem; border-radius: 14px; background: var(--card);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08); text-decoration: none; color: var(--text); border: 2px solid transparent; }
+.start-tile:hover, .start-tile:focus-visible { border-color: var(--primary); }
+.st-title { font-size: 1.6rem; font-weight: 800; }
+.st-sub { color: var(--muted); font-size: .9rem; }
+@media (max-width: 560px) { .start-grid { grid-template-columns: 1fr; } }

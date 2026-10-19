@@ -1,6 +1,6 @@
 {
-  "name": "WTB-Oberliga – Gerätturnen männlich",
-  "short_name": "WTB-Oberliga",
+  "name": "WTB-Liga – Gerätturnen männlich",
+  "short_name": "WTB-Liga",
   "description": "Offline-Wettkampfverwaltung für Gerätturnen männlich mit Scoresystem nach DTL-Vorbild",
   "lang": "de",
   "start_url": "./",
