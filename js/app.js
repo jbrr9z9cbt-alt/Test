@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '22';
+  var APP_BUILD = '23';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -785,24 +785,28 @@
     var key = appKey + '-' + idx + '-' + sideKey;
     var three = S.eJudgeCount(m.rules) === 3;
     var bonusAllowed = appKey !== S.NO_BONUS_APPARATUS;
+    var eCols = three ? 3 : 2, dCols = bonusAllowed ? 3 : 2;
     var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"';
     return '<div class="side ' + sideKey + (position === 1 ? ' first' : ' second') + (side.dns ? ' dns' : '') + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
       (position === 1 ? '<span class="lead-tag">vorlegend</span>' : '') +
       '<div class="side-head"><span class="order-no" title="Startreihenfolge im Duell">' + position + '.</span>' +
       '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked || side.dns) + '</div>' +
-      '<div class="score-row" style="grid-template-columns:repeat(' + ((three ? 5 : 4) + (bonusAllowed ? 1 : 0)) + ',minmax(0,1fr))">' +
+      // Zwei Bereiche: E-Kampfgericht (Abzüge) und D-Kampfgericht (D-Note, Standbonus, neutraler Abzug).
+      '<div class="score-row">' +
+      '<div class="score-grp" style="flex:' + eCols + ';grid-template-columns:repeat(' + eCols + ',minmax(0,1fr))"><div class="grp-title">E-Kampfgericht</div>' +
       scoreInput(appKey, idx, sideKey, 'e1', side.e1, dis, 'Abzüge E1') +
       scoreInput(appKey, idx, sideKey, 'e2', side.e2, dis, 'Abzüge E2') +
-      (three ? scoreInput(appKey, idx, sideKey, 'e3', side.e3, dis, 'Abzüge E3') : '') +
+      (three ? scoreInput(appKey, idx, sideKey, 'e3', side.e3, dis, 'Abzüge E3') : '') + '</div>' +
+      '<div class="score-grp" style="flex:' + dCols + ';grid-template-columns:repeat(' + dCols + ',minmax(0,1fr))"><div class="grp-title">D-Kampfgericht</div>' +
       scoreInput(appKey, idx, sideKey, 'd', side.d, dis, 'D-Note') +
       (bonusAllowed ? '<label class="score-field bonus-field"><span>Standbonus</span><span class="bonus-box"><input type="checkbox" ' +
         fieldAttrs(appKey, idx, sideKey, 'bonus') + (side.bonus ? ' checked' : '') + (dis ? ' disabled' : '') + '> +0,1</span></label>' : '') +
       scoreInput(appKey, idx, sideKey, 'nd', side.nd, dis, 'Neutr. Abzug') +
-      '</div>' +
+      '</div></div>' +
       '<div class="result-row">' +
-      '<span>E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</strong></span>' +
-      '<span class="final">Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
+      '<span style="flex:' + eCols + '">E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</strong></span>' +
+      '<span class="final" style="flex:' + dCols + '">Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
       '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked ? ' disabled' : '') + '> nicht angetreten</label>' +
       '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') + (locked || side.dns ? ' disabled' : '') + '> Wertung 0,00 (angetreten)</label>' +
