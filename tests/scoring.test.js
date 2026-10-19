@@ -107,6 +107,31 @@ test('Startreihenfolge: je 2 Duelle im Block, Gerät für Gerät gewechselt', ()
   assert.deepEqual(S.startOrder({}, 'PH', 0), ['guest', 'home']);
 });
 
+test('Wertung 0: angetreten, Endnote 0,00; D-Note 0 rechnet normal', () => {
+  const s = Object.assign(S.emptySide(), { d: 0, e1: 2000, e2: 2000 });
+  assert.equal(S.sideFinal(s, rules), 8000, 'D-Note 0 mit normalen Abzügen');
+  s.zero = true;
+  assert.equal(S.sideFinal(s, rules), 0);
+  const z = Object.assign(S.emptySide(), { zero: true });
+  assert.equal(S.sideFinal(z, rules), 0, 'auch ohne weitere Eingaben gewertet');
+});
+
+test('Topscorer: drei Plätze, bei Gleichstand mehr mit korrekter Platzierung', () => {
+  const pts = [5, 5, 3, 2, 2, 1];
+  const m = { rules: S.clone(rules), apparatus: {} };
+  S.APPARATUS.forEach((a) => { m.apparatus[a.key] = { duels: [] }; });
+  // Je Turner ein Duell am Boden mit passendem Vorsprung (Scorepunkte 5/3/2/1)
+  const lead = { 5: '3,5', 3: '1,5', 2: '0,5', 1: '0,2' };
+  pts.forEach((p, i) => m.apparatus.FX.duels.push({
+    home: side(String(4 + Number(lead[p].replace(',', '.'))).replace('.', ','), '8', 0, { gymnastId: 'H' + i, name: 'H' + i }),
+    guest: side('4', '8', 0, { gymnastId: 'G' + i, name: 'G' + i })
+  }));
+  const top = S.topScorers(m);
+  assert.deepEqual(top.map((x) => [x.rank, x.points]), [[1, 5], [1, 5], [3, 3]]);
+  m.apparatus.FX.duels.splice(2, 1); // ohne den 3-Punkte-Turner: Platz 3 teilen sich zwei
+  assert.deepEqual(S.topScorers(m).map((x) => [x.rank, x.points]), [[1, 5], [1, 5], [3, 2], [3, 2]]);
+});
+
 test('Scorepunkte nach WTB-Oberliga-Scoresystem', () => {
   const p = (diff) => S.pointsForDiff(S.parseScore(diff), rules.thresholds);
   assert.equal(p('0'), 0);

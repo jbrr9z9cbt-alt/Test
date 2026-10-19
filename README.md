@@ -19,6 +19,16 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
   In der Erfassung steht der **vorlegende Turner** links (bzw. oben auf schmalen Bildschirmen) und ist markiert;
   im Protokoll ist er fett mit ▶/◀ gekennzeichnet. Auf der Anzeigetafel bleiben Heim links und Gast rechts.
 - **Zahlenformat**: D-Note, E-Abzüge und neutraler Abzug mit einer Nachkommastelle, E-Note und Endnote mit zwei.
+- **Eingabeboxen** zeigen den Mannschaftsnamen; die Scorepunkte des Duells erscheinen als einzelne Zahl in der
+  Farbe der Mannschaft, die das Duell gewonnen hat (unentschieden: graue 0).
+- **Nicht angetreten** löscht Turner und bereits eingegebene Wertungen dieser Übung (nach Rückfrage).
+- **Wertung 0,00 (angetreten)** gibt einem angetretenen Turner die Endnote 0; eine D-Note 0 wird dagegen ganz normal
+  mit den Abzügen berechnet.
+- **Sturz-Timer** an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“.
+  **Einturn-Timer** je Gerät: 4:00. Beide laufen im Knopf und in der Anzeigetafel, verschwinden nach Ablauf
+  und lassen sich mit erneutem Druck jederzeit beenden.
+- **Scorepunkte** werden überall in der Farbe der jeweiligen Mannschaft angezeigt; eine Notensumme gibt es nicht.
+- **Topscorer** (App und Protokoll): die ersten drei Plätze, bei Gleichstand entsprechend mehr (z. B. 1., 1., 3.).
 - **Duell-Erfassung** je Gerät: D-Note, E-Abzüge, neutraler Abzug, Standbonus → Endnote; „nicht angetreten“ zählt 0,000
   - **E-Note mit neutralem E2: 10 − Mittelwert von E1 und E2**
   - **E-Note mit drei E-Kampfrichtern: höchster und niedrigster Abzug gestrichen, 10 − mittlerer Abzug**
@@ -29,7 +39,6 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
     und zuletzt „Wertung anzeigen“ (unter der zweiten Übung); Enter wirkt wie Tab;
     Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten (nie unter 0)
 - **Automatische Wertung**: Scorepunkte je Duell nach Notendifferenz, Gerätepunkte, Gesamtergebnis, Tabellenpunkte
-- **Scorer-Wertung** (bester Scorer des Wettkampfs)
 - **Anzeigetafel** für Beamer/Fernseher (zweites Fenster bzw. Tab auf demselben Gerät):
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung anzeigen“** gedrückt wird
   - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der

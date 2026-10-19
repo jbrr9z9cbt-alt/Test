@@ -89,7 +89,7 @@
   }
 
   function emptySide() {
-    return { gymnastId: null, number: null, name: '', d: null, e1: null, e2: null, e3: null, nd: 0, bonus: false, dns: false };
+    return { gymnastId: null, number: null, name: '', d: null, e1: null, e2: null, e3: null, nd: 0, bonus: false, zero: false, dns: false };
   }
 
   function emptyDuel() {
@@ -124,10 +124,13 @@
     return ded === null ? null : Math.max(0, 10000 - ded);
   }
 
-  /** Endnote = D + Standbonus + E − neutrale Abzüge; "nicht angetreten" zählt 0. null = noch offen. */
+  /**
+   * Endnote = D + Standbonus + E − neutrale Abzüge. "Nicht angetreten" und
+   * "Wertung 0" (angetreten, Endnote 0,00) zählen 0. null = noch offen.
+   */
   function sideFinal(side, rules) {
     if (!side) return null;
-    if (side.dns) return 0;
+    if (side.dns || side.zero) return 0;
     var e = eScore(side, rules);
     if (!isSet(side.d) || e === null) return null;
     return Math.max(0, side.d + (side.bonus ? STAND_BONUS : 0) + e - (side.nd || 0));
@@ -149,11 +152,11 @@
 
   // Werte, die auf der Anzeigetafel angezeigt werden. Ändert sich einer davon nach
   // dem Anzeigen, muss die Korrektur erst angezeigt werden.
-  var SHOWN_FIELDS = ['gymnastId', 'd', 'e1', 'e2', 'e3', 'nd', 'bonus', 'dns'];
+  var SHOWN_FIELDS = ['gymnastId', 'd', 'e1', 'e2', 'e3', 'nd', 'bonus', 'zero', 'dns'];
 
   function norm(field, v) {
     if (field === 'nd') return v || 0;
-    if (field === 'dns' || field === 'bonus') return !!v;
+    if (field === 'dns' || field === 'bonus' || field === 'zero') return !!v;
     return v === undefined ? null : v;
   }
 
@@ -323,6 +326,23 @@
       .sort(function (a, b) { return b.points - a.points || b.wins - a.wins || (a.number || 0) - (b.number || 0); });
   }
 
+  /**
+   * Topscorer: die ersten drei Plätze (nur Turner mit Scorepunkten). Bei
+   * Gleichstand teilen sich Turner den Platz (1, 1, 3 …) und es werden
+   * entsprechend mehr Turner aufgeführt.
+   */
+  function topScorers(match, places) {
+    var max = places || 3;
+    var list = scorers(match).filter(function (x) { return x.points > 0; });
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var rank = i > 0 && list[i].points === list[i - 1].points ? out[i - 1].rank : i + 1;
+      if (rank > max) break;
+      out.push(Object.assign({ rank: rank }, list[i]));
+    }
+    return out;
+  }
+
   /** Tabelle aus abgeschlossenen Wettkämpfen. */
   function leagueTable(matches) {
     var rows = {};
@@ -380,6 +400,7 @@
     apparatusResult: apparatusResult,
     matchResult: matchResult,
     scorers: scorers,
+    topScorers: topScorers,
     leagueTable: leagueTable
   };
 
