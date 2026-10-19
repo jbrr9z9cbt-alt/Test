@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '17';
+  var APP_BUILD = '18';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -1436,9 +1436,9 @@
       '<li>E-Note: mit neutralem E2 10 − Mittelwert der Abzüge, mit drei E-Kampfrichtern 10 − mittlerer Abzug.</li>' +
       '<li>Standbonus +0,1 (nicht am Pauschenpferd).</li></ul></section>' +
 
-      '<section class="card"><h2>Alle Wettkämpfe löschen</h2>' +
-      '<p class="muted">Löscht alle Wettkämpfe auf diesem Gerät. Mannschaften und Turnernamen (einschließlich eigener Korrekturen) bleiben erhalten. Ein Sicherungspunkt wird vorher angelegt.</p>' +
-      '<button class="btn danger" data-action="wipe">Alle Wettkämpfe löschen …</button></section>';
+      '<section class="card"><h2>Alle Daten löschen</h2>' +
+      '<p class="muted">Löscht alle Wettkämpfe und eigene Änderungen an den Turnernamen auf diesem Gerät. Die Mannschaften und die vorgegebenen Turner bleiben erhalten. Ein Sicherungspunkt wird vorher angelegt.</p>' +
+      '<button class="btn danger" data-action="wipe">Alle Daten löschen …</button></section>';
   }
 
   function refreshDataView() {
@@ -1812,7 +1812,7 @@
       case 'wipe':
         var answer = prompt('Zum Bestätigen bitte LÖSCHEN eingeben:');
         if (answer !== 'LÖSCHEN') return;
-        restoreData({ teams: S.clone(state.teams), matches: [], meta: [state.settings] }, 'Löschen aller Wettkämpfe').then(function () { toast('Alle Wettkämpfe gelöscht'); });
+        restoreData({ teams: [], matches: [], meta: [state.settings] }, 'Löschen aller Daten').then(function () { toast('Alle Daten gelöscht'); });
         break;
     }
   });
