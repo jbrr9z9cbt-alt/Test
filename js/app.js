@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '21';
+  var APP_BUILD = '22';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -1349,7 +1349,104 @@
     }
   }
 
-  setInterval(tickTimers, 250);
+  // ---------- Akustische Signale (Web Audio, ohne Tondateien – funktioniert offline) ----------
+  // Ende Einturnzeit: Schelle 5 s. Sturz-Timer: nach 30 s kurzer Doppelton, nach 60 s kurzer Fehlerton.
+  // Es tönt nur das Eingabefenster, nicht die Anzeigetafel (sonst käme jedes Signal doppelt).
+
+  var audioCtx = null;
+
+  function audio() {
+    if (!audioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      try { audioCtx = new AC(); } catch (e) { return null; }
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  // Browser geben Ton erst nach einer Bedienung frei – beim ersten Klick bzw. Tastendruck vorbereiten.
+  ['pointerdown', 'keydown'].forEach(function (type) {
+    document.addEventListener(type, function () { if (!document.body.classList.contains('board-mode')) audio(); }, true);
+  });
+
+  function tone(ctx, freq, type, start, dur, vol, out) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(vol, start + 0.01);
+    g.gain.setValueAtTime(vol, start + dur - 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    o.connect(g); g.connect(out || ctx.destination);
+    o.start(start); o.stop(start + dur + 0.02);
+  }
+
+  var SOUNDS = {
+    /** Elektrische Schelle: metallischer Klang, sehr schnell angeschlagen, 5 Sekunden. */
+    bell: function (ctx) {
+      var t0 = ctx.currentTime + 0.02, dur = 5;
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      for (var t = 0; t < dur; t += 0.05) {
+        g.gain.setValueAtTime(0.5, t0 + t);
+        g.gain.exponentialRampToValueAtTime(0.06, t0 + t + 0.045);
+      }
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.3);
+      g.connect(ctx.destination);
+      [[950, 0.5], [2204, 0.3], [4037, 0.15], [5600, 0.08]].forEach(function (p) {
+        var o = ctx.createOscillator(), og = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = p[0]; og.gain.value = p[1];
+        o.connect(og); og.connect(g);
+        o.start(t0); o.stop(t0 + dur + 0.35);
+      });
+    },
+    /** Kurzer, deutlicher Doppelton (Sturz-Timer nach 30 s). */
+    beep: function (ctx) {
+      var t0 = ctx.currentTime + 0.02;
+      tone(ctx, 1320, 'triangle', t0, 0.16, 0.6);
+      tone(ctx, 1320, 'triangle', t0 + 0.24, 0.16, 0.6);
+    },
+    /** Kurzer Fehlerton, zwei absteigende Töne (Sturz-Timer nach 60 s). */
+    error: function (ctx) {
+      var t0 = ctx.currentTime + 0.02;
+      var lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 2500; lp.connect(ctx.destination);
+      tone(ctx, 466, 'square', t0, 0.2, 0.25, lp);
+      tone(ctx, 311, 'square', t0 + 0.22, 0.4, 0.25, lp);
+    }
+  };
+
+  function playSound(name) {
+    if (window.WTB_SOUND_LOG) window.WTB_SOUND_LOG.push(name);
+    var ctx = audio();
+    if (ctx) SOUNDS[name](ctx);
+  }
+
+  var soundsPlayed = {};
+
+  /** Spielt jedes Signal genau einmal, wenn ein laufender Timer die jeweilige Grenze erreicht. */
+  function checkTimerSounds() {
+    if (document.body.classList.contains('board-mode')) return;
+    var now = Date.now();
+    state.matches.forEach(function (m) {
+      var tm = m.timers;
+      if (!tm) return;
+      [['warmup', WARMUP_MS, 'bell'], ['fall', FALL_PHASE_MS, 'beep'], ['fall', 2 * FALL_PHASE_MS, 'error']].forEach(function (c) {
+        var t = tm[c[0]];
+        if (!t) return;
+        var el = now - t.start;
+        var key = m.id + '|' + c[0] + '|' + t.start + '|' + c[1];
+        // Nur kurz nach dem Erreichen der Grenze (nicht beim späteren Öffnen der App).
+        if (el >= c[1] && el < c[1] + 3000 && !soundsPlayed[key]) {
+          soundsPlayed[key] = true;
+          playSound(c[2]);
+        }
+      });
+    });
+  }
+
+  setInterval(function () { tickTimers(); checkTimerSounds(); }, 250);
 
   // ---------- Ansicht: Protokoll ----------
 

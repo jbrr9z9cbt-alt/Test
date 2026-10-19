@@ -39,6 +39,8 @@ Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktio
   **Einturn-Timer** je Gerät: 4:00 (hellgrün). Beide laufen im Knopf und in der Anzeigetafel und lassen sich mit
   erneutem Druck jederzeit beenden. Nach Ablauf zeigt die Tafel „Einturnen beendet“ (10 s) bzw.
   „Übung beendet“ (5 s), leicht blinkend.
+- **Akustische Signale** (im Eingabefenster): Ende der Einturnzeit = Schelle 5 Sekunden; Sturz-Timer nach
+  30 s = kurzer Doppelton, nach 60 s = kurzer Fehlerton. Nach manuellem Stopp ertönt nichts.
 - **Scorepunkte** werden überall in der Farbe der jeweiligen Mannschaft angezeigt; eine Notensumme gibt es nicht.
 - **Topscorer** (App und Protokoll): die ersten drei Plätze, bei Gleichstand entsprechend mehr (z. B. 1., 1., 3.).
 - **Duell-Erfassung** je Gerät: D-Note, E-Abzüge, neutraler Abzug, Standbonus → Endnote; „nicht angetreten“ zählt 0,000
