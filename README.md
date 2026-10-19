@@ -1,12 +1,19 @@
-# WTB-Oberliga – Wettkampf-App Gerätturnen männlich (WTB-Oberliga)
+# WTB-Liga – Wettkampf-App Gerätturnen männlich
 
 Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätturnen männlich
 mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
 
-## Funktionen
+## Startseite
 
-- **7 feste Mannschaften** (Name und Standardfarbe in `js/config.js`, in der App nicht änderbar)
-- **20 Turner je Mannschaft** mit festen Startnummern 1–20; die Namen pflegen die Nutzer in der App
+Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktionen) oder **Landesliga**
+(Bereich folgt später).
+
+## Funktionen (Oberliga)
+
+- **7 feste Mannschaften** mit vorgegebenen Turnern (Startnummern 1–20) aus `js/config.js`
+- Der Ausrichter kann Turnernamen korrigieren und freie Startnummern belegen. Wird die vorgegebene
+  Turnerliste mit einem Update geändert (`rosterVersion`), gilt wieder der vorgegebene Stand –
+  bereits erfasste Wettkämpfe behalten ihre Namen.
 - **Mannschaftsfarben** werden beim Anlegen eines Wettkampfs gewählt – aus Rot, Blau, Orange, Hellgrau, Violett, Gelb und Grün
   (Heim und Gast verschieden)
 - **Wettkampf Heim gegen Gast** an den sechs olympischen Geräten
