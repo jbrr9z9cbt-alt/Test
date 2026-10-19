@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '13';
+  var APP_BUILD = '14';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -15,6 +15,8 @@
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
   var LEAGUE = CFG.league || '';
   var APP_NAME = 'WTB-Liga';
+  // Logo oben links im Wettkampfprotokoll (wird ergänzt, sobald es vorliegt).
+  var PRINT_LOGO = '';
 
   // Feste Mannschaftsfarben; "onDark" ist der hellere Ton für die dunkle Anzeigetafel.
   var COLORS = [
@@ -660,6 +662,8 @@
     var found = false;
     (t ? t.gymnasts : []).forEach(function (g) {
       if (g.id === side.gymnastId) found = true;
+      // Startnummern ohne Namen sind nicht auswählbar (außer sie sind bereits eingesetzt).
+      if (!g.name && g.id !== side.gymnastId) return;
       // Der eingesetzte Turner erscheint mit dem im Wettkampf gespeicherten Namen (bleibt nach Listen-Updates gleich).
       var label = g.id === side.gymnastId && side.name ? side.name : (g.name || '(ohne Name)');
       opts += '<option value="' + g.id + '"' + (g.id === side.gymnastId ? ' selected' : '') + (used[g.id] ? ' disabled' : '') + '>' +
@@ -832,14 +836,15 @@
       side.gymnastId = el.value || null;
       side.number = gy ? gy.number : null;
       side.name = gy ? gy.name : '';
-      var viaKeyboard = lastInputKeyboard;
+      var keepFocus = lastPointerType !== 'touch' && lastPointerType !== 'pen';
       el.blur();
       save('matches', m).then(function () {
         rerenderPanel(m);
-        // Per Tastatur gleich mit der D-Note weitermachen; bei Touch nichts fokussieren (iOS).
-        if (viaKeyboard) {
-          var e1 = $app.querySelector('input[data-app="' + appKey + '"][data-duel="' + idx + '"][data-side="' + sideKey + '"][data-field="e1"]:not([disabled])');
-          if (e1) e1.focus();
+        // Mit Maus oder Tastatur bleibt das Auswahlfeld aktiv (weiter mit Tab bzw. erneut Enter);
+        // bei Touch nicht fokussieren, sonst öffnet iOS die Auswahl sofort wieder.
+        if (keepFocus) {
+          var sel = $app.querySelector('select[data-app="' + appKey + '"][data-duel="' + idx + '"][data-side="' + sideKey + '"][data-field="gymnast"]');
+          if (sel) sel.focus();
         }
       });
       return;
@@ -1258,6 +1263,8 @@
     var r = S.matchResult(m);
     var three = S.eJudgeCount(m.rules) === 3;
     var head = ['D', 'SB', 'E1', 'E2'].concat(three ? ['E3'] : []).concat(['E', 'NA', 'End']);
+    var homeName = esc(teamName(m.homeTeamId)), guestName = esc(teamName(m.guestTeamId));
+    var running = { home: 0, guest: 0 };
     var j = m.judges || {}, cap = m.captains || {};
     var panel = '<div class="ps-panel"><div><strong>Kampfgericht:</strong> E1 (Oberkampfrichter) ' + esc(j.e1 || '–') +
       ' · E2 ' + (three ? '(Heim) ' : '(neutral) ') + esc(j.e2 || '–') + (three ? ' · E3 (Gast) ' + esc(j.e3 || '–') : '') +
@@ -1269,8 +1276,8 @@
       var ar = r.apparatus[a.key];
       return '<div class="print-app"><div class="pa-head"><strong>' + a.name + '</strong> <span>Scorepunkte ' + ptsPair(m, ar.homePoints, ar.guestPoints) +
         (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
-        '<table class="print-table"><thead><tr><th>Heim</th>' + head.map(function (h) { return '<th class="num">' + h + '</th>'; }).join('') +
-        '<th class="num sp">SP</th>' + head.slice().reverse().map(function (h) { return '<th class="num">' + h + '</th>'; }).join('') + '<th class="right">Gast</th></tr></thead><tbody>' +
+        '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + headCells(a.key, head) +
+        '<th class="num sp">SP</th>' + headCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
           function cells(s, reverse) {
@@ -1289,8 +1296,20 @@
           return '<tr>' + nameCell('home', false) + cells(d.home, false) +
             '<td class="num sp"><strong>' + (dr.complete ? ptsPair(m, dr.homePoints, dr.guestPoints) : '') + '</strong></td>' +
             cells(d.guest, true) + nameCell('guest', true) + '</tr>';
-        }).join('') + '</tbody></table></div>';
+        }).join('') + '</tbody></table>' + intermediate(a, ar) + '</div>';
     }).join('');
+
+    // Spaltenköpfe; am Pauschenpferd bleibt die SB-Spalte, aber ohne Überschrift.
+    function headCells(appKey, cols) {
+      return cols.map(function (h) { return '<th class="num">' + (h === 'SB' && appKey === S.NO_BONUS_APPARATUS ? '' : h) + '</th>'; }).join('');
+    }
+
+    // Zwischenstand nach Scorepunkten nach diesem Gerät.
+    function intermediate(a, ar) {
+      running.home += ar.homePoints;
+      running.guest += ar.guestPoints;
+      return '<div class="pa-inter">Zwischenstand nach ' + a.name + ': <strong>' + ptsPair(m, running.home, running.guest, false, ' : ') + '</strong></div>';
+    }
 
     var top = S.topScorers(m, 3);
     var scorerHtml = top.length ? '<table class="print-table scorer-table"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">SP</th></tr></thead><tbody>' +
@@ -1305,11 +1324,12 @@
     return '<div class="print-actions no-print"><a class="btn ghost" href="#/match/' + m.id + '">← zurück</a>' +
       '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>' +
       '<div class="print-page"><section class="print-sheet" id="print-sheet">' +
-      '<div class="ps-head"><div><div class="ps-league">' + esc(LEAGUE) + '</div><h2>Wettkampfprotokoll</h2></div>' +
-      '<div class="ps-meta">' + esc(teamName(m.homeTeamId)) + ' – ' + esc(teamName(m.guestTeamId)) + '<br>' + esc(fmtDate(m.date)) + '</div></div>' + panel +
-      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Punkte</th></tr></thead><tbody>' +
-      '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + pts(m, 'home', r.homePoints) + '</strong></td><td class="num">' + r.homeApp + '</td><td class="num">' + (r.complete ? r.homeMatch : '–') + '</td></tr>' +
-      '<tr><td>Gast</td><td>' + esc(teamName(m.guestTeamId)) + '</td><td class="num"><strong>' + pts(m, 'guest', r.guestPoints) + '</strong></td><td class="num">' + r.guestApp + '</td><td class="num">' + (r.complete ? r.guestMatch : '–') + '</td></tr>' +
+      '<div class="ps-head"><div class="ps-title">' + PRINT_LOGO +
+      '<div><div class="ps-league">' + esc(LEAGUE) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
+      '<div class="ps-meta"><strong>' + esc(teamName(m.homeTeamId)) + ' – ' + esc(teamName(m.guestTeamId)) + '</strong><br><strong>' + esc(fmtDate(m.date)) + '</strong></div></div>' + panel +
+      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Punkte</th><th class="num">Geturnte Punkte</th></tr></thead><tbody>' +
+      '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + pts(m, 'home', r.homePoints) + '</strong></td><td class="num">' + r.homeApp + '</td><td class="num">' + (r.complete ? r.homeMatch : '–') + '</td><td class="num">' + fmt(r.homeSum) + '</td></tr>' +
+      '<tr><td>Gast</td><td>' + esc(teamName(m.guestTeamId)) + '</td><td class="num"><strong>' + pts(m, 'guest', r.guestPoints) + '</strong></td><td class="num">' + r.guestApp + '</td><td class="num">' + (r.complete ? r.guestMatch : '–') + '</td><td class="num">' + fmt(r.guestSum) + '</td></tr>' +
       '</tbody></table>' +
       '<p class="ps-result">' + (r.complete ? 'Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong>' : 'Wettkampf noch nicht vollständig gewertet.') + '</p>' +
       apps +
@@ -1489,8 +1509,9 @@
   }
 
   var lastInputKeyboard = false;
+  var lastPointerType = 'mouse';
   document.addEventListener('keydown', function () { lastInputKeyboard = true; }, true);
-  document.addEventListener('pointerdown', function () { lastInputKeyboard = false; }, true);
+  document.addEventListener('pointerdown', function (e) { lastInputKeyboard = false; lastPointerType = e.pointerType || 'mouse'; }, true);
 
   $app.addEventListener('focusout', function (ev) {
     if (ev.target.dataset && ev.target.dataset.picking) closePicker(ev.target, true);

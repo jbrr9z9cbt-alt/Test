@@ -380,9 +380,11 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
   font-size: 8pt; line-height: 1.3; box-shadow: 0 0 0 10mm #fff, 0 1px 12px 10mm rgba(0,0,0,.08);
 }
 .ps-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1.5pt solid #000; padding-bottom: 2mm; margin-bottom: 2mm; }
-.ps-head h2 { margin: 0; font-size: 14pt; }
-.ps-league { font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
-.ps-meta { text-align: right; font-size: 9pt; }
+.ps-title { display: flex; align-items: center; gap: 3mm; }
+.ps-logo { height: 14mm; width: auto; }
+.ps-league { font-size: 16pt; font-weight: 800; line-height: 1.1; }
+.ps-doc { font-size: 9pt; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #333; }
+.ps-meta { text-align: right; font-size: 11pt; line-height: 1.35; }
 .print-summary, .print-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .print-summary th, .print-summary td { padding: .6mm 1.5mm; border-bottom: .5pt solid #bbb; text-align: left; }
 .print-summary th { font-size: 7pt; color: #444; font-weight: 600; }
@@ -402,6 +404,7 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
 .print-scorers { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin: .5mm 0 2mm; align-items: start; }
 .scorer-table .pn { width: auto; }
 .ps-note { font-size: 6.5pt; color: #555; margin: 1mm 0 0; }
+.pa-inter { text-align: right; font-size: 7.5pt; margin-top: .6mm; }
 
 /* ---------- Hinweise ---------- */
 #toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: .5rem; z-index: 100; width: min(92vw, 480px); }
