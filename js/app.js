@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '14';
+  var APP_BUILD = '15';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -15,8 +15,8 @@
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
   var LEAGUE = CFG.league || '';
   var APP_NAME = 'WTB-Liga';
-  // Logo oben links im Wettkampfprotokoll (wird ergänzt, sobald es vorliegt).
-  var PRINT_LOGO = '';
+  // Logo des Westfälischen Turnerbunds oben links im Wettkampfprotokoll.
+  var PRINT_LOGO = '<img class="ps-logo" src="icons/wtb-logo.png" alt="WTB – Westfälischer Turnerbund">';
 
   // Feste Mannschaftsfarben; "onDark" ist der hellere Ton für die dunkle Anzeigetafel.
   var COLORS = [
