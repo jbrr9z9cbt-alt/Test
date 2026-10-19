@@ -1,4 +1,4 @@
-/* WTB-Liga – Oberfläche und Ablaufsteuerung */
+/* WTB-Oberliga – Oberfläche und Ablaufsteuerung */
 (function () {
   'use strict';
 
@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '11';
+  var APP_BUILD = '12';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -179,7 +179,7 @@
   /** Sicherungsdatei aller Daten herunterladen; nach einem Wettkampf mit dessen Datum und Mannschaften im Namen. */
   function exportBackup(m) {
     var slug = function (t) { return String(t).toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, ''); };
-    var name = 'wtb-liga-sicherung-' + (m ? (m.date || '') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) : stamp()) + '.json';
+    var name = 'wtb-oberliga-sicherung-' + (m ? (m.date || '') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) : stamp()) + '.json';
     download(name, JSON.stringify(exportData(), null, 2));
     toast('Sicherung erstellt');
   }
@@ -1370,7 +1370,7 @@
 
   function validateBackup(data) {
     if (!data || data.format !== 'turnwettkampf-backup' || !Array.isArray(data.teams) || !Array.isArray(data.matches)) {
-      throw new Error('Keine gültige WTB-Liga-Sicherungsdatei.');
+      throw new Error('Keine gültige WTB-Oberliga-Sicherungsdatei.');
     }
     data.matches.forEach(function (m) {
       if (!m.id || !m.apparatus || !m.rules) throw new Error('Sicherungsdatei enthält ungültige Wettkampfdaten.');
@@ -1674,7 +1674,7 @@
         break;
       case 'export-snap':
         DB.getSnapshot(parseInt(btn.getAttribute('data-snap'), 10)).then(function (s) {
-          if (s) download('wtb-liga-sicherungspunkt-' + s.id + '.json', JSON.stringify(s.data, null, 2));
+          if (s) download('wtb-oberliga-sicherungspunkt-' + s.id + '.json', JSON.stringify(s.data, null, 2));
         });
         break;
       case 'restore':

@@ -1,4 +1,4 @@
-# WTB-Liga – Wettkampf-App Gerätturnen männlich (WTB Oberliga)
+# WTB-Oberliga – Wettkampf-App Gerätturnen männlich (WTB-Oberliga)
 
 Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätturnen männlich
 mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
