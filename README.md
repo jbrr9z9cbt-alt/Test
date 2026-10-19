@@ -1,4 +1,4 @@
-# Turnwettkampf – Gerätturnen männlich (WTB Oberliga 2026)
+# WTB-Liga – Wettkampf-App Gerätturnen männlich (WTB Oberliga)
 
 Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätturnen männlich
 mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
@@ -7,7 +7,7 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
 
 - **7 feste Mannschaften** (Name und Standardfarbe in `js/config.js`, in der App nicht änderbar)
 - **20 Turner je Mannschaft** mit festen Startnummern 1–20; die Namen pflegen die Nutzer in der App
-- **Mannschaftsfarben** werden beim Anlegen eines Wettkampfs gewählt – aus Rot, Blau, Orange, Hellgrau, Violett und Gelb
+- **Mannschaftsfarben** werden beim Anlegen eines Wettkampfs gewählt – aus Rot, Blau, Orange, Hellgrau, Violett, Gelb und Grün
   (Heim und Gast verschieden)
 - **Wettkampf Heim gegen Gast** an den sechs olympischen Geräten
   (Boden, Pauschenpferd, Ringe, Sprung, Barren, Reck)
@@ -25,8 +25,9 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
 - **Wertung 0,00 (angetreten)** gibt einem angetretenen Turner die Endnote 0; eine D-Note 0 wird dagegen ganz normal
   mit den Abzügen berechnet.
 - **Sturz-Timer** an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“.
-  **Einturn-Timer** je Gerät: 4:00. Beide laufen im Knopf und in der Anzeigetafel, verschwinden nach Ablauf
-  und lassen sich mit erneutem Druck jederzeit beenden.
+  **Einturn-Timer** je Gerät: 4:00 (hellgrün). Beide laufen im Knopf und in der Anzeigetafel und lassen sich mit
+  erneutem Druck jederzeit beenden. Nach Ablauf zeigt die Tafel „Einturnen beendet“ (10 s) bzw.
+  „Übung beendet“ (5 s), leicht blinkend.
 - **Scorepunkte** werden überall in der Farbe der jeweiligen Mannschaft angezeigt; eine Notensumme gibt es nicht.
 - **Topscorer** (App und Protokoll): die ersten drei Plätze, bei Gleichstand entsprechend mehr (z. B. 1., 1., 3.).
 - **Duell-Erfassung** je Gerät: D-Note, E-Abzüge, neutraler Abzug, Standbonus → Endnote; „nicht angetreten“ zählt 0,000
@@ -35,9 +36,11 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
   - Abzüge mit höchstens 2 Nachkommastellen
   - **Standbonus** +0,1 (nicht am Pauschenpferd)
   - Endnote = D-Note + Standbonus + E-Note − neutraler Abzug
-  - **Tastatur**: Tab springt je Übung durch Turnerauswahl, D, E-Abzüge, neutralen Abzug und Standbonus,
-    danach zum zweiten Turner und zuletzt zu „Wertung anzeigen“ (unter der zweiten Übung).
-    Enter öffnet die Turnerauswahl, Pfeiltasten wählen, Enter übernimmt (weiter zur D-Note);
+  - **Eingabereihenfolge** je Übung: Abzüge E1, E2 (ggf. E3), D-Note, Standbonus, neutraler Abzug
+  - **Tastatur**: Gerät mit der Maus wählen, dann führt Tab durch den ganzen Ablauf: Turnerauswahl des
+    vorlegenden Turners, E1, E2, (E3), D-Note, Standbonus, neutraler Abzug, dann der gegnerische Turner
+    genauso, zuletzt „Wertung anzeigen“ – danach weiter mit dem vorlegenden Turner des nächsten Duells.
+    Enter öffnet die Turnerauswahl, Pfeiltasten wählen, Enter übernimmt (weiter zu E1);
     Enter schaltet den Standbonus um und wirkt in Notenfeldern wie Tab;
     Pfeiltasten ↑/↓ ändern Noten in 0,1-Schritten (nie unter 0)
 - **Automatische Wertung**: Scorepunkte je Duell nach Notendifferenz, Gerätepunkte, Gesamtergebnis, Tabellenpunkte
@@ -88,8 +91,8 @@ Die Regeln sind in der App **nicht änderbar** (unter „Daten & Regeln“ nur a
 - **Dauerhafter Speicher**: die App fordert beim Browser an, dass die Daten nicht automatisch gelöscht werden.
 - **Automatische Sicherungspunkte**: die letzten 30 Stände werden aufbewahrt und lassen sich wiederherstellen.
   Vor Import, Wiederherstellung und Löschen wird immer zuerst gesichert.
-- **Export/Import** als JSON-Datei. Nach dem Abschließen eines Wettkampfs fragt die App, ob gleich
-  eine Sicherung erstellt werden soll. Ältere, verschlüsselt exportierte Dateien lassen sich weiterhin
+- **Export/Import** als JSON-Datei. Nach dem Abschließen eines Wettkampfs fragt die App (Ja/Nein), ob gleich
+  eine Sicherung erstellt werden soll – die Daten bleiben aber auch ohne diese Sicherung gespeichert. Ältere, verschlüsselt exportierte Dateien lassen sich weiterhin
   importieren (die App fragt dann nach dem Passwort).
 - **Offline-fähig (PWA)**: ein Service Worker hält die App im Cache. Nach dem ersten Aufruf
   funktioniert sie ohne Internet und lässt sich als App installieren („Zum Startbildschirm hinzufügen“).

@@ -11,7 +11,7 @@
  * geändert werden.
  */
 window.TEAM_CONFIG = {
-  league: 'WTB Oberliga 2026',
+  league: 'WTB Oberliga',
   gymnastsPerTeam: 20,
   teams: [
     { id: 'T1', name: 'Mannschaft 1' },

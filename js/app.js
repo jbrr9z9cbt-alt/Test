@@ -1,4 +1,4 @@
-/* Turnwettkampf – Oberfläche und Ablaufsteuerung */
+/* WTB-Liga – Oberfläche und Ablaufsteuerung */
 (function () {
   'use strict';
 
@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '10';
+  var APP_BUILD = '11';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -22,7 +22,8 @@
     { key: 'orange', name: 'Orange', hex: '#f07c00', onDark: '#ff9a2e', onLight: '#c25e00', fg: '#171717' },
     { key: 'hellgrau', name: 'Hellgrau', hex: '#c8c8c8', onDark: '#dcdcdc', onLight: '#8a8a8a', fg: '#171717' },
     { key: 'violett', name: 'Violett', hex: '#7b3fa0', onDark: '#b884e3', onLight: '#7b3fa0', fg: '#fff' },
-    { key: 'gelb', name: 'Gelb', hex: '#f5c400', onDark: '#ffd60a', onLight: '#a88200', fg: '#171717' }
+    { key: 'gelb', name: 'Gelb', hex: '#f5c400', onDark: '#ffd60a', onLight: '#a88200', fg: '#171717' },
+    { key: 'gruen', name: 'Grün', hex: '#2e7d32', onDark: '#4ade80', onLight: '#2e7d32', fg: '#fff' }
   ];
   var DEFAULT_COLORS = { home: 'rot', guest: 'blau' };
 
@@ -118,6 +119,31 @@
     setTimeout(function () { item.remove(); }, kind === 'error' ? 6000 : 3000);
   }
 
+  /** Abfrage mit den Antworten „Ja“ und „Nein“ (Escape = Nein). */
+  function askYesNo(title, text, hint) {
+    return new Promise(function (resolve) {
+      var wrap = document.createElement('div');
+      wrap.className = 'modal-backdrop';
+      wrap.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">' +
+        '<h3 id="modal-title">' + esc(title) + '</h3><p>' + esc(text) + '</p>' + (hint ? '<p class="muted small">' + esc(hint) + '</p>' : '') +
+        '<div class="actions"><button type="button" class="btn primary" data-answer="yes">Ja</button>' +
+        '<button type="button" class="btn" data-answer="no">Nein</button></div></div>';
+      document.body.appendChild(wrap);
+      function close(answer) {
+        document.removeEventListener('keydown', onKey, true);
+        wrap.remove();
+        resolve(answer);
+      }
+      function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(false); } }
+      wrap.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-answer]');
+        if (b) close(b.getAttribute('data-answer') === 'yes');
+      });
+      document.addEventListener('keydown', onKey, true);
+      wrap.querySelector('[data-answer="yes"]').focus();
+    });
+  }
+
   function download(filename, text) {
     var blob = new Blob([text], { type: 'application/json' });
     var a = document.createElement('a');
@@ -153,7 +179,7 @@
   /** Sicherungsdatei aller Daten herunterladen; nach einem Wettkampf mit dessen Datum und Mannschaften im Namen. */
   function exportBackup(m) {
     var slug = function (t) { return String(t).toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, ''); };
-    var name = 'turnwettkampf-sicherung-' + (m ? (m.date || '') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) : stamp()) + '.json';
+    var name = 'wtb-liga-sicherung-' + (m ? (m.date || '') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) : stamp()) + '.json';
     download(name, JSON.stringify(exportData(), null, 2));
     toast('Sicherung erstellt');
   }
@@ -537,7 +563,7 @@
     var locked = m.status === 'final';
     var tabs = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
-      return '<button class="tab' + (a.key === tab ? ' active' : '') + (ar.complete ? ' complete' : '') + '" data-action="tab" data-tab="' + a.key + '">' +
+      return '<button class="tab' + (a.key === tab ? ' active' : '') + (ar.complete ? ' complete' : '') + '" tabindex="-1" data-action="tab" data-tab="' + a.key + '">' +
         '<span>' + a.name + '</span><span class="tab-score" data-out="tab-' + a.key + '">' + ptsPair(m, ar.homePoints, ar.guestPoints) + '</span></button>';
     }).join('');
 
@@ -637,15 +663,16 @@
       (position === 1 ? '<span class="lead-tag">vorlegend</span>' : '') +
       '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked || side.dns) + '</div>' +
-      '<div class="score-row' + (three ? ' cols5' : '') + '">' +
-      scoreInput(appKey, idx, sideKey, 'd', side.d, dis, 'D-Note') +
+      '<div class="score-row" style="grid-template-columns:repeat(' + ((three ? 5 : 4) + (bonusAllowed ? 1 : 0)) + ',minmax(0,1fr))">' +
       scoreInput(appKey, idx, sideKey, 'e1', side.e1, dis, 'Abzüge E1') +
       scoreInput(appKey, idx, sideKey, 'e2', side.e2, dis, 'Abzüge E2') +
       (three ? scoreInput(appKey, idx, sideKey, 'e3', side.e3, dis, 'Abzüge E3') : '') +
+      scoreInput(appKey, idx, sideKey, 'd', side.d, dis, 'D-Note') +
+      (bonusAllowed ? '<label class="score-field bonus-field"><span>Standbonus</span><span class="bonus-box"><input type="checkbox" ' +
+        fieldAttrs(appKey, idx, sideKey, 'bonus') + (side.bonus ? ' checked' : '') + (dis ? ' disabled' : '') + '> +0,1</span></label>' : '') +
       scoreInput(appKey, idx, sideKey, 'nd', side.nd, dis, 'Neutr. Abzug') +
       '</div>' +
       '<div class="result-row">' +
-      (bonusAllowed ? '<label class="check bonus"><input type="checkbox" ' + fieldAttrs(appKey, idx, sideKey, 'bonus') + (side.bonus ? ' checked' : '') + (dis ? ' disabled' : '') + '> Standbonus +0,1</label>' : '') +
       '<span>E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</strong></span>' +
       '<span class="final">Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
@@ -781,8 +808,8 @@
         rerenderPanel(m);
         // Per Tastatur gleich mit der D-Note weitermachen; bei Touch nichts fokussieren (iOS).
         if (viaKeyboard) {
-          var d = $app.querySelector('input[data-app="' + appKey + '"][data-duel="' + idx + '"][data-side="' + sideKey + '"][data-field="d"]:not([disabled])');
-          if (d) d.focus();
+          var e1 = $app.querySelector('input[data-app="' + appKey + '"][data-duel="' + idx + '"][data-side="' + sideKey + '"][data-field="e1"]:not([disabled])');
+          if (e1) e1.focus();
         }
       });
       return;
@@ -1112,6 +1139,15 @@
     return { t: t, remaining: WARMUP_MS - el };
   }
 
+  var WARMUP_END_MS = 10000, FALL_END_MS = 5000;
+
+  /** Kurz nach regulärem Ablauf (nicht nach manuellem Stopp) zeigt die Tafel einen Hinweis. */
+  function timerEnded(t, duration, showMs) {
+    if (!t) return false;
+    var el = Date.now() - t.start;
+    return el >= duration && el < duration + showMs;
+  }
+
   function clock(ms) {
     var sec = Math.ceil(ms / 1000);
     return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
@@ -1149,17 +1185,26 @@
     if (bt && bt.querySelector('[data-slot]')) {
       // Feste Plätze: Inhalt wird nur sichtbar/unsichtbar geschaltet, die Größe bleibt gleich.
       var ws = bt.querySelector('[data-slot="warm"]'), fs = bt.querySelector('[data-slot="fall"]');
-      var wh = warm ? '<span>Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong>' : '<span>&nbsp;</span><strong>0:00</strong>';
+      var wEnd = !warm && timerEnded(m.timers && m.timers.warmup, WARMUP_MS, WARMUP_END_MS);
+      var wh = warm ? '<span>Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong>'
+        : wEnd ? '<span>' + apparatusName(m.timers.warmup.appKey) + '</span><strong>Einturnen beendet</strong>' : '<span>&nbsp;</span><strong>0:00</strong>';
       if (ws.innerHTML !== wh) ws.innerHTML = wh;
-      ws.classList.toggle('off', !warm);
+      ws.classList.toggle('off', !warm && !wEnd);
+      ws.classList.toggle('ended', wEnd);
       var fh = '<span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em>';
       if (fall) {
         var fsd = m.apparatus[fall.t.appKey].duels[fall.t.idx][fall.t.side];
         fh = '<span>Sturz · ' + esc(gymnastLabel(fsd.number, fsd.name) || teamName(fall.t.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
           '<strong>' + clock(fall.remaining) + '</strong><em' + (fall.phase === 2 ? '' : ' class="hide"') + '>Abzug 0,3</em>';
       }
+      var fEnd = !fall && timerEnded(m.timers && m.timers.fall, 2 * FALL_PHASE_MS, FALL_END_MS);
+      if (fEnd) {
+        var fe = m.timers.fall, fed = m.apparatus[fe.appKey].duels[fe.idx][fe.side];
+        fh = '<span>' + esc(gymnastLabel(fed.number, fed.name) || teamName(fe.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span><strong>Übung beendet</strong><em class="hide">Abzug 0,3</em>';
+      }
       if (fs.innerHTML !== fh) fs.innerHTML = fh;
-      fs.classList.toggle('off', !fall);
+      fs.classList.toggle('off', !fall && !fEnd);
+      fs.classList.toggle('ended', fEnd);
       fs.classList.toggle('phase1', !!fall && fall.phase === 1);
       fs.classList.toggle('phase2', !!fall && fall.phase === 2);
     } else if (bt) {
@@ -1325,7 +1370,7 @@
 
   function validateBackup(data) {
     if (!data || data.format !== 'turnwettkampf-backup' || !Array.isArray(data.teams) || !Array.isArray(data.matches)) {
-      throw new Error('Keine gültige Turnwettkampf-Sicherungsdatei.');
+      throw new Error('Keine gültige WTB-Liga-Sicherungsdatei.');
     }
     data.matches.forEach(function (m) {
       if (!m.id || !m.apparatus || !m.rules) throw new Error('Sicherungsdatei enthält ungültige Wettkampfdaten.');
@@ -1516,7 +1561,9 @@
           takeSnapshot('Wettkampf abgeschlossen');
           render();
           toast('Wettkampf abgeschlossen');
-          if (confirm('Wettkampf abgeschlossen. Soll jetzt eine Sicherung erstellt werden?')) exportBackup(m);
+          askYesNo('Sicherung erstellen?', 'Der Wettkampf ist abgeschlossen. Soll jetzt eine Sicherungsdatei erstellt werden?',
+            'Hinweis: Alle Daten bleiben auch ohne diese Sicherung in der App auf diesem Gerät gespeichert.')
+            .then(function (yes) { if (yes) exportBackup(m); });
         });
         break;
       case 'reopen':
@@ -1543,12 +1590,14 @@
         if (!duel.firstRevealedAt) duel.firstRevealedAt = duel.revealedAt;
         duel.shown = { home: S.snapshotSide(duel.home), guest: S.snapshotSide(duel.guest) };
         var revealedIdx = parseInt(btn.getAttribute('data-duel'), 10);
+        var revealViaKeyboard = lastInputKeyboard;
         var revealedApp = btn.getAttribute('data-app');
         save('matches', m).then(function () {
           rerenderPanel(m);
-          // Weiter mit dem ersten Feld des nächsten Duells.
-          var next = $app.querySelector('input[data-app="' + revealedApp + '"][data-duel="' + (revealedIdx + 1) + '"][data-field="d"]:not([disabled])');
-          if (next && !wasCorrection) next.focus();
+          // Per Tastatur weiter zur Turnerauswahl des vorlegenden Turners im nächsten Duell.
+          var nextDuel = $app.querySelectorAll('#apparatus-panel .duel')[revealedIdx + 1];
+          var next = nextDuel && nextDuel.querySelector('select[data-field="gymnast"]:not([disabled]), input[data-field]:not([type=checkbox]):not([disabled])');
+          if (next && !wasCorrection && revealViaKeyboard) next.focus();
           toast(wasCorrection ? 'Korrektur wird auf der Anzeigetafel gezeigt' : 'Wertung wird auf der Anzeigetafel gezeigt');
         });
         break;
@@ -1625,7 +1674,7 @@
         break;
       case 'export-snap':
         DB.getSnapshot(parseInt(btn.getAttribute('data-snap'), 10)).then(function (s) {
-          if (s) download('turnwettkampf-sicherungspunkt-' + s.id + '.json', JSON.stringify(s.data, null, 2));
+          if (s) download('wtb-liga-sicherungspunkt-' + s.id + '.json', JSON.stringify(s.data, null, 2));
         });
         break;
       case 'restore':
