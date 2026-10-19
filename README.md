@@ -83,8 +83,9 @@ Die Regeln sind in der App **nicht änderbar** (unter „Daten & Regeln“ nur a
 - **Dauerhafter Speicher**: die App fordert beim Browser an, dass die Daten nicht automatisch gelöscht werden.
 - **Automatische Sicherungspunkte**: die letzten 30 Stände werden aufbewahrt und lassen sich wiederherstellen.
   Vor Import, Wiederherstellung und Löschen wird immer zuerst gesichert.
-- **Export/Import** als JSON-Datei, optional **verschlüsselt** (AES-GCM 256 Bit, Schlüssel per
-  PBKDF2-SHA-256 mit 310.000 Runden aus einem Passwort). Ohne Passwort ist die Datei nicht lesbar.
+- **Export/Import** als JSON-Datei. Nach dem Abschließen eines Wettkampfs fragt die App, ob gleich
+  eine Sicherung erstellt werden soll. Ältere, verschlüsselt exportierte Dateien lassen sich weiterhin
+  importieren (die App fragt dann nach dem Passwort).
 - **Offline-fähig (PWA)**: ein Service Worker hält die App im Cache. Nach dem ersten Aufruf
   funktioniert sie ohne Internet und lässt sich als App installieren („Zum Startbildschirm hinzufügen“).
 - **Updates**: Die App sucht beim Start und alle 30 Minuten (wenn online) nach einer neuen Version,
@@ -92,7 +93,7 @@ Die Regeln sind in der App **nicht änderbar** (unter „Daten & Regeln“ nur a
   die Daten bleiben erhalten. Beim Veröffentlichen muss `VERSION` in `sw.js` (und `APP_BUILD` in
   `js/app.js`) erhöht werden.
 
-**Empfehlung:** Nach jedem Wettkampf eine verschlüsselte Sicherung auf einen USB-Stick o. Ä. exportieren,
+**Empfehlung:** Nach jedem Wettkampf eine Sicherung auf einen USB-Stick o. Ä. exportieren,
 denn wenn das Gerät verloren geht oder die Browserdaten gelöscht werden, sind auch die lokalen Daten weg.
 
 ## Starten

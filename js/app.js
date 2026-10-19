@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '8';
+  var APP_BUILD = '9';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -148,6 +148,14 @@
       matches: S.clone(state.matches),
       meta: [S.clone(state.settings)]
     };
+  }
+
+  /** Sicherungsdatei aller Daten herunterladen; nach einem Wettkampf mit dessen Datum und Mannschaften im Namen. */
+  function exportBackup(m) {
+    var slug = function (t) { return String(t).toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, ''); };
+    var name = 'turnwettkampf-sicherung-' + (m ? (m.date || '') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) : stamp()) + '.json';
+    download(name, JSON.stringify(exportData(), null, 2));
+    toast('Sicherung erstellt');
   }
 
   function scheduleSnapshot() {
@@ -762,6 +770,7 @@
       side.gymnastId = el.value || null;
       side.number = gy ? gy.number : null;
       side.name = gy ? gy.name : '';
+      el.blur();
       save('matches', m).then(function () { rerenderPanel(m); });
       return;
     }
@@ -831,7 +840,8 @@
   function restoreFocus(key) {
     if (!key) return;
     var el = $app.querySelector(key);
-    if (el) el.focus();
+    // Auswahlfelder nie automatisch fokussieren: iOS öffnet die Auswahl dann erneut.
+    if (el && el.tagName !== 'SELECT') el.focus();
   }
 
   // ---------- Ansicht: Anzeigetafel ----------
@@ -1178,16 +1188,11 @@
       'Für Sicherheit gegen Geräteverlust bitte regelmäßig eine Sicherungsdatei exportieren (z. B. auf einen USB-Stick).</p>' +
       '<div id="data-storage" class="muted">wird geprüft …</div>' +
       '<h3>Exportieren</h3>' +
-      '<div class="actions wrap"><button class="btn" data-action="export">Sicherung exportieren (unverschlüsselt)</button></div>' +
-      '<form class="inline-form" data-form="export-enc">' +
-      '<input type="password" name="pw" placeholder="Passwort (mind. 8 Zeichen)" minlength="8" required autocomplete="new-password">' +
-      '<input type="password" name="pw2" placeholder="Passwort wiederholen" minlength="8" required autocomplete="new-password">' +
-      '<button class="btn primary" type="submit">Verschlüsselt exportieren</button></form>' +
-      '<p class="muted small">Verschlüsselung: AES-GCM 256 Bit, Schlüssel aus dem Passwort per PBKDF2 (310.000 Runden). Ohne Passwort ist die Datei nicht wiederherstellbar.</p>' +
+      '<div class="actions wrap"><button class="btn primary" data-action="export">Sicherung exportieren</button></div>' +
+      '<p class="muted small">Die Sicherungsdatei (JSON) enthält alle Mannschaften, Turnernamen und Wettkämpfe.</p>' +
       '<h3>Importieren / Wiederherstellen</h3>' +
       '<form class="stack" data-form="import">' +
       '<input type="file" name="file" accept=".json,application/json" required>' +
-      '<input type="password" name="pw" placeholder="Passwort (nur bei verschlüsselter Datei)" autocomplete="current-password">' +
       '<div class="actions"><button class="btn" type="submit">Importieren (ersetzt alle Daten)</button></div></form>' +
       '<p class="muted small">Vor jedem Import wird automatisch ein Sicherungspunkt des aktuellen Stands angelegt.</p>' +
       '<h3>Automatische Sicherungspunkte</h3><div id="snapshots" class="muted">wird geladen …</div>' +
@@ -1329,23 +1334,16 @@
 
     if (kind === 'match') {
       submitMatchForm(form);
-    } else if (kind === 'export-enc') {
-      var pw = String(fd.get('pw'));
-      if (pw !== String(fd.get('pw2'))) { toast('Die Passwörter stimmen nicht überein.', 'error'); return; }
-      SB.encryptJSON(exportData(), pw).then(function (env) {
-        download('turnwettkampf-sicherung-' + stamp() + '.verschluesselt.json', JSON.stringify(env));
-        form.reset();
-        toast('Verschlüsselte Sicherung erstellt');
-      }).catch(function (e) { toast(e.message, 'error'); });
     } else if (kind === 'import') {
       var file = form.file.files[0];
       if (!file) return;
-      var password = String(fd.get('pw') || '');
       file.text().then(function (text) {
         var obj;
         try { obj = JSON.parse(text); } catch (e) { throw new Error('Datei ist kein gültiges JSON.'); }
+        // Ältere, verschlüsselt exportierte Sicherungen lassen sich weiterhin einlesen.
         if (SB.isEncrypted(obj)) {
-          if (!password) throw new Error('Diese Datei ist verschlüsselt – bitte Passwort eingeben.');
+          var password = prompt('Diese Sicherung ist verschlüsselt. Bitte Passwort eingeben:');
+          if (!password) throw new Error('Import abgebrochen.');
           return SB.decryptJSON(obj, password);
         }
         return obj;
@@ -1374,9 +1372,14 @@
       case 'finalize':
         if (S.pendingCorrections(m).length) { toast('Erst die nachträgliche Änderung auf der Anzeigetafel anzeigen.', 'error'); return; }
         var res = S.matchResult(m);
-        if (!res.complete && !confirm('Es sind noch nicht alle Duelle gewertet. Trotzdem abschließen? (Unvollständige Wettkämpfe zählen nicht in der Tabelle.)')) return;
+        if (!res.complete && !confirm('Es sind noch nicht alle Duelle gewertet. Trotzdem abschließen?')) return;
         m.status = 'final';
-        save('matches', m).then(function () { takeSnapshot('Wettkampf abgeschlossen'); render(); toast('Wettkampf abgeschlossen'); });
+        save('matches', m).then(function () {
+          takeSnapshot('Wettkampf abgeschlossen');
+          render();
+          toast('Wettkampf abgeschlossen');
+          if (confirm('Wettkampf abgeschlossen. Soll jetzt eine Sicherung erstellt werden?')) exportBackup(m);
+        });
         break;
       case 'reopen':
         if (!confirm('Wettkampf wieder zur Bearbeitung öffnen?')) return;
@@ -1460,7 +1463,7 @@
         });
         break;
       case 'export':
-        download('turnwettkampf-sicherung-' + stamp() + '.json', JSON.stringify(exportData(), null, 2));
+        exportBackup();
         break;
       case 'export-snap':
         DB.getSnapshot(parseInt(btn.getAttribute('data-snap'), 10)).then(function (s) {
@@ -1510,6 +1513,8 @@
 
   var leagueEl = document.getElementById('league-name');
   if (leagueEl) leagueEl.textContent = LEAGUE;
+  var versionEl = document.getElementById('app-version');
+  if (versionEl) versionEl.textContent = 'Version ' + APP_BUILD;
 
   function updateNetStatus() {
     var el = document.getElementById('net-status');
