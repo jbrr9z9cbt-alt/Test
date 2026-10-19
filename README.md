@@ -82,7 +82,7 @@ veröffentlichen (Push auf `main`) – die installierten Apps laden das Update b
 
 ## Wertungsregeln (fest, WTB-Oberliga-Scoresystem Stand 20.09.2025)
 
-Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ nur angezeigt).
+Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ zusammen mit einer Kurzfassung des Scoresystems angezeigt).
 
 | Notendifferenz | Scorepunkte für den Sieger des Duells |
 |---|---|

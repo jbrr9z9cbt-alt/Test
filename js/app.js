@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '24';
+  var APP_BUILD = '25';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -1628,18 +1628,49 @@
 
   function viewRules() {
     var r = S.DEFAULT_RULES;
-    return '<section class="card"><h2>Wertungsregeln</h2>' +
-      '<p class="muted">Fest nach dem Scoresystem der ' + esc(LEAGUE || 'Liga') + ' – in der App nicht änderbar.</p>' +
+    var ap = r.apparatusPoints, mp = r.matchPoints;
+    function list(items) { return '<ul class="rules-list">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>'; }
+    function note(t) { return '<br><span class="muted">' + t + '</span>'; }
+    function pts(n, word) { return n + ' ' + word + (n === 1 ? '' : 'e'); }
+    return '<section class="card rules"><h2>Wertungsregeln</h2>' +
+      '<p class="muted">Nach dem Scoresystem der ' + esc(LEAGUE || 'Liga') + ' – in der App nicht änderbar.</p>' +
+
+      '<h3>Grundprinzip</h3>' + list([
+        'Zwei Mannschaften turnen Mann gegen Mann; die beiden Turner eines Duells starten direkt hintereinander.',
+        'Je Gerät ' + r.duelsPerApparatus + ' Duelle, also bis zu ' + r.duelsPerApparatus + ' Turner pro Mannschaft. Eine nicht besetzte Übung zählt 0 Punkte.'
+      ]) +
+
+      '<h3>Scorepunkte je Duell</h3>' +
+      '<p>Die Mannschaft des Turners mit der höheren Wertung erhält nach der Differenz:</p>' +
       '<table class="table compact rules-table"><thead><tr><th>Notendifferenz</th><th class="num">Scorepunkte</th></tr></thead><tbody>' +
       '<tr><td>unter ' + fmt(r.thresholds[0].min) + '</td><td class="num">0 (unentschieden)</td></tr>' +
       r.thresholds.map(function (t, n) {
         var next = r.thresholds[n + 1];
         return '<tr><td>' + (next ? 'von ' + fmt(t.min) + ' bis ' + fmt(next.min - 50) : 'ab ' + fmt(t.min)) + '</td><td class="num">' + t.points + '</td></tr>';
       }).join('') + '</tbody></table>' +
-      '<ul class="plain small muted"><li>' + r.duelsPerApparatus + ' Duelle pro Gerät; eine nicht besetzte Übung zählt 0 Punkte.</li>' +
-      '<li>Gerät und Wettkampf gewinnt, wer mehr Scorepunkte hat; bei Gleichstand unentschieden.</li>' +
-      '<li>E-Note: mit neutralem E2 10 − Mittelwert der Abzüge, mit drei E-Kampfrichtern 10 − mittlerer Abzug.</li>' +
-      '<li>Standbonus +0,1 (nicht am Pauschenpferd).</li></ul></section>';
+      list(['Die Wertungen bleiben bis zur Bekanntgabe der Scorepunkte unter Verschluss und werden danach veröffentlicht.']) +
+
+      '<h3>Geräte- und Gesamtergebnis</h3>' + list([
+        'Gerät: Die Scorepunkte am Gerät werden addiert – mehr Punkte gewinnt, Gleichstand ist unentschieden.' +
+          note('Sieg = ' + pts(ap.win, 'Gerätepunkt') + ', Unentschieden = ' + pts(ap.draw, 'Gerätepunkt')),
+        'Wettkampf: Alle Scorepunkte werden addiert – mehr Punkte gewinnt, Gleichstand ist unentschieden.' +
+          note('Sieg = ' + pts(mp.win, 'Punkt') + ', Unentschieden = ' + pts(mp.draw, 'Punkt'))
+      ]) +
+
+      '<h3>Wettkampfablauf</h3>' + list([
+        'Olympische Reihenfolge: ' + S.APPARATUS.map(function (a) { return a.name; }).join(', ') + '.',
+        'Farben: Die Farben beider Mannschaften werden frei gewählt; die Scorepunkte werden in der Farbe der jeweiligen Mannschaft angezeigt.',
+        'Vor Beginn lost der Oberkampfrichter im Beisein beider Mannschaftsführer eine Mannschaft aus (z. B. Münzwurf). Deren Mannschaftsführer legt fest, wer am ersten Gerät beginnt.',
+        'Die beginnende Mannschaft wechselt an jedem Gerät.' +
+          note('Beispiel, A beginnt: ' + S.APPARATUS.map(function (a, i) { return a.name + ' ' + (i % 2 ? 'B' : 'A'); }).join(' · ')),
+        'Die am Gerät beginnende Mannschaft beginnt Duell 1 und 2, die andere Duell 3 und 4.' +
+          note('Duell 1: A1 – B1 · Duell 2: A2 – B2 · Duell 3: B3 – A3 · Duell 4: B4 – A4'),
+        'Einturnen für beide Mannschaften: 1 Stunde vor Wettkampfbeginn und 4 Minuten vor jedem Gerät. Abweichungen (Geräteumbau, Pause nach 3 Geräten) in Absprache mit der Gastmannschaft.'
+      ]) +
+
+      '<h3>E-Note</h3>' + list([
+        'E-Note: mit neutralem E2 10 − Mittelwert der Abzüge, mit drei E-Kampfrichtern 10 − mittlerer Abzug.'
+      ]) + '</section>';
   }
 
   function refreshDataView() {
