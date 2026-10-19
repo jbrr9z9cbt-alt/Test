@@ -56,8 +56,8 @@ Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktio
     Pfeiltasten ↑/↓ ändern Noten in 0,1-Schritten (nie unter 0)
 - **Automatische Wertung**: Scorepunkte je Duell nach Notendifferenz, Gerätepunkte, Gesamtergebnis, Tabellenpunkte
 - **Anzeigetafel** für Beamer/Fernseher (zweites Fenster bzw. Tab auf demselben Gerät):
-  - Knopf „Anzeigetafel“ öffnet das Fenster und schaltet danach zwischen Anzeige und Ruhebild um
-  - Knopf „Topscorer auf Tafel“ blendet die Topscorer als Overlay ein bzw. aus
+  - Knopf „Anzeigetafel einschalten/ausschalten“ öffnet das Fenster und schaltet danach zwischen Anzeige und Ruhebild um
+  - Knopf „Topscorer einblenden/ausblenden“ legt die Topscorer als Overlay über die Tafel
   - passt sich automatisch ins Fenster ein (keine Scrollbalken); Timer und Detailwertungen haben feste Plätze
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung anzeigen“** gedrückt wird
   - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der

@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '19';
+  var APP_BUILD = '20';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -696,12 +696,12 @@
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong>' +
       '<span data-out="winner">' + winnerText(m, r) + '</span></div>' +
       '<div class="actions wrap">' +
-      '<button class="btn toggle' + (boardOn(m) && state.boardWin && !state.boardWin.closed ? ' on' : '') + '" data-action="toggle-board">Anzeigetafel: ' +
-      (boardOn(m) && state.boardWin && !state.boardWin.closed ? 'an' : 'aus') + '</button>' +
-      '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">Topscorer auf Tafel: ' +
-      (m.display && m.display.scorers ? 'an' : 'aus') + '</button>' +
+      '<button class="btn toggle' + (boardOn(m) && state.boardWin && !state.boardWin.closed ? ' on' : '') + '" data-action="toggle-board">' +
+      boardLabel(boardOn(m) && state.boardWin && !state.boardWin.closed) + '</button>' +
+      '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
+      scorersLabel(m.display && m.display.scorers) + '</button>' +
       '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a>' +
-      (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Bearbeiten</a>') +
+      (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf bearbeiten</a>') +
       (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
         : '<button class="btn primary" data-action="finalize">Wettkampf abschließen</button>') +
       '<button class="btn danger ghost" data-action="del-match">Löschen</button>' +
@@ -713,6 +713,10 @@
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
       '<section class="card"><h3>Topscorer</h3><div data-out="scorers">' + scorersHtml(m) + '</div></section>';
   }
+
+  /** Knopfbeschriftung nennt, was beim Drücken passiert. */
+  function boardLabel(on) { return on ? 'Anzeigetafel ausschalten' : 'Anzeigetafel einschalten'; }
+  function scorersLabel(on) { return on ? 'Topscorer ausblenden' : 'Topscorer einblenden'; }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
   function duelBlocked(m, appKey, idx) {
@@ -1281,10 +1285,10 @@
   function refreshDisplayButtons(m) {
     var b = $app.querySelector('[data-action="toggle-board"]');
     var on = boardOn(m) && state.boardWin && !state.boardWin.closed;
-    if (b) { b.textContent = 'Anzeigetafel: ' + (on ? 'an' : 'aus'); b.classList.toggle('on', !!on); }
+    if (b) { b.textContent = boardLabel(on); b.classList.toggle('on', !!on); }
     var t = $app.querySelector('[data-action="toggle-scorers"]');
     var son = !!(m.display && m.display.scorers);
-    if (t) { t.textContent = 'Topscorer auf Tafel: ' + (son ? 'an' : 'aus'); t.classList.toggle('on', son); }
+    if (t) { t.textContent = scorersLabel(son); t.classList.toggle('on', son); }
   }
 
   function tickTimers() {
