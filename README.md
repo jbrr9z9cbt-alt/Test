@@ -11,9 +11,20 @@ mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
   (Heim und Gast verschieden)
 - **Wettkampf Heim gegen Gast** an den sechs olympischen Geräten
   (Boden, Pauschenpferd, Ringe, Sprung, Barren, Reck)
-- **Duell-Erfassung** je Gerät: D-Note, zwei E-Abzüge, neutraler Abzug → Endnote; „nicht angetreten“ zählt 0,000
-  - **E-Note = 10 − Mittelwert der beiden E-Abzüge** (Abzüge mit höchstens 2 Nachkommastellen)
-  - Endnote = D-Note + E-Note − neutraler Abzug
+- **Wettkampf anlegen**: Datum, beginnende Mannschaft, Heim/Gast mit Farbe und Mannschaftsführer,
+  Kampfgericht (E1 Oberkampfrichter, E2 neutral, D1 Vereinskampfrichter Heim, D2 Vereinskampfrichter Gast).
+  Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen.
+- **Startreihenfolge**: je 2 Duelle im Block – Gerät 1: Duell 1+2 beginnt A, Duell 3+4 beginnt B;
+  am nächsten Gerät umgekehrt usw. Die Erfassung zeigt 1./2. und folgt dieser Reihenfolge.
+- **Duell-Erfassung** je Gerät: D-Note, E-Abzüge, neutraler Abzug, Standbonus → Endnote; „nicht angetreten“ zählt 0,000
+  - **E-Note mit neutralem E2: 10 − Mittelwert von E1 und E2**
+  - **E-Note mit drei E-Kampfrichtern: höchster und niedrigster Abzug gestrichen, 10 − mittlerer Abzug**
+  - Abzüge mit höchstens 2 Nachkommastellen
+  - **Standbonus** +0,1 (nicht am Pauschenpferd)
+  - Endnote = D-Note + Standbonus + E-Note − neutraler Abzug
+  - **Tastatur**: Tab springt nacheinander durch D, E-Abzüge, neutralen Abzug, Standbonus beider Turner
+    und zuletzt „Wertung anzeigen“ (unter der zweiten Übung); Enter wirkt wie Tab;
+    Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten (nie unter 0)
 - **Automatische Wertung**: Scorepunkte je Duell nach Notendifferenz, Gerätepunkte, Gesamtergebnis, Tabellenpunkte
 - **Scorer-Wertung** (bester Scorer des Wettkampfs)
 - **Anzeigetafel** für Beamer/Fernseher (zweites Fenster bzw. Tab auf demselben Gerät):
@@ -68,6 +79,10 @@ veröffentlichen (Push auf `main`) – die installierten Apps laden das Update b
   PBKDF2-SHA-256 mit 310.000 Runden aus einem Passwort). Ohne Passwort ist die Datei nicht lesbar.
 - **Offline-fähig (PWA)**: ein Service Worker hält die App im Cache. Nach dem ersten Aufruf
   funktioniert sie ohne Internet und lässt sich als App installieren („Zum Startbildschirm hinzufügen“).
+- **Updates**: Die App sucht beim Start und alle 30 Minuten (wenn online) nach einer neuen Version,
+  lädt sie im Hintergrund und zeigt „Jetzt aktualisieren“. Erst nach dem Klick wird sie aktiv;
+  die Daten bleiben erhalten. Beim Veröffentlichen muss `VERSION` in `sw.js` (und `APP_BUILD` in
+  `js/app.js`) erhöht werden.
 
 **Empfehlung:** Nach jedem Wettkampf eine verschlüsselte Sicherung auf einen USB-Stick o. Ä. exportieren,
 denn wenn das Gerät verloren geht oder die Browserdaten gelöscht werden, sind auch die lokalen Daten weg.

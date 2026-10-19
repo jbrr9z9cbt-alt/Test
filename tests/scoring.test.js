@@ -77,6 +77,32 @@ test('Nachträgliche Änderung: Tafel behält alten Stand bis zur Korrektur', ()
   assert.equal(S.hasPendingCorrection(duel), false);
 });
 
+test('Drei E-Kampfrichter: höchster und niedrigster Abzug gestrichen', () => {
+  const r3 = Object.assign(S.clone(rules), { eJudges: 3 });
+  const s = Object.assign(S.emptySide(), { d: 4000, e1: 1500, e2: 1200, e3: 2100 });
+  assert.equal(S.eScore(s, r3), 8500, 'mittlerer Abzug 1,5');
+  assert.equal(S.sideFinal(s, r3), 12500);
+  assert.equal(S.eScore(s, rules), 8650, 'mit 2 Kampfrichtern zählt der Mittelwert von E1 und E2');
+  s.e3 = null;
+  assert.equal(S.eScore(s, r3), null, 'E3 fehlt noch');
+});
+
+test('Standbonus zählt 0,1 zur Endnote', () => {
+  const s = Object.assign(S.emptySide(), { d: 4000, e1: 1500, e2: 1500, bonus: true });
+  assert.equal(S.sideFinal(s, rules), 12600);
+  s.bonus = false;
+  assert.equal(S.sideFinal(s, rules), 12500);
+});
+
+test('Startreihenfolge: je 2 Duelle im Block, Gerät für Gerät gewechselt', () => {
+  const order = (start) => S.APPARATUS.slice(0, 3).map((a) =>
+    [0, 1, 2, 3].map((i) => S.startOrder({ startTeam: start }, a.key, i)[0] === start ? 'A' : 'B').join(''));
+  assert.deepEqual(order('home'), ['AABB', 'BBAA', 'AABB']);
+  assert.deepEqual(order('guest'), ['AABB', 'BBAA', 'AABB']);
+  assert.deepEqual(S.startOrder({ startTeam: 'guest' }, 'FX', 0), ['guest', 'home']);
+  assert.deepEqual(S.startOrder({}, 'PH', 0), ['guest', 'home']);
+});
+
 test('Scorepunkte nach Differenz-Schwellen', () => {
   const p = (diff) => S.pointsForDiff(S.parseScore(diff), rules.thresholds);
   assert.equal(p('0'), 0);

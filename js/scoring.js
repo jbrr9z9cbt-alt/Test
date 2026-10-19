@@ -6,8 +6,10 @@
  * entstehen.
  *
  * Noten:
- *  - E-Note = 10 − Mittelwert der zwei E-Abzüge (Kampfrichter 1 und 2).
- *  - Endnote = D-Note + E-Note − neutrale Abzüge.
+ *  - E-Note mit 2 E-Kampfrichtern: 10 − Mittelwert der beiden E-Abzüge.
+ *  - E-Note mit 3 E-Kampfrichtern: höchster und niedrigster Abzug werden
+ *    gestrichen, 10 − mittlerer Abzug.
+ *  - Endnote = D-Note + Standbonus (0,1; nicht am Pauschenpferd) + E-Note − neutrale Abzüge.
  *
  * Ablauf:
  *  - An jedem Gerät turnen Heim- und Gastturner paarweise im Duell.
@@ -42,8 +44,13 @@
     matchPoints: { win: 2, draw: 1, loss: 0 },
     // 'none': Gleichstand bei Scorepunkten ist Unentschieden,
     // 'apparatus': dann entscheiden die Gerätepunkte.
-    tieBreak: 'none'
+    tieBreak: 'none',
+    // Anzahl der E-Kampfrichter: 2 (mit neutralem E2) oder 3 (E2 Heim, E3 Gast).
+    eJudges: 2
   };
+
+  var STAND_BONUS = 100;
+  var NO_BONUS_APPARATUS = 'PH';
 
   function clone(obj) {
     return JSON.parse(JSON.stringify(obj));
@@ -69,7 +76,7 @@
   }
 
   function emptySide() {
-    return { gymnastId: null, number: null, name: '', d: null, e1: null, e2: null, nd: 0, dns: false };
+    return { gymnastId: null, number: null, name: '', d: null, e1: null, e2: null, e3: null, nd: 0, bonus: false, dns: false };
   }
 
   function emptyDuel() {
@@ -80,28 +87,60 @@
     return v !== null && v !== undefined;
   }
 
-  /** E-Note = 10 − Mittelwert der beiden E-Abzüge. null = noch offen. */
-  function eScore(side) {
-    if (!side || !isSet(side.e1) || !isSet(side.e2)) return null;
-    return Math.max(0, 10000 - Math.round((side.e1 + side.e2) / 2));
+  function eJudgeCount(rules) {
+    return rules && rules.eJudges === 3 ? 3 : 2;
   }
 
-  /** Endnote = D + E − neutrale Abzüge; "nicht angetreten" zählt 0. null = noch offen. */
-  function sideFinal(side) {
+  /**
+   * Maßgeblicher E-Abzug: bei 2 Kampfrichtern der Mittelwert, bei 3 der mittlere
+   * Wert (höchster und niedrigster gestrichen). null = noch offen.
+   */
+  function eDeduction(side, rules) {
+    if (!side) return null;
+    if (eJudgeCount(rules) === 3) {
+      if (!isSet(side.e1) || !isSet(side.e2) || !isSet(side.e3)) return null;
+      return [side.e1, side.e2, side.e3].sort(function (a, b) { return a - b; })[1];
+    }
+    if (!isSet(side.e1) || !isSet(side.e2)) return null;
+    return Math.round((side.e1 + side.e2) / 2);
+  }
+
+  /** E-Note = 10 − maßgeblicher E-Abzug. null = noch offen. */
+  function eScore(side, rules) {
+    var ded = eDeduction(side, rules);
+    return ded === null ? null : Math.max(0, 10000 - ded);
+  }
+
+  /** Endnote = D + Standbonus + E − neutrale Abzüge; "nicht angetreten" zählt 0. null = noch offen. */
+  function sideFinal(side, rules) {
     if (!side) return null;
     if (side.dns) return 0;
-    var e = eScore(side);
+    var e = eScore(side, rules);
     if (!isSet(side.d) || e === null) return null;
-    return Math.max(0, side.d + e - (side.nd || 0));
+    return Math.max(0, side.d + (side.bonus ? STAND_BONUS : 0) + e - (side.nd || 0));
+  }
+
+  /**
+   * Startreihenfolge im Duell: An jedem Gerät bilden je zwei Duelle einen Block.
+   * Gerät 1: Duell 1+2 beginnt die beginnende Mannschaft A, Duell 3+4 die andere (AA, BB);
+   * am nächsten Gerät umgekehrt (BB, AA) usw.
+   * Liefert ['home', 'guest'] oder ['guest', 'home'].
+   */
+  function startOrder(match, appKey, duelIdx) {
+    var appIdx = APPARATUS.map(function (a) { return a.key; }).indexOf(appKey);
+    var a = match.startTeam === 'guest' ? 'guest' : 'home';
+    var b = a === 'home' ? 'guest' : 'home';
+    var flip = (appIdx + Math.floor(duelIdx / 2)) % 2 === 1;
+    return flip ? [b, a] : [a, b];
   }
 
   // Werte, die auf der Anzeigetafel angezeigt werden. Ändert sich einer davon nach
   // dem Anzeigen, muss die Korrektur erst angezeigt werden.
-  var SHOWN_FIELDS = ['gymnastId', 'd', 'e1', 'e2', 'nd', 'dns'];
+  var SHOWN_FIELDS = ['gymnastId', 'd', 'e1', 'e2', 'e3', 'nd', 'bonus', 'dns'];
 
   function norm(field, v) {
     if (field === 'nd') return v || 0;
-    if (field === 'dns') return !!v;
+    if (field === 'dns' || field === 'bonus') return !!v;
     return v === undefined ? null : v;
   }
 
@@ -172,8 +211,8 @@
   }
 
   function duelResult(duel, rules) {
-    var h = sideFinal(duel.home);
-    var g = sideFinal(duel.guest);
+    var h = sideFinal(duel.home, rules);
+    var g = sideFinal(duel.guest, rules);
     if (h === null || g === null) {
       return { complete: false, home: h, guest: g, diff: null, homePoints: 0, guestPoints: 0, winner: null };
     }
@@ -310,7 +349,13 @@
     formatScore: formatScore,
     emptySide: emptySide,
     emptyDuel: emptyDuel,
+    STAND_BONUS: STAND_BONUS,
+    NO_BONUS_APPARATUS: NO_BONUS_APPARATUS,
+    eJudgeCount: eJudgeCount,
+    eDeduction: eDeduction,
     eScore: eScore,
+    startOrder: startOrder,
+    SHOWN_FIELDS: SHOWN_FIELDS,
     sideFinal: sideFinal,
     revealedView: revealedView,
     snapshotSide: snapshotSide,

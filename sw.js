@@ -1,5 +1,14 @@
-/* Service Worker: hält die App vollständig offline verfügbar. */
-const CACHE = 'turnwettkampf-v5';
+/*
+ * Service Worker: hält die App vollständig offline verfügbar.
+ *
+ * Updates: Bei jeder Veröffentlichung VERSION erhöhen. Der Browser erkennt die
+ * geänderte sw.js, lädt die neue Version komplett in einen eigenen Cache und
+ * wartet. Die App zeigt dann „Jetzt aktualisieren“; erst nach dem Klick wird
+ * die neue Version aktiv (Nachricht SKIP_WAITING). So werden alte und neue
+ * Dateien nie gemischt.
+ */
+const VERSION = 'v6';
+const CACHE = 'turnwettkampf-' + VERSION;
 const ASSETS = [
   './',
   'index.html',
@@ -16,7 +25,8 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // HTTP-Cache umgehen, damit wirklich die neuen Dateien geladen werden.
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))));
 });
 
 self.addEventListener('activate', (event) => {
@@ -27,20 +37,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Cache zuerst (funktioniert offline); im Hintergrund aktualisieren, wenn online.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+// Nur aus dem Cache dieser Version liefern; fehlende Dateien aus dem Netz.
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   event.respondWith(
-    caches.match(req, { ignoreSearch: true }).then((cached) => {
-      const network = fetch(req).then((res) => {
-        if (res && res.ok) {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
-        }
-        return res;
-      }).catch(() => cached || caches.match('index.html'));
-      return cached || network;
-    })
+    caches.open(CACHE).then((cache) =>
+      cache.match(req, { ignoreSearch: true }).then((cached) =>
+        cached || fetch(req).catch(() => (req.mode === 'navigate' ? cache.match('index.html') : Response.error()))
+      )
+    )
   );
 });
