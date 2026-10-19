@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '20';
+  var APP_BUILD = '21';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -787,8 +787,8 @@
     var bonusAllowed = appKey !== S.NO_BONUS_APPARATUS;
     var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"';
     return '<div class="side ' + sideKey + (position === 1 ? ' first' : ' second') + (side.dns ? ' dns' : '') + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
-      '<div class="side-head"><span class="order-no" title="Startreihenfolge im Duell">' + position + '.</span>' +
       (position === 1 ? '<span class="lead-tag">vorlegend</span>' : '') +
+      '<div class="side-head"><span class="order-no" title="Startreihenfolge im Duell">' + position + '.</span>' +
       '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked || side.dns) + '</div>' +
       '<div class="score-row" style="grid-template-columns:repeat(' + ((three ? 5 : 4) + (bonusAllowed ? 1 : 0)) + ',minmax(0,1fr))">' +
