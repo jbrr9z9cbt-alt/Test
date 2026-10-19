@@ -456,3 +456,13 @@ body.no-league .topbar nav { visibility: hidden; }
 .st-title { font-size: 1.6rem; font-weight: 800; }
 .st-sub { color: var(--muted); font-size: .9rem; }
 @media (max-width: 560px) { .start-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Anwesende Turner (Wettkampf anlegen) ---------- */
+.lineup-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.lineup-count { font-size: .9rem; color: var(--muted, #666); }
+.lineup-count.warn { color: #b45309; font-weight: 600; }
+.lineup .actions { margin: .35rem 0; }
+.lineup-row input[type=checkbox] { width: 1.3rem; height: 1.3rem; flex: 0 0 auto; margin: 0; }
+.lineup-row input[type=text] { flex: 1; min-width: 0; }
+.lineup-row.off .startno { background: #bdbdbd; }
+.lineup-row.off input[type=text] { color: #888; }

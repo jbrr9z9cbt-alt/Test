@@ -21,6 +21,10 @@ Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktio
 - **Wettkampf anlegen**: Datum, beginnende Mannschaft, Heim/Gast mit Farbe und Mannschaftsführer,
   Kampfgericht (E1 Oberkampfrichter, E2 neutral, D1 Vereinskampfrichter Heim, D2 Vereinskampfrichter Gast).
   Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen.
+- **Anwesende Turner**: Nach der Wahl der Vereine stehen auf derselben Seite alle Turner beider
+  Mannschaften zum Abhaken (zunächst alle abgehakt; Fehlende abwählen). Namen lassen sich dort
+  korrigieren und auf freien Startnummern ergänzen – das wird sofort in die Mannschaftsliste übernommen.
+  Bei der Wertungseingabe stehen nur die abgehakten Turner zur Auswahl. Änderbar über „Bearbeiten“.
 - **Startreihenfolge** (lt. Scoresystem): Die am Gerät beginnende Mannschaft beginnt Duell 1+2, die andere
   Duell 3+4; bei jedem Gerätewechsel wechselt die beginnende Mannschaft.
   In der Erfassung steht der **vorlegende Turner** links (bzw. oben auf schmalen Bildschirmen) und ist markiert;
@@ -76,7 +80,7 @@ veröffentlichen (Push auf `main`) – die installierten Apps laden das Update b
 
 ## Wertungsregeln (fest, WTB-Oberliga-Scoresystem Stand 20.09.2025)
 
-Die Regeln sind in der App **nicht änderbar** (unter „Daten & Regeln“ nur angezeigt).
+Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ nur angezeigt).
 
 | Notendifferenz | Scorepunkte für den Sieger des Duells |
 |---|---|

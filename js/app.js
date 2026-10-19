@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '18';
+  var APP_BUILD = '19';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -357,6 +357,7 @@
         html = r.sub === 'board' ? viewBoard(m) : r.sub === 'print' ? viewPrint(m) : viewMatch(m);
         break;
       case 'data': html = viewData(); break;
+      case 'rules': html = viewRules(); break;
       case 'oberliga': html = viewHome(); break;
       case 'landesliga': html = viewLandesliga(); break;
       default: html = viewStart();
@@ -364,7 +365,7 @@
     $app.innerHTML = (state.persistent ? '' : warningBanner()) + html;
     if (r.name === 'data') refreshDataView();
     var mf = $app.querySelector('form[data-form="match"]');
-    if (mf) syncJudgeFields(mf);
+    if (mf) { syncJudgeFields(mf); syncLineup(mf); }
     if (r.name === 'match' && r.sub === 'print') fitPrintToA4();
     if (r.name === 'oberliga') refreshStorageBox();
     var isBoard = r.name === 'match' && r.sub === 'board' && match(r.id);
@@ -505,7 +506,8 @@
       var teamId = m ? (side === 'home' ? m.homeTeamId : m.guestTeamId) : null;
       return '<div class="team-col"><label>' + label + '<select name="' + side + '" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(teamId) + '</select></label>' +
         colorPicker(side + 'Color', 'Farbe', m ? sideColor(m, side).key : DEFAULT_COLORS[side]) +
-        input(side === 'home' ? 'captainHome' : 'captainGuest', 'Mannschaftsführer', cap[side]) + '</div>';
+        input(side === 'home' ? 'captainHome' : 'captainGuest', 'Mannschaftsführer', cap[side]) +
+        '<div class="lineup" data-lineup="' + side + '">' + lineupHtml(side, teamId, m && m.lineup && m.lineup[side]) + '</div></div>';
     }
     return '<section class="card narrow"><h2>' + (isNew ? 'Neuer Wettkampf' : 'Wettkampf bearbeiten') + '</h2>' +
       '<form data-form="match" data-id="' + (m ? m.id : '') + '" class="stack match-form' + (neutral ? '' : ' split-e') + '">' +
@@ -527,6 +529,45 @@
       '<div class="actions"><button class="btn primary" type="submit">' + (isNew ? 'Anlegen' : 'Speichern') + '</button>' +
       '<a class="btn ghost" href="' + (m ? '#/match/' + m.id : '#/oberliga') + '">Abbrechen</a></div>' +
       '</form></section>';
+  }
+
+  /**
+   * Anwesende Turner einer Mannschaft zum Abhaken. selected: Liste der Turner-IDs
+   * (fehlt sie, sind alle benannten Turner abgehakt). Die Namen lassen sich direkt
+   * ändern bzw. auf freien Startnummern ergänzen und werden sofort in der Mannschaft gespeichert.
+   */
+  function lineupHtml(side, teamId, selected) {
+    var t = team(teamId);
+    if (!t) return '';
+    var rows = t.gymnasts.map(function (g) {
+      var on = !!g.name && (!selected || selected.indexOf(g.id) >= 0);
+      return '<li class="gym-row lineup-row' + (on ? '' : ' off') + '">' +
+        '<input type="checkbox" class="lineup-check" data-side="' + side + '" value="' + g.id + '"' + (on ? ' checked' : '') + (g.name ? '' : ' disabled') +
+        ' aria-label="Startnummer ' + g.number + ' anwesend">' +
+        '<span class="startno">' + g.number + '</span>' +
+        '<input type="text" value="' + esc(g.name) + '" placeholder="frei – Name eintragen" data-team="' + t.id + '" data-gym="' + g.number + '" data-tfield="gname" aria-label="Name Startnummer ' + g.number + '"></li>';
+    }).join('');
+    return '<div class="lineup-head"><strong>Anwesende Turner</strong><span class="lineup-count" data-count="' + side + '"></span></div>' +
+      '<div class="actions"><button type="button" class="btn small" data-action="lineup-all" data-side="' + side + '">Alle</button>' +
+      '<button type="button" class="btn small" data-action="lineup-none" data-side="' + side + '">Keine</button></div>' +
+      '<ul class="plain gym-list">' + rows + '</ul>';
+  }
+
+  /** Zähler und Hinweis (weniger als 4 Turner) der Anwesenheitsliste aktualisieren. */
+  function syncLineup(form) {
+    ['home', 'guest'].forEach(function (side) {
+      var el = form.querySelector('[data-count="' + side + '"]');
+      if (!el) return;
+      var boxes = form.querySelectorAll('.lineup-check[data-side="' + side + '"]');
+      var n = 0;
+      boxes.forEach(function (b) {
+        if (b.checked) n++;
+        b.closest('.lineup-row').classList.toggle('off', !b.checked);
+      });
+      var min = S.DEFAULT_RULES.duelsPerApparatus;
+      el.textContent = n + ' ausgewählt' + (n < min ? ' – weniger als ' + min + ' Turner!' : '');
+      el.classList.toggle('warn', n < min);
+    });
   }
 
   /** Neutraler E2 an/aus: passende Eingabefelder zeigen und als Pflichtfeld markieren. */
@@ -558,6 +599,25 @@
     if (home === guest) { toast('Heim- und Gastmannschaft müssen verschieden sein.', 'error'); return; }
     var colors = { home: fd.get('homeColor') || DEFAULT_COLORS.home, guest: fd.get('guestColor') || DEFAULT_COLORS.guest };
     if (colors.home === colors.guest) { toast('Heim und Gast brauchen verschiedene Farben.', 'error'); return; }
+    var lineup = {};
+    ['home', 'guest'].forEach(function (side) {
+      lineup[side] = Array.prototype.filter.call(form.querySelectorAll('.lineup-check[data-side="' + side + '"]'), function (b) { return b.checked; })
+        .map(function (b) { return b.value; });
+    });
+    if (m) {
+      // Abgewählte Turner, die bereits eine Wertung haben, behalten sie – trotzdem nachfragen.
+      var scored = [];
+      S.APPARATUS.forEach(function (a) {
+        m.apparatus[a.key].duels.forEach(function (d) {
+          ['home', 'guest'].forEach(function (k) {
+            var id = d[k].gymnastId;
+            if (id && lineup[k].indexOf(id) < 0 && scored.indexOf(d[k].name) < 0) scored.push(d[k].name || id);
+          });
+        });
+      });
+      if (scored.length && !confirm('Bereits eingesetzt, aber nicht mehr als anwesend markiert: ' + scored.join(', ') +
+        '. Ihre Wertungen bleiben erhalten. Trotzdem speichern?')) return;
+    }
     var neutral = form.neutralE2.disabled ? S.eJudgeCount(m.rules) === 2 : form.neutralE2.checked;
     var text = function (n) { return String(fd.get(n) || '').trim(); };
     var judges = {
@@ -595,6 +655,7 @@
       m.guestTeamId = guest;
     }
     m.colors = colors;
+    m.lineup = lineup;
     m.rules = S.leagueRules(neutral ? 2 : 3);
     m.judges = judges;
     m.captains = { home: text('captainHome'), guest: text('captainGuest') };
@@ -684,12 +745,15 @@
     m.apparatus[appKey].duels.forEach(function (d, i) {
       if (i !== idx && d[sideKey].gymnastId) used[d[sideKey].gymnastId] = true;
     });
+    var lineup = m.lineup && m.lineup[sideKey];
     var opts = '<option value="">– Turner –</option>';
     var found = false;
     (t ? t.gymnasts : []).forEach(function (g) {
       if (g.id === side.gymnastId) found = true;
       // Startnummern ohne Namen sind nicht auswählbar (außer sie sind bereits eingesetzt).
       if (!g.name && g.id !== side.gymnastId) return;
+      // Nur anwesende Turner (ältere Wettkämpfe ohne Anwesenheitsliste: alle).
+      if (lineup && lineup.indexOf(g.id) < 0 && g.id !== side.gymnastId) return;
       // Der eingesetzte Turner erscheint mit dem im Wettkampf gespeicherten Namen (bleibt nach Listen-Updates gleich).
       var label = g.id === side.gymnastId && side.name ? side.name : (g.name || '(ohne Name)');
       opts += '<option value="' + g.id + '"' + (g.id === side.gymnastId ? ' selected' : '') + (used[g.id] ? ' disabled' : '') + '>' +
@@ -1396,10 +1460,9 @@
     }
   }
 
-  // ---------- Ansicht: Daten & Regeln ----------
+  // ---------- Ansichten: Datensicherung und Regeln ----------
 
   function viewData() {
-    var r = S.DEFAULT_RULES;
     return '<section class="card"><h2>Datensicherung</h2>' +
       '<p>Alle Daten liegen ausschließlich lokal auf diesem Gerät. Zusätzlich legt die App automatisch Sicherungspunkte an. ' +
       'Für Sicherheit gegen Geräteverlust bitte regelmäßig eine Sicherungsdatei exportieren (z. B. auf einen USB-Stick).</p>' +
@@ -1423,7 +1486,14 @@
       '<h3>Automatische Sicherungspunkte</h3><div id="snapshots" class="muted">wird geladen …</div>' +
       '</section>' +
 
-      '<section class="card"><h2>Wertungsregeln</h2>' +
+      '<section class="card"><h2>Alle Daten löschen</h2>' +
+      '<p class="muted">Löscht alle Wettkämpfe und eigene Änderungen an den Turnernamen auf diesem Gerät. Die Mannschaften und die vorgegebenen Turner bleiben erhalten. Ein Sicherungspunkt wird vorher angelegt.</p>' +
+      '<button class="btn danger" data-action="wipe">Alle Daten löschen …</button></section>';
+  }
+
+  function viewRules() {
+    var r = S.DEFAULT_RULES;
+    return '<section class="card"><h2>Wertungsregeln</h2>' +
       '<p class="muted">Fest nach dem Scoresystem der ' + esc(LEAGUE || 'Liga') + ' – in der App nicht änderbar.</p>' +
       '<table class="table compact rules-table"><thead><tr><th>Notendifferenz</th><th class="num">Scorepunkte</th></tr></thead><tbody>' +
       '<tr><td>unter ' + fmt(r.thresholds[0].min) + '</td><td class="num">0 (unentschieden)</td></tr>' +
@@ -1434,11 +1504,7 @@
       '<ul class="plain small muted"><li>' + r.duelsPerApparatus + ' Duelle pro Gerät; eine nicht besetzte Übung zählt 0 Punkte.</li>' +
       '<li>Gerät und Wettkampf gewinnt, wer mehr Scorepunkte hat; bei Gleichstand unentschieden.</li>' +
       '<li>E-Note: mit neutralem E2 10 − Mittelwert der Abzüge, mit drei E-Kampfrichtern 10 − mittlerer Abzug.</li>' +
-      '<li>Standbonus +0,1 (nicht am Pauschenpferd).</li></ul></section>' +
-
-      '<section class="card"><h2>Alle Daten löschen</h2>' +
-      '<p class="muted">Löscht alle Wettkämpfe und eigene Änderungen an den Turnernamen auf diesem Gerät. Die Mannschaften und die vorgegebenen Turner bleiben erhalten. Ein Sicherungspunkt wird vorher angelegt.</p>' +
-      '<button class="btn danger" data-action="wipe">Alle Daten löschen …</button></section>';
+      '<li>Standbonus +0,1 (nicht am Pauschenpferd).</li></ul></section>';
   }
 
   function refreshDataView() {
@@ -1511,6 +1577,12 @@
     if (el.dataset && el.dataset.picking) return; // erst mit Enter übernehmen
     if (el.hasAttribute('data-field')) { handleScoreChange(el); return; }
     if (el.name === 'neutralE2' && el.form) { syncJudgeFields(el.form); return; }
+    if (el.classList.contains('lineup-check')) { syncLineup(el.form); return; }
+    if ((el.name === 'home' || el.name === 'guest') && el.form && el.form.getAttribute('data-form') === 'match') {
+      el.form.querySelector('[data-lineup="' + el.name + '"]').innerHTML = lineupHtml(el.name, el.value, null);
+      syncLineup(el.form);
+      return;
+    }
     var tfield = el.getAttribute('data-tfield');
     if (tfield) {
       var t = team(el.getAttribute('data-team'));
@@ -1534,6 +1606,15 @@
         if (changed) save('matches', m);
       });
       save('teams', t);
+      // In der Anwesenheitsliste: neu benannte Turner abhaken, Turner ohne Namen abwählen.
+      var row = el.closest('.lineup-row');
+      if (row) {
+        var box = row.querySelector('.lineup-check');
+        if (box.disabled && g.name) box.checked = true;
+        if (!g.name) box.checked = false;
+        box.disabled = !g.name;
+        syncLineup(el.form);
+      }
     }
   });
 
@@ -1791,6 +1872,14 @@
         break;
       case 'export':
         exportBackup();
+        break;
+      case 'lineup-all':
+      case 'lineup-none':
+        var lf = btn.closest('form');
+        lf.querySelectorAll('.lineup-check[data-side="' + btn.getAttribute('data-side') + '"]').forEach(function (b) {
+          if (!b.disabled) b.checked = action === 'lineup-all';
+        });
+        syncLineup(lf);
         break;
       case 'export-match':
         var sel = document.getElementById('export-match-select');
