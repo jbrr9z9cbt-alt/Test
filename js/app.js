@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '15';
+  var APP_BUILD = '16';
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -1325,11 +1325,11 @@
       '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>' +
       '<div class="print-page"><section class="print-sheet" id="print-sheet">' +
       '<div class="ps-head"><div class="ps-title">' + PRINT_LOGO +
-      '<div><div class="ps-league">' + esc(LEAGUE) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
+      '<div class="ps-titletext"><div class="ps-league">' + esc(LEAGUE.replace(/^WTB[- ]/, '')) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
       '<div class="ps-meta"><strong>' + esc(teamName(m.homeTeamId)) + ' – ' + esc(teamName(m.guestTeamId)) + '</strong><br><strong>' + esc(fmtDate(m.date)) + '</strong></div></div>' + panel +
-      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Punkte</th><th class="num">Geturnte Punkte</th></tr></thead><tbody>' +
-      '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + pts(m, 'home', r.homePoints) + '</strong></td><td class="num">' + r.homeApp + '</td><td class="num">' + (r.complete ? r.homeMatch : '–') + '</td><td class="num">' + fmt(r.homeSum) + '</td></tr>' +
-      '<tr><td>Gast</td><td>' + esc(teamName(m.guestTeamId)) + '</td><td class="num"><strong>' + pts(m, 'guest', r.guestPoints) + '</strong></td><td class="num">' + r.guestApp + '</td><td class="num">' + (r.complete ? r.guestMatch : '–') + '</td><td class="num">' + fmt(r.guestSum) + '</td></tr>' +
+      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Geturnte Punkte</th></tr></thead><tbody>' +
+      '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + pts(m, 'home', r.homePoints) + '</strong></td><td class="num">' + r.homeApp + '</td><td class="num">' + fmt(r.homeSum) + '</td></tr>' +
+      '<tr><td>Gast</td><td>' + esc(teamName(m.guestTeamId)) + '</td><td class="num"><strong>' + pts(m, 'guest', r.guestPoints) + '</strong></td><td class="num">' + r.guestApp + '</td><td class="num">' + fmt(r.guestSum) + '</td></tr>' +
       '</tbody></table>' +
       '<p class="ps-result">' + (r.complete ? 'Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong>' : 'Wettkampf noch nicht vollständig gewertet.') + '</p>' +
       apps +
@@ -1345,6 +1345,13 @@
   function fitPrintToA4() {
     var sheet = document.getElementById('print-sheet');
     if (!sheet) return;
+    // Logo exakt so hoch wie die beiden Titelzeilen daneben.
+    var logo = sheet.querySelector('.ps-logo'), titleText = sheet.querySelector('.ps-titletext');
+    if (logo && titleText) {
+      var fit = function () { logo.style.height = titleText.offsetHeight + 'px'; };
+      fit();
+      if (!logo.complete) logo.addEventListener('load', fit, { once: true });
+    }
     var probe = document.createElement('div');
     probe.style.cssText = 'position:absolute;visibility:hidden;width:100mm;height:100mm';
     document.body.appendChild(probe);

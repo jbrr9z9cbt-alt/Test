@@ -33,11 +33,11 @@ code { background: #ebebeb; padding: 0 .25em; border-radius: 4px; }
 /* ---------- Kopfzeile ---------- */
 .topbar {
   display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  padding: .6rem 1rem; background: var(--primary); color: #fff;
+  padding: .6rem 1rem; background: #4a4a4a; color: #fff;
   position: sticky; top: 0; z-index: 10;
 }
-.league-name { font-size: 1.15rem; font-weight: 800; color: #fff; border-left: 1px solid #525252; padding-left: .75rem; letter-spacing: .01em; }
-.app-version { font-size: .75rem; color: #a3a3a3; margin-left: auto; }
+.league-name { font-size: 1.15rem; font-weight: 800; color: #fff; border-left: 1px solid #6b6b6b; padding-left: .75rem; letter-spacing: .01em; }
+.app-version { font-size: .75rem; color: #d4d4d4; margin-left: auto; }
 .app-version + .net-status { margin-left: 0; }
 .brand { display: flex; align-items: center; gap: .5rem; color: #fff; text-decoration: none; font-weight: 700; font-size: 1.1rem; }
 .topbar nav { display: flex; gap: .25rem; flex-wrap: wrap; flex: 1; }
@@ -380,10 +380,12 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
   font-size: 8pt; line-height: 1.3; box-shadow: 0 0 0 10mm #fff, 0 1px 12px 10mm rgba(0,0,0,.08);
 }
 .ps-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1.5pt solid #000; padding-bottom: 2mm; margin-bottom: 2mm; }
-.ps-title { display: flex; align-items: center; gap: 3mm; }
-.ps-logo { height: 12mm; width: auto; display: block; }
+/* Logo genau so hoch wie die beiden Titelzeilen (wird beim Einpassen per Skript übernommen) */
+.ps-title { display: flex; align-items: stretch; gap: 3mm; }
+.ps-titletext { display: flex; flex-direction: column; justify-content: center; }
+.ps-logo { height: 10.3mm; width: auto; display: block; }
 .ps-league { font-size: 16pt; font-weight: 800; line-height: 1.1; }
-.ps-doc { font-size: 9pt; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #333; }
+.ps-doc { font-size: 9pt; line-height: 1.2; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #333; }
 .ps-meta { text-align: right; font-size: 11pt; line-height: 1.35; }
 .print-summary, .print-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .print-summary th, .print-summary td { padding: .6mm 1.5mm; border-bottom: .5pt solid #bbb; text-align: left; }
