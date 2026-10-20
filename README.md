@@ -52,7 +52,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktio
   - **Eingabereihenfolge** je Übung: Abzüge E1, E2 (ggf. E3), D-Note, Standbonus, neutraler Abzug
   - **Tastatur**: Gerät mit der Maus wählen, dann führt Tab durch den ganzen Ablauf: Turnerauswahl des
     vorlegenden Turners, E1, E2, (E3), D-Note, Standbonus, neutraler Abzug, dann der gegnerische Turner
-    genauso, zuletzt „Wertung anzeigen“ – danach weiter mit dem vorlegenden Turner des nächsten Duells.
+    genauso, zuletzt „Wertung freigeben“ – danach weiter mit dem vorlegenden Turner des nächsten Duells.
     Enter öffnet die Turnerauswahl, Pfeiltasten wählen, Enter übernimmt (weiter zu E1);
     Enter schaltet den Standbonus um und wirkt in Notenfeldern wie Tab;
     Pfeiltasten ↑/↓ ändern Noten in 0,1-Schritten (nie unter 0)
@@ -63,12 +63,14 @@ Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktio
   - Knopf „Tafel dunkel/hell darstellen“: hell ist Standard (gut lesbar mit Beamer in heller Halle),
     dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
   - passt sich automatisch ins Fenster ein (keine Scrollbalken); Timer und Detailwertungen haben feste Plätze
-  - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung anzeigen“** gedrückt wird
+  - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.
+    Der Knopf ist erst aktiv, wenn beide Turner gewählt und vollständig gewertet sind
+    (bei „nicht angetreten“ ohne Turner und Wertung)
   - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der
     siegreichen Mannschaft eingeblendet, leicht blinkend (bei Gleichstand eine graue 0)
   - Das zuletzt angezeigte Duell steht mit **D-Note, E-Note, neutralem Abzug (falls vorhanden) und Endnote** auf der Tafel
 - **Nachträgliche Änderungen**: Wird eine bereits angezeigte Wertung geändert, zeigt die Tafel weiter den alten Stand.
-  Alle anderen Duelle sind gesperrt, bis die Korrektur mit **„Korrektur anzeigen“** auf die Tafel gebracht
+  Alle anderen Duelle sind gesperrt, bis die Korrektur mit **„Korrektur freigeben“** auf die Tafel gebracht
   oder mit „Änderung verwerfen“ zurückgenommen wurde. Auch das Abschließen des Wettkampfs ist bis dahin gesperrt.
   Die Korrektur erscheint **10 Sekunden als Overlay** über der Anzeigetafel (alte Werte durchgestrichen, neue Werte daneben).
 - **Protokoll** zum Drucken bzw. Speichern als PDF – passt immer auf **eine DIN-A4-Seite im Hochformat**

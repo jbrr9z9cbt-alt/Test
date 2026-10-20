@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '27';
+  var APP_BUILD = '28';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -750,7 +750,7 @@
     if (!pending.length) return '';
     return '<div class="banner warn-banner">⚠ Nachträgliche Änderung: ' + pending.map(function (p) {
       return apparatusName(p.appKey) + ', Duell ' + (p.idx + 1);
-    }).join('; ') + '. Bitte zuerst <strong>„Korrektur anzeigen“</strong> drücken (oder die Änderung verwerfen) – bis dahin sind alle anderen Duelle gesperrt.</div>';
+    }).join('; ') + '. Bitte zuerst <strong>„Korrektur freigeben“</strong> drücken (oder die Änderung verwerfen) – bis dahin sind alle anderen Duelle gesperrt.</div>';
   }
 
   function winnerText(m, r) {
@@ -839,20 +839,30 @@
       '<span class="duel-diff">' + (r.winner === 'draw' ? 'unentschieden · ' : '') + 'Diff. ' + fmt(r.diff) + '</span>';
   }
 
+  /**
+   * Freigabe erst, wenn beide Seiten fertig sind: Turner gewählt und Wertung vollständig –
+   * oder „nicht angetreten“ (dann ohne Turner und Wertung).
+   */
+  function duelReady(r, duel) {
+    function sideReady(s) { return s.dns || !!s.gymnastId; }
+    return r.complete && sideReady(duel.home) && sideReady(duel.guest);
+  }
+
   /** Knöpfe unter der zweiten Übung – in der Tab-Reihenfolge als Letztes im Duell. */
   function duelActions(r, duel, appKey, idx, locked) {
     var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '"';
+    var ready = duelReady(r, duel);
     if (S.hasPendingCorrection(duel)) {
-      var html = '<span class="changed">geändert – Tafel zeigt noch den alten Stand</span>';
+      var html = '<span class="changed">geändert – noch nicht freigegeben</span>';
       if (!locked) {
-        html += '<button class="btn primary"' + attrs + ' data-action="reveal"' + (r.complete ? '' : ' disabled') + '>Korrektur anzeigen</button>' +
+        html += '<button class="btn primary"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Korrektur freigeben</button>' +
           '<button class="btn ghost" tabindex="-1"' + attrs + ' data-action="discard">Änderung verwerfen</button>';
       }
       return html;
     }
-    if (duel.revealedAt) return '<span class="revealed">✓ auf Anzeigetafel</span>';
+    if (duel.revealedAt) return '<span class="revealed">✓ freigegeben</span>';
     if (locked) return '';
-    return '<button class="btn primary reveal-btn"' + attrs + ' data-action="reveal"' + (r.complete ? '' : ' disabled') + '>Wertung anzeigen</button>';
+    return '<button class="btn primary reveal-btn"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Wertung freigeben</button>';
   }
 
   function apparatusPanel(m, appKey) {
@@ -879,7 +889,7 @@
       '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
       (S.eJudgeCount(m.rules) === 3 ? 'E-Note = 10 − mittlerer der drei E-Abzüge (höchster und niedrigster gestrichen). ' : 'E-Note = 10 − Mittelwert der Abzüge E1 und E2. ') +
       'Endnote = D-Note + Standbonus + E-Note − neutraler Abzug; „Wertung 0,00“ gibt einem angetretenen Turner die Endnote 0. Der vorlegende Turner (1.) steht links bzw. oben. ' +
-      'Die Scorepunkte eines Duells erscheinen auf der Anzeigetafel erst nach „Wertung anzeigen“. Jede Eingabe wird sofort gespeichert.</p>';
+      'Die Scorepunkte eines Duells zählen und erscheinen auf der Anzeigetafel erst nach „Wertung freigeben“. Jede Eingabe wird sofort gespeichert.</p>';
   }
 
   function appSumHtml(m, ar) {
@@ -941,7 +951,7 @@
     var sideKey = el.getAttribute('data-side');
     var field = el.getAttribute('data-field');
     var side = m.apparatus[appKey].duels[idx][sideKey];
-    if (duelBlocked(m, appKey, idx)) { toast('Erst die nachträgliche Änderung auf der Anzeigetafel anzeigen.', 'error'); render(); return; }
+    if (duelBlocked(m, appKey, idx)) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
     var pendingBefore = S.pendingCorrections(m).length;
 
     if (field === 'gymnast') {
@@ -1804,7 +1814,7 @@
 
   var SCORE_FIELDS = ['d', 'e1', 'e2', 'e3', 'nd'];
 
-  /** Reihenfolge wie mit der Tabulatortaste: Turner, Notenfelder, Standbonus – je Übung –, dann „Wertung anzeigen“. */
+  /** Reihenfolge wie mit der Tabulatortaste: Turner, Notenfelder, Standbonus – je Übung –, dann „Wertung freigeben“. */
   function entrySequence() {
     return Array.prototype.slice.call($app.querySelectorAll(
       'select[data-field="gymnast"]:not([disabled]), input[data-field]:not([type=checkbox]):not([disabled]), input[data-field="bonus"]:not([disabled]), button[data-action="reveal"]:not([disabled])'));
@@ -1934,7 +1944,7 @@
         tickTimers();
         break;
       case 'finalize':
-        if (S.pendingCorrections(m).length) { toast('Erst die nachträgliche Änderung auf der Anzeigetafel anzeigen.', 'error'); return; }
+        if (S.pendingCorrections(m).length) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); return; }
         var res = S.matchResult(m);
         if (!res.complete && !confirm('Es sind noch nicht alle Duelle gewertet. Trotzdem abschließen?')) return;
         m.status = 'final';
@@ -1966,7 +1976,7 @@
       case 'reveal':
         var duel = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
         if (!duel || m.status === 'final') return;
-        if (!S.duelResult(duel, m.rules).complete) { toast('Duell ist noch nicht vollständig gewertet.', 'error'); return; }
+        if (!duelReady(S.duelResult(duel, m.rules), duel)) { toast('Duell ist noch nicht vollständig erfasst.', 'error'); return; }
         var wasCorrection = S.hasPendingCorrection(duel);
         if (duel.shown && !wasCorrection) return;
         duel.prevShown = wasCorrection ? duel.shown : null;
@@ -1983,7 +1993,7 @@
           var nextDuel = $app.querySelectorAll('#apparatus-panel .duel')[revealedIdx + 1];
           var next = nextDuel && nextDuel.querySelector('select[data-field="gymnast"]:not([disabled]), input[data-field]:not([type=checkbox]):not([disabled])');
           if (next && !wasCorrection && revealViaKeyboard) next.focus();
-          toast(wasCorrection ? 'Korrektur wird auf der Anzeigetafel gezeigt' : 'Wertung wird auf der Anzeigetafel gezeigt');
+          toast(wasCorrection ? 'Korrektur freigegeben' : 'Wertung freigegeben');
         });
         break;
       case 'toggle-board':
