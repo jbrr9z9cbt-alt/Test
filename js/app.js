@@ -7,7 +7,9 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '25';
+  var APP_BUILD = '26';
+  // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
+  var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
@@ -452,7 +454,7 @@
         : 'unbekannt') + '</li>' +
       (info.usage !== null ? '<li>Belegt: ' + mb(info.usage) + ' von ' + mb(info.quota) + '</li>' : '') +
       '<li>Offline-Betrieb: ' + offlineStatus() + '</li>' +
-      '<li>App-Version: ' + APP_BUILD + ' (sucht beim Start und alle 30 Minuten nach Updates)</li>' +
+      '<li>App-Version: ' + APP_LABEL + ' (sucht beim Start und alle 30 Minuten nach Updates)</li>' +
       '</ul>';
   }
 
@@ -2101,7 +2103,7 @@
   var leagueEl = document.getElementById('league-name');
   if (leagueEl) leagueEl.textContent = APP_NAME;
   var versionEl = document.getElementById('app-version');
-  if (versionEl) versionEl.textContent = 'Version ' + APP_BUILD;
+  if (versionEl) versionEl.textContent = APP_LABEL;
 
   function updateNetStatus() {
     var el = document.getElementById('net-status');

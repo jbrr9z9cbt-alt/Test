@@ -120,7 +120,8 @@ Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ zusam
 - **Updates**: Die App sucht beim Start und alle 30 Minuten (wenn online) nach einer neuen Version,
   lädt sie im Hintergrund und zeigt „Jetzt aktualisieren“. Erst nach dem Klick wird sie aktiv;
   die Daten bleiben erhalten. Beim Veröffentlichen muss `VERSION` in `sw.js` (und `APP_BUILD` in
-  `js/app.js`) erhöht werden.
+  `js/app.js`) erhöht werden. Angezeigt wird in der Testphase „Beta <APP_BUILD>“ (`APP_LABEL`);
+  zur Freigabe wird `APP_LABEL` auf „Version 1.0“ umgestellt.
 
 **Empfehlung:** Nach jedem Wettkampf eine Sicherung auf einen USB-Stick o. Ä. exportieren,
 denn wenn das Gerät verloren geht oder die Browserdaten gelöscht werden, sind auch die lokalen Daten weg.
