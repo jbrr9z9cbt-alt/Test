@@ -60,6 +60,8 @@ Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktio
 - **Anzeigetafel** für Beamer/Fernseher (zweites Fenster bzw. Tab auf demselben Gerät):
   - Knopf „Anzeigetafel einschalten/ausschalten“ öffnet das Fenster und schaltet danach zwischen Anzeige und Ruhebild um
   - Knopf „Topscorer einblenden/ausblenden“ legt die Topscorer als Overlay über die Tafel
+  - Knopf „Tafel dunkel/hell darstellen“: hell ist Standard (gut lesbar mit Beamer in heller Halle),
+    dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
   - passt sich automatisch ins Fenster ein (keine Scrollbalken); Timer und Detailwertungen haben feste Plätze
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung anzeigen“** gedrückt wird
   - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der

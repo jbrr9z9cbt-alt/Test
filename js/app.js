@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '26';
+  var APP_BUILD = '27';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -92,10 +92,21 @@
     return colorOf(key);
   }
 
-  /** Scorepunkte immer in der Farbe der jeweiligen Mannschaft (dark = dunkle Anzeigetafel). */
-  function pts(m, sideKey, n, dark) {
+  /** Anzeigetafel hell (Standard, gut für Beamer) oder dunkel (Fernseher, abgedunkelte Räume). */
+  function boardLight(m) {
+    return !(m && m.display && m.display.theme === 'dark');
+  }
+
+  /** Mannschaftsfarbe im passenden Ton für die Anzeigetafel. */
+  function boardTone(m, sideKey) {
     var c = sideColor(m, sideKey);
-    return '<span class="sp-num" style="color:' + (dark ? c.onDark : c.onLight) + '">' + n + '</span>';
+    return boardLight(m) ? c.onLight : c.onDark;
+  }
+
+  /** Scorepunkte immer in der Farbe der jeweiligen Mannschaft (board = auf der Anzeigetafel). */
+  function pts(m, sideKey, n, board) {
+    var c = sideColor(m, sideKey);
+    return '<span class="sp-num" style="color:' + (board ? boardTone(m, sideKey) : c.onLight) + '">' + n + '</span>';
   }
 
   function ptsPair(m, h, g, dark, sep) {
@@ -340,6 +351,7 @@
   function render() {
     var r = route();
     document.body.classList.toggle('board-mode', r.name === 'match' && r.sub === 'board');
+    document.body.classList.toggle('board-light', r.name === 'match' && r.sub === 'board' && boardLight(match(r.id)));
     document.querySelectorAll('.topbar nav a').forEach(function (a) {
       a.classList.toggle('active', a.getAttribute('data-route') === r.name);
     });
@@ -702,6 +714,7 @@
       boardLabel(boardOn(m) && state.boardWin && !state.boardWin.closed) + '</button>' +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
       scorersLabel(m.display && m.display.scorers) + '</button>' +
+      '<button class="btn" data-action="toggle-theme">' + themeLabel(boardLight(m)) + '</button>' +
       '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a>' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf bearbeiten</a>') +
       (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
@@ -719,6 +732,7 @@
   /** Knopfbeschriftung nennt, was beim Drücken passiert. */
   function boardLabel(on) { return on ? 'Anzeigetafel ausschalten' : 'Anzeigetafel einschalten'; }
   function scorersLabel(on) { return on ? 'Topscorer ausblenden' : 'Topscorer einblenden'; }
+  function themeLabel(light) { return light ? 'Tafel dunkel darstellen' : 'Tafel hell darstellen'; }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
   function duelBlocked(m, appKey, idx) {
@@ -1074,7 +1088,7 @@
     function ndText(x) { return x.nd && !x.dns && !x.zero ? '−' + fmt1(x.nd) : ''; }
     var p = prev ? Object.assign(S.emptySide(), prev) : null;
     var nd = ndText(s), ndBefore = p ? ndText(p) : undefined;
-    return '<div class="cd-side" style="--team:' + c.onDark + '">' +
+    return '<div class="cd-side" style="--team:' + boardTone(m, sideKey) + '">' +
       '<div class="cd-name">' + esc(gymnastLabel(s.number, s.name) || '–') +
       (s.dns ? ' <span class="cd-tag">nicht angetreten</span>' : s.zero ? ' <span class="cd-tag">Wertung 0,00</span>' : '') + '</div>' +
       '<div class="cd-row"><span>D-Note' + (s.bonus && !out ? ' <small class="sb">+SB</small>' : '') + '</span><strong>' + cell(dText(s), p ? dText(p) : undefined) + '</strong></div>' +
@@ -1114,7 +1128,7 @@
     var view = S.revealedView(m);
     var r = S.matchResult(view);
     var current = boardApparatus(m);
-    var homeColor = sideColor(m, 'home').onDark, guestColor = sideColor(m, 'guest').onDark;
+    var homeColor = boardTone(m, 'home'), guestColor = boardTone(m, 'guest');
     var rows = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
       return '<tr class="' + (current && current.key === a.key ? 'current' : '') + '"><td>' + a.name + '</td>' +
@@ -1197,7 +1211,7 @@
     if (!res.complete) return;
     if (raw.revealKind === 'correction') { showCorrection(m, latest.appKey, latest.idx, duel, raw.prevShown); return; }
     var points = res.winner === 'home' ? res.homePoints : res.winner === 'guest' ? res.guestPoints : 0;
-    var color = res.winner === 'draw' ? '#a3a3a3' : sideColor(m, res.winner).onDark;
+    var color = res.winner === 'draw' ? (boardLight(m) ? '#737373' : '#a3a3a3') : boardTone(m, res.winner);
     showFlash(points, color);
   }
 
@@ -1295,6 +1309,8 @@
     var t = $app.querySelector('[data-action="toggle-scorers"]');
     var son = !!(m.display && m.display.scorers);
     if (t) { t.textContent = scorersLabel(son); t.classList.toggle('on', son); }
+    var th = $app.querySelector('[data-action="toggle-theme"]');
+    if (th) th.textContent = themeLabel(boardLight(m));
   }
 
   function tickTimers() {
@@ -1980,6 +1996,12 @@
         } else {
           m.display.board = !boardOn(m);
         }
+        save('matches', m).then(function () { refreshDisplayButtons(m); });
+        refreshDisplayButtons(m);
+        break;
+      case 'toggle-theme':
+        m.display = m.display || {};
+        m.display.theme = boardLight(m) ? 'dark' : 'light';
         save('matches', m).then(function () { refreshDisplayButtons(m); });
         refreshDisplayButtons(m);
         break;

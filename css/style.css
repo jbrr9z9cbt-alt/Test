@@ -33,7 +33,7 @@ code { background: #ebebeb; padding: 0 .25em; border-radius: 4px; }
 /* ---------- Kopfzeile ---------- */
 .topbar {
   display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  padding: .6rem 1rem; background: #4a4a4a; color: #fff;
+  padding: .6rem 1rem; background: #4a4a4a; color: #fff; border-bottom: 3px solid #e30613;
   position: sticky; top: 0; z-index: 10;
 }
 .league-name { font-size: 1.15rem; font-weight: 800; color: #fff; border-left: 1px solid #6b6b6b; padding-left: .75rem; letter-spacing: .01em; }
@@ -488,3 +488,38 @@ body.no-league .topbar nav { visibility: hidden; }
 .rules h3 { margin: 1.1rem 0 .3rem; }
 .rules-list { margin: .3rem 0 .8rem; padding-left: 1.1rem; }
 .rules-list li { margin: .3rem 0; }
+
+/* ---------- Helle Anzeigetafel (Standard, gut lesbar mit Beamer) ---------- */
+body.board-mode.board-light { background: #f4f4f4; }
+body.board-light .board { color: #171717; }
+body.board-light .board-bar .btn { color: #171717; }
+body.board-light .board-title { color: #525252; }
+body.board-light .board-big .sp-sep, body.board-light .cd-pts .sp-sep { color: #a3a3a3; }
+body.board-light .board-sub { color: #404040; }
+body.board-light .board-table td, body.board-light .board-table th, body.board-light .board-duels td { border-bottom-color: #d4d4d4; }
+body.board-light .board-table th { color: #737373; }
+body.board-light .board-table tr.current { background: #e5e5e5; }
+body.board-light .board-detail h3 { color: #262626; }
+body.board-light .board-duels .bn:not(.win) { color: #404040; }
+body.board-light .board-duels .pts { color: #171717; }
+body.board-light .cur-duel { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+body.board-light .cur-duel.empty, body.board-light .cd-empty, body.board-light .cd-dns { color: #737373; }
+body.board-light .cd-head, body.board-light .cd-row span, body.board-light .cd-final span, body.board-light .cd-tag { color: #525252; }
+body.board-light .cd-final { border-top-color: #404040; }
+body.board-light .cd-row.nd strong { color: #b91c1c; }
+body.board-light .cd-row strong small, body.board-light .cd-row span small.sb { color: #15803d; }
+body.board-light .bt { background: #fff; color: #171717; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+body.board-light .bt.warm { background: #dcfce7; } body.board-light .bt.warm strong { color: #166534; }
+body.board-light .bt.fall.ended { background: #fff; } body.board-light .bt.fall.ended strong { color: #171717; }
+body.board-light .bt.fall.phase1 { background: #fef3c7; } body.board-light .bt.fall.phase1 strong { color: #92400e; }
+body.board-light .bt.fall.phase2 { background: #fee2e2; } body.board-light .bt.fall.phase2 strong, body.board-light .bt.fall.phase2 em { color: #b91c1c; }
+body.board-light #score-flash { background: #f4f4f4; }
+body.board-light #correction-overlay { background: rgba(244,244,244,.85); }
+body.board-light .corr-box { background: #fff; color: #171717; }
+body.board-light .corr-box s, body.board-light .corr-old { color: #a3a3a3; }
+body.board-light .scorer-overlay { background: rgba(244,244,244,.85); }
+body.board-light .so-box { background: #fff; border-color: #a3a3a3; color: #171717; }
+body.board-light .so-table td { border-bottom-color: #e5e5e5; }
+body.board-light .so-rank, body.board-light .so-name small, body.board-light .so-empty { color: #525252; }
+body.board-light .standby { color: #a3a3a3; }
+body.board-light .standby img { opacity: .8; }
