@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '31';
+  var APP_BUILD = '32';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -15,7 +15,9 @@
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
   var WARMUP_MS = 4 * 60 * 1000;   // Einturnzeit je Gerät
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
-  var LEAGUE = CFG.league || '';
+  // Ligen aus js/config.js; die aktuelle Liga ergibt sich aus der Adresse (#/oberliga/…, #/landesliga/…).
+  var LEAGUES = CFG.leagues;
+  var currentLeague = LEAGUES[0].key;
   var APP_NAME = 'WTB-Liga';
   // Logo des Westfälischen Turnerbunds oben links im Wettkampfprotokoll.
   var PRINT_LOGO = '<img class="ps-logo" src="icons/wtb-logo.png" alt="WTB – Westfälischer Turnerbund">';
@@ -80,6 +82,28 @@
   function teamName(id) {
     var t = team(id);
     return t ? t.name : (state.legacyTeamNames[id] || 'Unbekannte Mannschaft');
+  }
+
+  function leagueOf(key) {
+    return LEAGUES.filter(function (l) { return l.key === key; })[0] || LEAGUES[0];
+  }
+
+  /** Liga eines Wettkampfs (ältere Wettkämpfe ohne Angabe gehören zur Oberliga). */
+  function matchLeague(m) {
+    return leagueOf(m && m.league);
+  }
+
+  function leagueTeams(key) {
+    return state.teams.filter(function (t) { return t.league === key; });
+  }
+
+  function leagueMatches(key) {
+    return state.matches.filter(function (m) { return matchLeague(m).key === key; });
+  }
+
+  /** Feste Regeln eines Wettkampfs nach dem Wertungsmodell seiner Liga. */
+  function rulesFor(leagueKey, eJudges) {
+    return S.leagueRules(eJudges);
   }
 
   function colorOf(key) {
@@ -205,9 +229,37 @@
 
   function slug(t) { return String(t).toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, ''); }
 
-  /** Gesamtsicherung: alle Mannschaften, Turnernamen und Wettkämpfe. */
+  /** Dateinamen beginnen mit der Liga, z. B. „wtb-oberliga_GESAMTSICHERUNG_…“. */
+  function filePrefix(leagueKey) {
+    return 'wtb-' + leagueKey + '_';
+  }
+
+  /** Anteil einer Liga an einem Datenbestand (Mannschaften laut Konfiguration, Wettkämpfe laut Angabe). */
+  function sliceLeague(data, key) {
+    var ids = leagueOf(key).teams.map(function (t) { return t.id; });
+    return {
+      teams: (data.teams || []).filter(function (t) { return ids.indexOf(t.id) >= 0; }),
+      matches: (data.matches || []).filter(function (m) { return (m.league || LEAGUES[0].key) === key; })
+    };
+  }
+
+  /** Daten einer Liga als Sicherungsdatei. */
+  function leagueData(key) {
+    var part = sliceLeague(exportData(), key);
+    return {
+      format: 'turnwettkampf-backup',
+      version: APP_VERSION,
+      exportedAt: new Date().toISOString(),
+      league: key,
+      teams: part.teams,
+      matches: part.matches,
+      meta: [S.clone(state.settings)]
+    };
+  }
+
+  /** Gesamtsicherung der aktuellen Liga: Mannschaften, Turnernamen und Wettkämpfe. */
   function exportBackup() {
-    download('wtb-oberliga_GESAMTSICHERUNG_' + stamp() + '.json', JSON.stringify(exportData(), null, 2));
+    download(filePrefix(currentLeague) + 'GESAMTSICHERUNG_' + stamp() + '.json', JSON.stringify(leagueData(currentLeague), null, 2));
     toast('Gesamtsicherung erstellt');
   }
 
@@ -217,11 +269,11 @@
       format: MATCH_FORMAT,
       version: APP_VERSION,
       exportedAt: new Date().toISOString(),
-      league: LEAGUE,
+      league: matchLeague(m).key,
       teams: { home: teamName(m.homeTeamId), guest: teamName(m.guestTeamId) },
       match: S.clone(m)
     };
-    download('wtb-oberliga_EINZELWETTKAMPF_' + (m.date || 'ohne-datum') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) + '.json',
+    download(filePrefix(matchLeague(m).key) + 'EINZELWETTKAMPF_' + (m.date || 'ohne-datum') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) + '.json',
       JSON.stringify(data, null, 2));
     toast('Wettkampf gesichert');
   }
@@ -236,7 +288,13 @@
     clearTimeout(snapshotTimer);
     if (!dirty && !reason) return Promise.resolve();
     dirty = false;
-    return DB.addSnapshot(exportData(), reason).catch(function (e) {
+    var data = exportData();
+    var counts = {};
+    LEAGUES.forEach(function (l) {
+      var part = sliceLeague(data, l.key);
+      counts[l.key] = { teams: part.teams.length, matches: part.matches.length };
+    });
+    return DB.addSnapshot(data, reason, counts).catch(function (e) {
       toast('Sicherungspunkt konnte nicht angelegt werden: ' + e.message, 'error');
     });
   }
@@ -269,26 +327,29 @@
   }
 
   /**
-   * Mannschaften kommen fest aus js/config.js. Gespeichert werden nur die
-   * Nutzerangaben dazu (Farbe, Turnernamen der Startnummern 1–20).
+   * Mannschaften aller Ligen kommen fest aus js/config.js. Gespeichert werden nur
+   * die Nutzerangaben dazu (Turnernamen der Startnummern 1–20).
    */
   function buildTeams(stored) {
     var byId = {};
     state.legacyTeamNames = {};
     stored.forEach(function (t) { byId[t.id] = t; });
     var known = {};
-    var teams = CFG.teams.map(function (c) {
-      known[c.id] = true;
-      var s = byId[c.id] || {};
-      // Gespeicherte Änderungen gelten nur, solange die vorgegebene Turnerliste gleich geblieben ist.
-      var useStored = s.rosterVersion === CFG.rosterVersion;
-      var preset = c.gymnasts || {};
-      var gymnasts = [];
-      for (var n = 1; n <= CFG.gymnastsPerTeam; n++) {
-        var old = useStored ? (s.gymnasts || []).filter(function (g) { return g.number === n; })[0] : null;
-        gymnasts.push({ id: c.id + '-' + n, number: n, name: old ? old.name : (preset[n] || '') });
-      }
-      return { id: c.id, name: c.name, rosterVersion: CFG.rosterVersion, gymnasts: gymnasts };
+    var teams = [];
+    LEAGUES.forEach(function (lg) {
+      lg.teams.forEach(function (c) {
+        known[c.id] = true;
+        var s = byId[c.id] || {};
+        // Gespeicherte Änderungen gelten nur, solange die vorgegebene Turnerliste gleich geblieben ist.
+        var useStored = s.rosterVersion === lg.rosterVersion;
+        var preset = c.gymnasts || {};
+        var gymnasts = [];
+        for (var n = 1; n <= CFG.gymnastsPerTeam; n++) {
+          var old = useStored ? (s.gymnasts || []).filter(function (g) { return g.number === n; })[0] : null;
+          gymnasts.push({ id: c.id + '-' + n, number: n, name: old ? old.name : (preset[n] || '') });
+        }
+        teams.push({ id: c.id, name: c.name, league: lg.key, rosterVersion: lg.rosterVersion, gymnasts: gymnasts });
+      });
     });
     stored.forEach(function (t) { if (!known[t.id] && t.name) state.legacyTeamNames[t.id] = t.name; });
     return teams;
@@ -325,7 +386,8 @@
     if (!m.startTeam) { m.startTeam = 'home'; changed = true; }
     if (!m.judges) { m.judges = {}; changed = true; }
     if (!m.captains) { m.captains = {}; changed = true; }
-    var fixed = S.leagueRules(m.rules && m.rules.eJudges);
+    if (!m.league) { m.league = LEAGUES[0].key; changed = true; }
+    var fixed = rulesFor(m.league, m.rules && m.rules.eJudges);
     if (JSON.stringify(m.rules) !== JSON.stringify(fixed)) { m.rules = fixed; changed = true; }
     return changed;
   }
@@ -341,9 +403,29 @@
 
   // ---------- Router ----------
 
+  // Seiten innerhalb einer Liga; ältere Adressen ohne Liga (#/teams …) gehören zur Oberliga.
+  var LEAGUE_PAGES = ['teams', 'new', 'rules', 'data', 'help'];
+
   function route() {
     var parts = (location.hash.replace(/^#\/?/, '') || '').split('/');
-    return { name: parts[0] || 'start', id: parts[1], sub: parts[2] };
+    var first = parts[0] || 'start';
+    if (LEAGUES.some(function (l) { return l.key === first; })) return { league: first, name: parts[1] || 'home' };
+    if (LEAGUE_PAGES.indexOf(first) >= 0) return { league: LEAGUES[0].key, name: first };
+    if (first === 'match' || first === 'edit') {
+      var m = match(parts[1]);
+      return { league: m ? matchLeague(m).key : LEAGUES[0].key, name: first, id: parts[1], sub: parts[2] };
+    }
+    return { league: null, name: 'start' };
+  }
+
+  /** Adresse einer Seite der aktuellen Liga. */
+  function leagueHref(page, key) {
+    return '#/' + (key || currentLeague) + (page && page !== 'home' ? '/' + page : '');
+  }
+
+  /** Bereiche, die noch nicht freigeschaltet sind, zeigen einen Platzhalter. */
+  function leagueReady(key) {
+    return leagueOf(key).model === 'score';
   }
 
   var keepScroll = false;
@@ -352,16 +434,21 @@
     var r = route();
     document.body.classList.toggle('board-mode', r.name === 'match' && r.sub === 'board');
     document.body.classList.toggle('board-light', r.name === 'match' && r.sub === 'board' && boardLight(match(r.id)));
+    if (r.league) currentLeague = r.league;
+    var ready = !!r.league && leagueReady(r.league);
     document.querySelectorAll('.topbar nav a').forEach(function (a) {
-      a.classList.toggle('active', a.getAttribute('data-route') === r.name);
+      var page = a.getAttribute('data-route');
+      a.setAttribute('href', leagueHref(page));
+      a.classList.toggle('active', page === r.name);
     });
-    // Auf der Startseite und im Landesliga-Bereich gibt es keine Oberliga-Navigation.
-    var inOberliga = r.name !== 'start' && r.name !== 'landesliga';
-    document.body.classList.toggle('no-league', !inOberliga);
+    // Auf der Startseite (und in noch nicht freigeschalteten Ligen) gibt es keine Liga-Navigation.
+    document.body.classList.toggle('no-league', !ready);
     var ln = document.getElementById('league-name');
-    if (ln) ln.textContent = r.name === 'landesliga' ? 'WTB-Landesliga' : inOberliga ? LEAGUE : APP_NAME;
+    if (ln) ln.textContent = r.league ? leagueOf(r.league).name : APP_NAME;
     var html;
-    switch (r.name) {
+    switch (r.league && !ready ? 'pending' : r.name) {
+      case 'pending': html = viewLeaguePending(); break;
+      case 'home': html = viewHome(); break;
       case 'teams': html = viewTeams(); break;
       case 'new': html = viewMatchForm(null); break;
       case 'edit': html = viewMatchForm(match(r.id)); break;
@@ -373,8 +460,6 @@
       case 'data': html = viewData(); break;
       case 'rules': html = viewRules(); break;
       case 'help': html = viewHelp(); break;
-      case 'oberliga': html = viewHome(); break;
-      case 'landesliga': html = viewLandesliga(); break;
       default: html = viewStart();
     }
     $app.innerHTML = (state.persistent ? '' : warningBanner()) + html;
@@ -382,7 +467,7 @@
     var mf = $app.querySelector('form[data-form="match"]');
     if (mf) { syncJudgeFields(mf); syncLineup(mf); }
     if (r.name === 'match' && r.sub === 'print') fitPrintToA4();
-    if (r.name === 'oberliga') refreshStorageBox();
+    if (r.name === 'home' && ready) refreshStorageBox();
     var isBoard = r.name === 'match' && r.sub === 'board' && match(r.id);
     if (isBoard) { checkBoardFlash(match(r.id)); fitBoard(); }
     else state.board = { matchId: null, lastReveal: '' };
@@ -409,23 +494,24 @@
       '</div></section>';
   }
 
-  function viewLandesliga() {
-    return '<section class="card narrow"><h2>Landesliga</h2><p class="muted">Dieser Bereich wird später ergänzt.</p>' +
+  function viewLeaguePending() {
+    return '<section class="card narrow"><h2>' + esc(leagueOf(currentLeague).short) + '</h2><p class="muted">Dieser Bereich wird später ergänzt.</p>' +
       '<a class="btn" href="#/">← Zur Startseite</a></section>';
   }
 
   function notFound() {
-    return '<section class="card"><h2>Nicht gefunden</h2><p>Dieser Wettkampf existiert nicht (mehr).</p><a class="btn" href="#/oberliga">Zur Übersicht</a></section>';
+    return '<section class="card"><h2>Nicht gefunden</h2><p>Dieser Wettkampf existiert nicht (mehr).</p><a class="btn" href="' + leagueHref('home') + '">Zur Übersicht</a></section>';
   }
 
   // ---------- Ansicht: Übersicht ----------
 
   function viewHome() {
-    var list = state.matches.length ? state.matches.map(function (m) {
+    var matches = leagueMatches(currentLeague);
+    var list = matches.length ? matches.map(function (m) {
       var r = S.matchResult(m);
       return '<a class="match-row" href="#/match/' + m.id + '">' +
         '<div><div class="match-title">' + esc(fmtDate(m.date) || 'ohne Datum') + '</div>' +
-        '<div class="muted">' + esc(LEAGUE) + '</div></div>' +
+        '<div class="muted">' + esc(matchLeague(m).name) + '</div></div>' +
         '<div class="match-teams">' + teamTag(m, 'home') + ' <span class="muted">vs.</span> ' + teamTag(m, 'guest') + '</div>' +
         '<div class="match-score">' + ptsPair(m, r.homePoints, r.guestPoints) + '</div>' +
         '<div>' + statusBadge(m, r) + '</div></a>';
@@ -433,7 +519,7 @@
 
     return '<section class="card">' +
       '<div class="card-head"><h2>Wettkämpfe</h2>' +
-      '<a class="btn primary" href="#/new">+ Neuer Wettkampf</a>' +
+      '<a class="btn primary" href="' + leagueHref('new') + '">+ Neuer Wettkampf</a>' +
       '</div>' + list + '</section>' +
       '<section class="card"><h2>Datenspeicher</h2><div id="storage-box" class="muted">wird geprüft …</div></section>';
   }
@@ -480,7 +566,8 @@
   // ---------- Ansicht: Mannschaften ----------
 
   function viewTeams() {
-    var cards = state.teams.map(function (t) {
+    var teams = leagueTeams(currentLeague);
+    var cards = teams.map(function (t) {
       var rows = t.gymnasts.map(function (g) {
         return '<li class="gym-row"><span class="startno">' + g.number + '</span>' +
           '<input type="text" value="' + esc(g.name) + '" placeholder="Name Startnummer ' + g.number + '" data-team="' + t.id + '" data-gym="' + g.number + '" data-tfield="gname" aria-label="Name Startnummer ' + g.number + '"></li>';
@@ -493,21 +580,22 @@
     }).join('');
 
     return '<section class="card"><h2>Mannschaften</h2>' +
-      '<p class="muted">Die ' + state.teams.length + ' Mannschaften sind fest vorgegeben. Hier lassen sich die Namen der Turner mit den Startnummern 1–' +
+      '<p class="muted">Die ' + teams.length + ' Mannschaften sind fest vorgegeben. Hier lassen sich die Namen der Turner mit den Startnummern 1–' +
       CFG.gymnastsPerTeam + ' anpassen. Jede Änderung wird sofort gespeichert. Die Mannschaftsfarben werden beim Anlegen eines Wettkampfs gewählt.</p></section>' +
       '<div class="team-grid">' + cards + '</div>';
   }
 
   // ---------- Ansicht: Wettkampf anlegen / bearbeiten ----------
 
-  function teamOptions(selected) {
-    return '<option value="">– auswählen –</option>' + state.teams.map(function (t) {
+  function teamOptions(selected, leagueKey) {
+    return '<option value="">– auswählen –</option>' + leagueTeams(leagueKey).map(function (t) {
       return '<option value="' + t.id + '"' + (t.id === selected ? ' selected' : '') + '>' + esc(t.name) + '</option>';
     }).join('');
   }
 
   function viewMatchForm(m) {
     var isNew = !m;
+    var leagueKey = m ? matchLeague(m).key : currentLeague;
     var rules = m ? m.rules : S.DEFAULT_RULES;
     var hasScores = m && S.APPARATUS.some(function (a) { return S.matchResult(m).apparatus[a.key].started; });
     var j = (m && m.judges) || {};
@@ -519,13 +607,13 @@
     }
     function teamCol(side, label) {
       var teamId = m ? (side === 'home' ? m.homeTeamId : m.guestTeamId) : null;
-      return '<div class="team-col"><label>' + label + '<select name="' + side + '" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(teamId) + '</select></label>' +
+      return '<div class="team-col"><label>' + label + '<select name="' + side + '" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(teamId, leagueKey) + '</select></label>' +
         colorPicker(side + 'Color', 'Farbe', m ? sideColor(m, side).key : DEFAULT_COLORS[side]) +
         input(side === 'home' ? 'captainHome' : 'captainGuest', 'Mannschaftsführer', cap[side]) +
         '<div class="lineup" data-lineup="' + side + '">' + lineupHtml(side, teamId, m && m.lineup && m.lineup[side]) + '</div></div>';
     }
     return '<section class="card narrow"><h2>' + (isNew ? 'Neuer Wettkampf' : 'Wettkampf Setup') + '</h2>' +
-      '<form data-form="match" data-id="' + (m ? m.id : '') + '" class="stack match-form' + (neutral ? '' : ' split-e') + '">' +
+      '<form data-form="match" data-id="' + (m ? m.id : '') + '" data-league="' + leagueKey + '" class="stack match-form' + (neutral ? '' : ' split-e') + '">' +
       '<div class="row2"><label>Datum<input type="date" name="date" value="' + esc(m ? m.date : new Date().toISOString().slice(0, 10)) + '" required></label>' +
       '<fieldset class="radio-row"><legend>Beginnende Mannschaft</legend>' +
       '<label class="check"><input type="radio" name="startTeam" value="home"' + (start === 'home' ? ' checked' : '') + '> Heim</label>' +
@@ -543,7 +631,7 @@
 
       '<p class="muted small req-note"><span class="req">*</span> Pflichtfeld</p>' +
       '<div class="actions"><button class="btn primary" type="submit">' + (isNew ? 'Anlegen' : 'Speichern') + '</button>' +
-      '<a class="btn ghost" href="' + (m ? '#/match/' + m.id : '#/oberliga') + '">Abbrechen</a></div>' +
+      '<a class="btn ghost" href="' + (m ? '#/match/' + m.id : leagueHref('home', leagueKey)) + '">Abbrechen</a></div>' +
       '</form></section>';
   }
 
@@ -645,9 +733,10 @@
     };
 
     if (!m) {
-      var rules = S.leagueRules(neutral ? 2 : 3);
+      var leagueKey = form.getAttribute('data-league') || currentLeague;
+      var rules = rulesFor(leagueKey, neutral ? 2 : 3);
       m = {
-        id: uid(), date: '', homeTeamId: home, guestTeamId: guest,
+        id: uid(), league: leagueKey, date: '', homeTeamId: home, guestTeamId: guest,
         rules: rules, status: 'open', apparatus: {}, createdAt: new Date().toISOString()
       };
       S.APPARATUS.forEach(function (a) {
@@ -672,7 +761,7 @@
     }
     m.colors = colors;
     m.lineup = lineup;
-    m.rules = S.leagueRules(neutral ? 2 : 3);
+    m.rules = rulesFor(m.league, neutral ? 2 : 3);
     m.judges = judges;
     m.captains = { home: text('captainHome'), guest: text('captainGuest') };
     m.startTeam = fd.get('startTeam') === 'guest' ? 'guest' : 'home';
@@ -701,7 +790,7 @@
     }).join('');
 
     return '<section class="card match-head">' +
-      '<div class="match-meta"><h2>' + esc(LEAGUE || 'Wettkampf') + '</h2>' +
+      '<div class="match-meta"><h2>' + esc(matchLeague(m).name) + '</h2>' +
       '<div class="muted">' + esc(fmtDate(m.date)) + ' · Beginn: ' + esc(teamName(m.startTeam === 'guest' ? m.guestTeamId : m.homeTeamId)) +
       ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
       '<div class="scoreline">' +
@@ -1134,7 +1223,7 @@
     if (!boardOn(m)) {
       return '<div class="board board-standby"><div class="board-bar"><a href="#/match/' + m.id + '" class="btn small ghost">← zurück</a>' +
         '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
-        '<div class="standby"><img src="icons/icon.svg" alt="" width="120" height="120"><div>' + esc(LEAGUE) + '</div></div></div>';
+        '<div class="standby"><img src="icons/icon.svg" alt="" width="120" height="120"><div>' + esc(matchLeague(m).name) + '</div></div></div>';
     }
     var view = S.revealedView(m);
     var r = S.matchResult(view);
@@ -1165,7 +1254,7 @@
     return '<div class="board">' +
       '<div class="board-bar"><a href="#/match/' + m.id + '" class="btn small ghost">← zurück</a>' +
       '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
-      '<div class="board-title">' + esc([LEAGUE, fmtDate(m.date)].filter(Boolean).join(' · ') || 'Wettkampf') + '</div>' +
+      '<div class="board-title">' + esc([matchLeague(m).name, fmtDate(m.date)].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="board-score">' +
       '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
       '<div class="board-big">' + ptsPair(m, r.homePoints, r.guestPoints, true) + '</div>' +
@@ -1577,7 +1666,7 @@
       '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>' +
       '<div class="print-page"><section class="print-sheet" id="print-sheet">' +
       '<div class="ps-head"><div class="ps-title">' + PRINT_LOGO +
-      '<div class="ps-titletext"><div class="ps-league">' + esc(LEAGUE.replace(/^WTB[- ]/, '')) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
+      '<div class="ps-titletext"><div class="ps-league">' + esc(matchLeague(m).short) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
       '<div class="ps-meta"><strong>' + esc(teamName(m.homeTeamId)) + ' – ' + esc(teamName(m.guestTeamId)) + '</strong><br><strong>' + esc(fmtDate(m.date)) + '</strong></div></div>' + panel +
       '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Geturnte Punkte</th></tr></thead><tbody>' +
       '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + pts(m, 'home', r.homePoints) + '</strong></td><td class="num">' + r.homeApp + '</td><td class="num">' + fmt(r.homeSum) + '</td></tr>' +
@@ -1632,13 +1721,13 @@
       '<h3>Exportieren</h3>' +
       '<div class="export-grid">' +
       '<div class="export-box"><h4>Gesamtsicherung</h4>' +
-      '<p class="muted small">Alle Mannschaften, Turnernamen und Wettkämpfe. Dateiname beginnt mit <b>wtb-oberliga_GESAMTSICHERUNG_</b>.</p>' +
+      '<p class="muted small">Alle Mannschaften, Turnernamen und Wettkämpfe der ' + esc(leagueOf(currentLeague).short) + '. Dateiname beginnt mit <b>' + filePrefix(currentLeague) + 'GESAMTSICHERUNG_</b>.</p>' +
       '<div class="actions"><button class="btn primary" data-action="export">Alles sichern</button></div></div>' +
       '<div class="export-box"><h4>Einzelner Wettkampf</h4>' +
-      '<p class="muted small">Nur der gewählte Wettkampf. Dateiname beginnt mit <b>wtb-oberliga_EINZELWETTKAMPF_</b>.</p>' +
-      (state.matches.length
+      '<p class="muted small">Nur der gewählte Wettkampf. Dateiname beginnt mit <b>' + filePrefix(currentLeague) + 'EINZELWETTKAMPF_</b>.</p>' +
+      (leagueMatches(currentLeague).length
         ? '<div class="actions wrap"><select id="export-match-select" aria-label="Wettkampf auswählen">' +
-          state.matches.map(function (m) {
+          leagueMatches(currentLeague).map(function (m) {
             return '<option value="' + esc(m.id) + '">' + esc(fmtDate(m.date) + ' – ' + teamName(m.homeTeamId) + ' : ' + teamName(m.guestTeamId)) + '</option>';
           }).join('') + '</select><button class="btn" data-action="export-match">Wettkampf sichern</button></div>'
         : '<p class="muted">Noch keine Wettkämpfe vorhanden.</p>') +
@@ -1647,13 +1736,13 @@
       '<form class="stack" data-form="import">' +
       '<input type="file" name="file" accept=".json,application/json" required>' +
       '<div class="actions"><button class="btn" type="submit">Importieren</button></div></form>' +
-      '<p class="muted small">Eine Gesamtsicherung ersetzt alle Daten. Ein einzelner Wettkampf wird hinzugefügt bzw. ersetzt nur denselben Wettkampf – alles andere bleibt unverändert. ' +
+      '<p class="muted small">Eine Gesamtsicherung ersetzt alle Daten der ' + esc(leagueOf(currentLeague).short) + ' (die andere Liga bleibt unverändert). Ein einzelner Wettkampf wird hinzugefügt bzw. ersetzt nur denselben Wettkampf – alles andere bleibt unverändert. ' +
       'Vor jedem Import wird automatisch ein Sicherungspunkt des aktuellen Stands angelegt.</p>' +
       '<h3>Automatische Sicherungspunkte</h3><div id="snapshots" class="muted">wird geladen …</div>' +
       '</section>' +
 
       '<section class="card"><h2>Alle Daten löschen</h2>' +
-      '<p class="muted">Löscht alle Wettkämpfe und eigene Änderungen an den Turnernamen auf diesem Gerät. Die Mannschaften und die vorgegebenen Turner bleiben erhalten. Ein Sicherungspunkt wird vorher angelegt.</p>' +
+      '<p class="muted">Löscht alle Wettkämpfe und eigene Änderungen an den Turnernamen der ' + esc(leagueOf(currentLeague).short) + ' auf diesem Gerät. Die Mannschaften und die vorgegebenen Turner bleiben erhalten. Ein Sicherungspunkt wird vorher angelegt.</p>' +
       '<button class="btn danger" data-action="wipe">Alle Daten löschen …</button></section>';
   }
 
@@ -1668,7 +1757,7 @@
     var at = { FX: 'am Boden', PH: 'am Pauschenpferd', SR: 'an den Ringen', VT: 'am Sprung', PB: 'am Barren', HB: 'am Reck' };
     var example = S.APPARATUS.map(function (a, i) { return (i === 1 ? 'Mannschaft ' : '') + (i % 2 ? 'B ' : 'A ') + at[a.key]; });
     return '<section class="card rules"><h2>Wertungsregeln</h2>' +
-      '<p class="muted">Die Regeln folgen dem Scoresystem der ' + esc(LEAGUE || 'Liga') + '.</p>' +
+      '<p class="muted">Die Regeln folgen dem Scoresystem der ' + esc(leagueOf(currentLeague).name) + '.</p>' +
 
       '<h3>Grundprinzip</h3>' + list([
         'Zwei Mannschaften treten in Duellen Mann gegen Mann an. Die beiden Turner eines Duells starten direkt hintereinander.',
@@ -1790,7 +1879,9 @@
       if (!list.length) { el.innerHTML = '<p class="muted">Noch keine Sicherungspunkte.</p>'; return; }
       el.innerHTML = '<div class="table-wrap"><table class="table compact"><thead><tr><th>Zeitpunkt</th><th>Anlass</th><th class="num">Mannschaften</th><th class="num">Wettkämpfe</th><th></th></tr></thead><tbody>' +
         list.map(function (s) {
-          return '<tr><td>' + esc(fmtDateTime(s.ts)) + '</td><td>' + esc(s.reason) + '</td><td class="num">' + s.teams + '</td><td class="num">' + s.matches + '</td>' +
+          // Ältere Sicherungspunkte kennen nur die Gesamtzahlen.
+          var c = (s.counts && s.counts[currentLeague]) || s;
+          return '<tr><td>' + esc(fmtDateTime(s.ts)) + '</td><td>' + esc(s.reason) + '</td><td class="num">' + c.teams + '</td><td class="num">' + c.matches + '</td>' +
             '<td><button class="btn small" data-action="restore" data-snap="' + s.id + '">Wiederherstellen</button> ' +
             '<button class="btn small ghost" data-action="export-snap" data-snap="' + s.id + '">Export</button></td></tr>';
         }).join('') + '</tbody></table></div>';
@@ -1801,15 +1892,27 @@
     if (!data || data.format !== 'turnwettkampf-backup' || !Array.isArray(data.teams) || !Array.isArray(data.matches)) {
       throw new Error('Keine gültige WTB-Liga-Sicherungsdatei.');
     }
+    if (data.league && data.league !== currentLeague) {
+      throw new Error('Diese Sicherung gehört zur ' + leagueOf(data.league).short + ' – bitte im Bereich ' + leagueOf(data.league).short + ' importieren.');
+    }
     data.matches.forEach(function (m) {
       if (!m.id || !m.apparatus || !m.rules) throw new Error('Sicherungsdatei enthält ungültige Wettkampfdaten.');
     });
     return data;
   }
 
+  /** Ersetzt nur die Daten der aktuellen Liga; die anderen Ligen bleiben unverändert. */
   function restoreData(data, reason) {
+    var part = sliceLeague(data, currentLeague);
+    var others = LEAGUES.filter(function (l) { return l.key !== currentLeague; });
+    var keep = { teams: [], matches: [] };
+    others.forEach(function (l) {
+      var o = sliceLeague(exportData(), l.key);
+      keep.teams = keep.teams.concat(o.teams);
+      keep.matches = keep.matches.concat(o.matches);
+    });
     return takeSnapshot('vor ' + reason).then(function () {
-      return DB.replaceAll({ teams: data.teams, matches: data.matches, meta: data.meta || [] });
+      return DB.replaceAll({ teams: keep.teams.concat(part.teams), matches: keep.matches.concat(part.matches), meta: [S.clone(state.settings)] });
     }).then(loadAll).then(function () {
       dirty = true;
       return takeSnapshot('nach ' + reason);
@@ -1823,6 +1926,8 @@
   function importMatch(data) {
     var m = data.match;
     if (!m || !m.id || !m.apparatus || !m.rules) throw new Error('Datei enthält keinen gültigen Wettkampf.');
+    var lg = m.league || LEAGUES[0].key;
+    if (lg !== currentLeague) throw new Error('Dieser Wettkampf gehört zur ' + leagueOf(lg).short + ' – bitte im Bereich ' + leagueOf(lg).short + ' importieren.');
     var exists = state.matches.some(function (x) { return x.id === m.id; });
     var label = fmtDate(m.date) + ' (' + ((data.teams && data.teams.home) || teamName(m.homeTeamId)) + ' – ' + ((data.teams && data.teams.guest) || teamName(m.guestTeamId)) + ')';
     var question = exists
@@ -2001,7 +2106,8 @@
       }).then(function (data) {
         if (data && data.format === MATCH_FORMAT) return importMatch(data);
         validateBackup(data);
-        if (!confirm('Import ersetzt alle aktuellen Daten durch ' + data.teams.length + ' Mannschaften und ' + data.matches.length + ' Wettkämpfe. Fortfahren?')) return;
+        var part = sliceLeague(data, currentLeague);
+        if (!confirm('Import ersetzt alle Daten der ' + leagueOf(currentLeague).short + ' durch ' + part.teams.length + ' Mannschaften und ' + part.matches.length + ' Wettkämpfe. Fortfahren?')) return;
         return restoreData(data, 'Import').then(function () { toast('Import erfolgreich'); });
       }).catch(function (e) { toast(e.message, 'error'); });
     }
@@ -2049,7 +2155,7 @@
         takeSnapshot('vor Löschen eines Wettkampfs').then(function () {
           state.matches = state.matches.filter(function (x) { return x.id !== m.id; });
           return remove('matches', m.id);
-        }).then(function () { location.hash = '#/oberliga'; toast('Wettkampf gelöscht'); });
+        }).then(function () { location.hash = leagueHref('home', matchLeague(m).key); toast('Wettkampf gelöscht'); });
         break;
       case 'reveal':
         var duel = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
@@ -2163,13 +2269,16 @@
         break;
       case 'export-snap':
         DB.getSnapshot(parseInt(btn.getAttribute('data-snap'), 10)).then(function (s) {
-          if (s) download('wtb-oberliga_GESAMTSICHERUNG_sicherungspunkt-' + s.id + '.json', JSON.stringify(s.data, null, 2));
+          if (!s) return;
+          var part = sliceLeague(s.data, currentLeague);
+          var data = Object.assign({}, s.data, { league: currentLeague, teams: part.teams, matches: part.matches });
+          download(filePrefix(currentLeague) + 'GESAMTSICHERUNG_sicherungspunkt-' + s.id + '.json', JSON.stringify(data, null, 2));
         });
         break;
       case 'restore':
         DB.getSnapshot(parseInt(btn.getAttribute('data-snap'), 10)).then(function (s) {
           if (!s) return;
-          if (!confirm('Stand vom ' + fmtDateTime(s.ts) + ' wiederherstellen? Der aktuelle Stand wird vorher gesichert.')) return;
+          if (!confirm('Stand der ' + leagueOf(currentLeague).short + ' vom ' + fmtDateTime(s.ts) + ' wiederherstellen? Der aktuelle Stand wird vorher gesichert.')) return;
           return restoreData(validateBackup(s.data), 'Wiederherstellung').then(function () { toast('Wiederhergestellt'); });
         }).catch(function (e) { toast(e.message, 'error'); });
         break;

@@ -119,12 +119,14 @@
     return done(t);
   }
 
-  function addSnapshot(data, reason) {
+  /** counts (optional): Anzahl Mannschaften/Wettkämpfe je Liga, z. B. { oberliga: { teams: 7, matches: 3 } }. */
+  function addSnapshot(data, reason, counts) {
     var snap = {
       ts: new Date().toISOString(),
       reason: reason || 'automatisch',
       teams: (data.teams || []).length,
       matches: (data.matches || []).length,
+      counts: counts || null,
       data: data
     };
     if (memory) {
@@ -154,7 +156,7 @@
 
   function listSnapshots() {
     if (memory) {
-      return Promise.resolve(memory.snapshots.map(function (s) { return { id: s.id, ts: s.ts, reason: s.reason, teams: s.teams, matches: s.matches }; }).reverse());
+      return Promise.resolve(memory.snapshots.map(function (s) { return { id: s.id, ts: s.ts, reason: s.reason, teams: s.teams, matches: s.matches, counts: s.counts }; }).reverse());
     }
     return new Promise(function (resolve, reject) {
       var out = [];
@@ -164,7 +166,7 @@
         var c = r.result;
         if (!c) { resolve(out); return; }
         var v = c.value;
-        out.push({ id: v.id, ts: v.ts, reason: v.reason, teams: v.teams, matches: v.matches });
+        out.push({ id: v.id, ts: v.ts, reason: v.reason, teams: v.teams, matches: v.matches, counts: v.counts });
         c.continue();
       };
       r.onerror = function () { reject(r.error); };
