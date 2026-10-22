@@ -533,3 +533,11 @@ body.board-light .standby img { opacity: .8; }
 /* Pflichtfelder */
 .req { color: #c62828; font-weight: 700; }
 .req-note { margin: 0; }
+
+/* Datensicherung: Gesamt- und Einzelsicherung getrennt */
+.export-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: .75rem; }
+.export-box { border: 1px solid #cfcfcf; border-radius: var(--radius); padding: .75rem 1rem; }
+.export-box h4 { margin: 0 0 .25rem; font-size: 1rem; }
+.export-box p { margin: 0 0 .5rem; }
+.export-box select { max-width: 100%; }
+.export-box b { white-space: nowrap; }

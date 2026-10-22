@@ -3,6 +3,10 @@
 Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätturnen männlich
 mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
 
+## Seiten
+
+Kopfzeile: Wettkämpfe · Mannschaften · Regeln · Datensicherung · Anleitung (Kurzanleitung zur Bedienung).
+
 ## Startseite
 
 Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktionen) oder **Landesliga**

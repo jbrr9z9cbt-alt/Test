@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '29';
+  var APP_BUILD = '30';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -372,6 +372,7 @@
         break;
       case 'data': html = viewData(); break;
       case 'rules': html = viewRules(); break;
+      case 'help': html = viewHelp(); break;
       case 'oberliga': html = viewHome(); break;
       case 'landesliga': html = viewLandesliga(); break;
       default: html = viewStart();
@@ -1629,15 +1630,19 @@
       'Für Sicherheit gegen Geräteverlust bitte regelmäßig eine Sicherungsdatei exportieren (z. B. auf einen USB-Stick).</p>' +
       '<div id="data-storage" class="muted">wird geprüft …</div>' +
       '<h3>Exportieren</h3>' +
-      '<div class="actions wrap"><button class="btn primary" data-action="export">Alles sichern</button></div>' +
-      '<p class="muted small">Gesamtsicherung mit allen Mannschaften, Turnernamen und Wettkämpfen – Dateiname beginnt mit <b>wtb-oberliga_GESAMTSICHERUNG_</b>.</p>' +
+      '<div class="export-grid">' +
+      '<div class="export-box"><h4>Gesamtsicherung</h4>' +
+      '<p class="muted small">Alle Mannschaften, Turnernamen und Wettkämpfe. Dateiname beginnt mit <b>wtb-oberliga_GESAMTSICHERUNG_</b>.</p>' +
+      '<div class="actions"><button class="btn primary" data-action="export">Alles sichern</button></div></div>' +
+      '<div class="export-box"><h4>Einzelner Wettkampf</h4>' +
+      '<p class="muted small">Nur der gewählte Wettkampf. Dateiname beginnt mit <b>wtb-oberliga_EINZELWETTKAMPF_</b>.</p>' +
       (state.matches.length
         ? '<div class="actions wrap"><select id="export-match-select" aria-label="Wettkampf auswählen">' +
           state.matches.map(function (m) {
             return '<option value="' + esc(m.id) + '">' + esc(fmtDate(m.date) + ' – ' + teamName(m.homeTeamId) + ' : ' + teamName(m.guestTeamId)) + '</option>';
-          }).join('') + '</select><button class="btn" data-action="export-match">Einzelnen Wettkampf sichern</button></div>' +
-          '<p class="muted small">Enthält nur den gewählten Wettkampf – Dateiname beginnt mit <b>wtb-oberliga_EINZELWETTKAMPF_</b>.</p>'
-        : '') +
+          }).join('') + '</select><button class="btn" data-action="export-match">Wettkampf sichern</button></div>'
+        : '<p class="muted">Noch keine Wettkämpfe vorhanden.</p>') +
+      '</div></div>' +
       '<h3>Importieren / Wiederherstellen</h3>' +
       '<form class="stack" data-form="import">' +
       '<input type="file" name="file" accept=".json,application/json" required>' +
@@ -1663,7 +1668,7 @@
     var at = { FX: 'am Boden', PH: 'am Pauschenpferd', SR: 'an den Ringen', VT: 'am Sprung', PB: 'am Barren', HB: 'am Reck' };
     var example = S.APPARATUS.map(function (a, i) { return (i === 1 ? 'Mannschaft ' : '') + (i % 2 ? 'B ' : 'A ') + at[a.key]; });
     return '<section class="card rules"><h2>Wertungsregeln</h2>' +
-      '<p class="muted">Die Regeln folgen dem Scoresystem der ' + esc(LEAGUE || 'Liga') + ' und sind in der App nicht änderbar.</p>' +
+      '<p class="muted">Die Regeln folgen dem Scoresystem der ' + esc(LEAGUE || 'Liga') + '.</p>' +
 
       '<h3>Grundprinzip</h3>' + list([
         'Zwei Mannschaften treten in Duellen Mann gegen Mann an. Die beiden Turner eines Duells starten direkt hintereinander.',
@@ -1679,10 +1684,7 @@
         var next = r.thresholds[i + 1];
         return '<tr><td>' + (next ? 'von ' + fmt(t.min) + ' bis ' + fmt(next.min - 50) : 'ab ' + fmt(t.min)) + '</td><td class="num">' + t.points + '</td></tr>';
       }).join('') + '</tbody></table>' +
-      list([
-        'Ist die Differenz kleiner als ' + fmt(r.thresholds[0].min) + ', erhält keine Mannschaft Scorepunkte und das Duell endet unentschieden.',
-        'Die Wertungen bleiben bis zur Bekanntgabe der Scorepunkte unter Verschluss und werden danach veröffentlicht.'
-      ]) +
+      list(['Die Wertungen bleiben bis zur Bekanntgabe der Scorepunkte geheim und werden danach veröffentlicht.']) +
 
       '<h3>Geräte- und Gesamtergebnis</h3>' + list([
         'Für das Geräteergebnis werden die Scorepunkte an diesem Gerät addiert. Die Mannschaft mit mehr Scorepunkten gewinnt das Gerät, bei Gleichstand endet es unentschieden. ' +
@@ -1704,6 +1706,71 @@
       '<h3>E-Note</h3>' + list([
         'Mit neutralem E2 ist die E-Note 10 minus dem Mittelwert der Abzüge von E1 und E2.',
         'Mit drei E-Kampfrichtern werden der höchste und der niedrigste Abzug gestrichen; die E-Note ist 10 minus dem mittleren Abzug.'
+      ]) + '</section>';
+  }
+
+  // ---------- Ansicht: Anleitung ----------
+
+  function viewHelp() {
+    function sec(title, items) {
+      return '<h3>' + title + '</h3><ul class="rules-list">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>';
+    }
+    return '<section class="card rules"><h2>Anleitung</h2>' +
+      '<p class="muted">Kurzanleitung für den Wettkampftag. Alle Daten bleiben auf diesem Gerät; die App funktioniert auch ohne Internet.</p>' +
+
+      sec('1. Vorbereitung', [
+        'Unter <b>Mannschaften</b> lassen sich Turnernamen korrigieren und freie Startnummern belegen. Jede Änderung wird sofort gespeichert.',
+        'Auf iPad oder Smartphone kann die App über „Teilen → Zum Home-Bildschirm“ wie eine normale App installiert werden.'
+      ]) +
+
+      sec('2. Wettkampf anlegen', [
+        'Unter <b>Wettkämpfe</b> auf „Neuer Wettkampf“ tippen, Datum, Heim- und Gastmannschaft sowie die Farben wählen.',
+        'Bei <b>Anwesende Turner</b> sind zunächst alle Turner abgehakt; fehlende Turner abwählen. Namen lassen sich dort auch korrigieren oder ergänzen.',
+        'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *). Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen.',
+        'Die per Los bestimmte <b>beginnende Mannschaft</b> wählen. Die Startreihenfolge an allen Geräten ergibt sich daraus automatisch.',
+        'Alle Angaben lassen sich später über <b>Wettkampf Setup</b> ändern.'
+      ]) +
+
+      sec('3. Wertungen erfassen', [
+        'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „Vorlegend“ markiert.',
+        'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
+        'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell. Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
+        '<b>nicht angetreten</b>: Die Übung zählt 0 Punkte, Turner und Wertung werden geleert. <b>Wertung 0,00 (angetreten)</b>: Der Turner ist angetreten, erhält aber die Endnote 0.'
+      ]) +
+
+      sec('4. Wertung freigeben', [
+        'Sind beide Turner gewählt und vollständig gewertet, wird <b>Wertung freigeben</b> aktiv. Erst dann zählen die Scorepunkte und erscheinen auf der Anzeigetafel.',
+        'Wird eine freigegebene Wertung nachträglich geändert, sind alle anderen Duelle gesperrt, bis die Änderung mit <b>Korrektur freigeben</b> bestätigt oder mit <b>Änderung verwerfen</b> zurückgenommen wird.'
+      ]) +
+
+      sec('5. Timer', [
+        '<b>Einturnzeit (4:00)</b> über dem jeweiligen Gerät starten. Nach Ablauf ertönt 5 Sekunden lang eine Schelle.',
+        '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: nach 30 Sekunden ein kurzer Doppelton, nach weiteren 30 Sekunden ein Fehlerton und „Abzug 0,3“.',
+        'Ein erneuter Klick auf den laufenden Timer stoppt ihn. Die Lautstärke wird am Gerät eingestellt.'
+      ]) +
+
+      sec('6. Anzeigetafel', [
+        '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
+        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Topscorer einblenden</b> zeigt die drei besten Scorer.',
+        'Nach jeder Freigabe erscheinen die Scorepunkte 5 Sekunden groß auf der Tafel, Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.',
+        'Auf dem iPad funktioniert die Tafel nicht in der App vom Home-Bildschirm. Dort die App in Safari nutzen oder für die Tafel einen Laptop verwenden.'
+      ]) +
+
+      sec('7. Abschluss', [
+        '<b>Wettkampf abschließen</b> sperrt die Eingabe. Anschließend fragt die App, ob nur dieser Wettkampf oder alles gesichert werden soll.',
+        '<b>Protokoll / Drucken</b> erstellt das Wettkampfprotokoll auf einer DIN-A4-Seite (auch als PDF speicherbar).',
+        'Über <b>Wieder öffnen</b> kann ein abgeschlossener Wettkampf erneut bearbeitet werden.'
+      ]) +
+
+      sec('8. Datensicherung', [
+        'Unter <b>Datensicherung</b> regelmäßig eine Gesamtsicherung oder einzelne Wettkämpfe als Datei sichern, z. B. auf einen USB-Stick. Der Dateiname zeigt die Art der Sicherung.',
+        'Beim Importieren ersetzt eine Gesamtsicherung alle Daten; ein einzelner Wettkampf wird nur hinzugefügt bzw. ersetzt.',
+        'Die App legt zusätzlich automatische Sicherungspunkte an, aus denen sich ein früherer Stand wiederherstellen lässt.',
+        '<b>Alle Daten löschen</b> entfernt alle Wettkämpfe und eigene Änderungen an Turnernamen; die vorgegebenen Turner bleiben erhalten.'
+      ]) +
+
+      sec('9. Updates', [
+        'Die App sucht beim Start und alle 30 Minuten nach einer neuen Version. Ist eine da, erscheint ein Hinweis; nach „Jetzt aktualisieren“ ist sie aktiv. Alle Daten bleiben erhalten.'
       ]) + '</section>';
   }
 
