@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '28';
+  var APP_BUILD = '29';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -514,7 +514,7 @@
     var neutral = S.eJudgeCount(rules) === 2;
     var start = (m && m.startTeam) || 'home';
     function input(name, label, value) {
-      return '<label>' + label + '<input type="text" name="' + name + '" value="' + esc(value || '') + '" autocomplete="off" required></label>';
+      return '<label><span>' + label + ' <span class="req" aria-hidden="true">*</span></span><input type="text" name="' + name + '" value="' + esc(value || '') + '" autocomplete="off" required></label>';
     }
     function teamCol(side, label) {
       var teamId = m ? (side === 'home' ? m.homeTeamId : m.guestTeamId) : null;
@@ -523,7 +523,7 @@
         input(side === 'home' ? 'captainHome' : 'captainGuest', 'Mannschaftsführer', cap[side]) +
         '<div class="lineup" data-lineup="' + side + '">' + lineupHtml(side, teamId, m && m.lineup && m.lineup[side]) + '</div></div>';
     }
-    return '<section class="card narrow"><h2>' + (isNew ? 'Neuer Wettkampf' : 'Wettkampf bearbeiten') + '</h2>' +
+    return '<section class="card narrow"><h2>' + (isNew ? 'Neuer Wettkampf' : 'Wettkampf Setup') + '</h2>' +
       '<form data-form="match" data-id="' + (m ? m.id : '') + '" class="stack match-form' + (neutral ? '' : ' split-e') + '">' +
       '<div class="row2"><label>Datum<input type="date" name="date" value="' + esc(m ? m.date : new Date().toISOString().slice(0, 10)) + '" required></label>' +
       '<fieldset class="radio-row"><legend>Beginnende Mannschaft</legend>' +
@@ -540,6 +540,7 @@
       '<div class="row2">' + input('judgeD1', 'D1 – Vereinskampfrichter Heim', j.d1) + input('judgeD2', 'D2 – Vereinskampfrichter Gast', j.d2) + '</div>' +
       '</fieldset>' +
 
+      '<p class="muted small req-note"><span class="req">*</span> Pflichtfeld</p>' +
       '<div class="actions"><button class="btn primary" type="submit">' + (isNew ? 'Anlegen' : 'Speichern') + '</button>' +
       '<a class="btn ghost" href="' + (m ? '#/match/' + m.id : '#/oberliga') + '">Abbrechen</a></div>' +
       '</form></section>';
@@ -710,13 +711,14 @@
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong>' +
       '<span data-out="winner">' + winnerText(m, r) + '</span></div>' +
       '<div class="actions wrap">' +
-      '<button class="btn toggle' + (boardOn(m) && state.boardWin && !state.boardWin.closed ? ' on' : '') + '" data-action="toggle-board">' +
-      boardLabel(boardOn(m) && state.boardWin && !state.boardWin.closed) + '</button>' +
+      '<button class="btn" data-action="open-board">Anzeigetafel</button>' +
+      '<span class="seg" role="group" aria-label="Design der Anzeigetafel">' +
+      '<button class="btn toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
+      '<button class="btn toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span>' +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
       scorersLabel(m.display && m.display.scorers) + '</button>' +
-      '<button class="btn" data-action="toggle-theme">' + themeLabel(boardLight(m)) + '</button>' +
       '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a>' +
-      (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf bearbeiten</a>') +
+      (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
       (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
         : '<button class="btn primary" data-action="finalize">Wettkampf abschließen</button>') +
       '<button class="btn danger ghost" data-action="del-match">Löschen</button>' +
@@ -730,9 +732,7 @@
   }
 
   /** Knopfbeschriftung nennt, was beim Drücken passiert. */
-  function boardLabel(on) { return on ? 'Anzeigetafel ausschalten' : 'Anzeigetafel einschalten'; }
   function scorersLabel(on) { return on ? 'Topscorer ausblenden' : 'Topscorer einblenden'; }
-  function themeLabel(light) { return light ? 'Tafel dunkel darstellen' : 'Tafel hell darstellen'; }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
   function duelBlocked(m, appKey, idx) {
@@ -1313,14 +1313,12 @@
   }
 
   function refreshDisplayButtons(m) {
-    var b = $app.querySelector('[data-action="toggle-board"]');
-    var on = boardOn(m) && state.boardWin && !state.boardWin.closed;
-    if (b) { b.textContent = boardLabel(on); b.classList.toggle('on', !!on); }
     var t = $app.querySelector('[data-action="toggle-scorers"]');
     var son = !!(m.display && m.display.scorers);
     if (t) { t.textContent = scorersLabel(son); t.classList.toggle('on', son); }
-    var th = $app.querySelector('[data-action="toggle-theme"]');
-    if (th) th.textContent = themeLabel(boardLight(m));
+    $app.querySelectorAll('[data-action="theme"]').forEach(function (b) {
+      b.classList.toggle('on', (b.getAttribute('data-theme') === 'light') === boardLight(m));
+    });
   }
 
   function tickTimers() {
@@ -1656,48 +1654,56 @@
 
   function viewRules() {
     var r = S.DEFAULT_RULES;
-    var ap = r.apparatusPoints, mp = r.matchPoints;
+    var ap = r.apparatusPoints, mp = r.matchPoints, n = r.duelsPerApparatus;
+    var names = S.APPARATUS.map(function (a) { return a.name; });
     function list(items) { return '<ul class="rules-list">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>'; }
-    function note(t) { return '<br><span class="muted">' + t + '</span>'; }
-    function pts(n, word) { return n + ' ' + word + (n === 1 ? '' : 'e'); }
+    function word(k, w) { return k + ' ' + w + (k === 1 ? '' : 'e'); }
+    function and(xs) { return xs.slice(0, -1).join(', ') + ' und ' + xs[xs.length - 1]; }
+    // „am Boden“, „an den Ringen“ usw. für das Beispiel der beginnenden Mannschaft
+    var at = { FX: 'am Boden', PH: 'am Pauschenpferd', SR: 'an den Ringen', VT: 'am Sprung', PB: 'am Barren', HB: 'am Reck' };
+    var example = S.APPARATUS.map(function (a, i) { return (i === 1 ? 'Mannschaft ' : '') + (i % 2 ? 'B ' : 'A ') + at[a.key]; });
     return '<section class="card rules"><h2>Wertungsregeln</h2>' +
-      '<p class="muted">Nach dem Scoresystem der ' + esc(LEAGUE || 'Liga') + ' – in der App nicht änderbar.</p>' +
+      '<p class="muted">Die Regeln folgen dem Scoresystem der ' + esc(LEAGUE || 'Liga') + ' und sind in der App nicht änderbar.</p>' +
 
       '<h3>Grundprinzip</h3>' + list([
-        'Zwei Mannschaften turnen Mann gegen Mann; die beiden Turner eines Duells starten direkt hintereinander.',
-        'Je Gerät ' + r.duelsPerApparatus + ' Duelle, also bis zu ' + r.duelsPerApparatus + ' Turner pro Mannschaft. Eine nicht besetzte Übung zählt 0 Punkte.'
+        'Zwei Mannschaften treten in Duellen Mann gegen Mann an. Die beiden Turner eines Duells starten direkt hintereinander.',
+        'An jedem Gerät werden ' + n + ' Duelle geturnt. Jede Mannschaft kann also bis zu ' + n + ' Turner pro Gerät einsetzen.',
+        'Setzt eine Mannschaft in einem Duell keinen Turner ein, wird diese Übung mit 0 Punkten bewertet.'
       ]) +
 
       '<h3>Scorepunkte je Duell</h3>' +
-      '<p>Die Mannschaft des Turners mit der höheren Wertung erhält nach der Differenz:</p>' +
+      '<p>Die Mannschaft des Turners mit der höheren Wertung erhält je nach Notendifferenz folgende Scorepunkte:</p>' +
       '<table class="table compact rules-table"><thead><tr><th>Notendifferenz</th><th class="num">Scorepunkte</th></tr></thead><tbody>' +
       '<tr><td>unter ' + fmt(r.thresholds[0].min) + '</td><td class="num">0 (unentschieden)</td></tr>' +
-      r.thresholds.map(function (t, n) {
-        var next = r.thresholds[n + 1];
+      r.thresholds.map(function (t, i) {
+        var next = r.thresholds[i + 1];
         return '<tr><td>' + (next ? 'von ' + fmt(t.min) + ' bis ' + fmt(next.min - 50) : 'ab ' + fmt(t.min)) + '</td><td class="num">' + t.points + '</td></tr>';
       }).join('') + '</tbody></table>' +
-      list(['Die Wertungen bleiben bis zur Bekanntgabe der Scorepunkte unter Verschluss und werden danach veröffentlicht.']) +
+      list([
+        'Ist die Differenz kleiner als ' + fmt(r.thresholds[0].min) + ', erhält keine Mannschaft Scorepunkte und das Duell endet unentschieden.',
+        'Die Wertungen bleiben bis zur Bekanntgabe der Scorepunkte unter Verschluss und werden danach veröffentlicht.'
+      ]) +
 
       '<h3>Geräte- und Gesamtergebnis</h3>' + list([
-        'Gerät: Die Scorepunkte am Gerät werden addiert – mehr Punkte gewinnt, Gleichstand ist unentschieden.' +
-          note('Sieg = ' + pts(ap.win, 'Gerätepunkt') + ', Unentschieden = ' + pts(ap.draw, 'Gerätepunkt')),
-        'Wettkampf: Alle Scorepunkte werden addiert – mehr Punkte gewinnt, Gleichstand ist unentschieden.' +
-          note('Sieg = ' + pts(mp.win, 'Punkt') + ', Unentschieden = ' + pts(mp.draw, 'Punkt'))
+        'Für das Geräteergebnis werden die Scorepunkte an diesem Gerät addiert. Die Mannschaft mit mehr Scorepunkten gewinnt das Gerät, bei Gleichstand endet es unentschieden. ' +
+          'Ein Gerätesieg bringt ' + word(ap.win, 'Gerätepunkt') + ', ein Unentschieden ' + word(ap.draw, 'Gerätepunkt') + '.',
+        'Für das Gesamtergebnis werden alle Scorepunkte des Wettkampfs addiert. Die Mannschaft mit mehr Scorepunkten gewinnt den Wettkampf, bei Gleichstand endet er unentschieden. ' +
+          'Ein Sieg bringt ' + word(mp.win, 'Punkt') + ', ein Unentschieden ' + word(mp.draw, 'Punkt') + '.'
       ]) +
 
       '<h3>Wettkampfablauf</h3>' + list([
-        'Olympische Reihenfolge: ' + S.APPARATUS.map(function (a) { return a.name; }).join(', ') + '.',
-        'Farben: Die Farben beider Mannschaften werden frei gewählt; die Scorepunkte werden in der Farbe der jeweiligen Mannschaft angezeigt.',
-        'Vor Beginn lost der Oberkampfrichter im Beisein beider Mannschaftsführer eine Mannschaft aus (z. B. Münzwurf). Deren Mannschaftsführer legt fest, wer am ersten Gerät beginnt.',
-        'Die beginnende Mannschaft wechselt an jedem Gerät.' +
-          note('Beispiel, A beginnt: ' + S.APPARATUS.map(function (a, i) { return a.name + ' ' + (i % 2 ? 'B' : 'A'); }).join(' · ')),
-        'Die am Gerät beginnende Mannschaft beginnt Duell 1 und 2, die andere Duell 3 und 4.' +
-          note('Duell 1: A1 – B1 · Duell 2: A2 – B2 · Duell 3: B3 – A3 · Duell 4: B4 – A4'),
-        'Einturnen für beide Mannschaften: 1 Stunde vor Wettkampfbeginn und 4 Minuten vor jedem Gerät. Abweichungen (Geräteumbau, Pause nach 3 Geräten) in Absprache mit der Gastmannschaft.'
+        'Geturnt wird in der olympischen Reihenfolge: ' + and(names) + '.',
+        'Die Farben beider Mannschaften werden frei gewählt. Die Scorepunkte werden in der Farbe der jeweiligen Mannschaft angezeigt.',
+        'Vor Beginn lost der Oberkampfrichter im Beisein beider Mannschaftsführer eine Mannschaft aus, zum Beispiel per Münzwurf. Deren Mannschaftsführer legt fest, welche Mannschaft am ersten Gerät beginnt.',
+        'Die beginnende Mannschaft wechselt an jedem Gerät. Beginnt zum Beispiel Mannschaft A am Boden, beginnt ' + and(example.slice(1)) + '.',
+        'Die am Gerät beginnende Mannschaft beginnt die Duelle 1 und 2, die andere Mannschaft die Duelle 3 und 4. ' +
+          'Beginnt Mannschaft A, lauten die Duelle also A1 gegen B1, A2 gegen B2, B3 gegen A3 und B4 gegen A4; der zuerst genannte Turner turnt jeweils zuerst.',
+        'Beide Mannschaften können sich 1 Stunde vor Wettkampfbeginn und 4 Minuten vor jedem Gerät einturnen. Abweichende Regelungen, etwa wegen eines Geräteumbaus oder einer Pause nach 3 Geräten, können in Absprache mit der Gastmannschaft getroffen werden.'
       ]) +
 
       '<h3>E-Note</h3>' + list([
-        'E-Note: mit neutralem E2 10 − Mittelwert der Abzüge, mit drei E-Kampfrichtern 10 − mittlerer Abzug.'
+        'Mit neutralem E2 ist die E-Note 10 minus dem Mittelwert der Abzüge von E1 und E2.',
+        'Mit drei E-Kampfrichtern werden der höchste und der niedrigste Abzug gestrichen; die E-Note ist 10 minus dem mittleren Abzug.'
       ]) + '</section>';
   }
 
@@ -1996,22 +2002,19 @@
           toast(wasCorrection ? 'Korrektur freigegeben' : 'Wertung freigegeben');
         });
         break;
-      case 'toggle-board':
-        // Erstes Einschalten öffnet das Tafel-Fenster; danach wechselt die Tafel zwischen Anzeige und Ruhebild.
-        m.display = m.display || {};
-        var winOpen = state.boardWin && !state.boardWin.closed;
-        if (!winOpen) {
-          state.boardWin = window.open(location.href.split('#')[0] + '#/match/' + m.id + '/board', 'anzeigetafel-' + m.id);
+      case 'open-board':
+        // Öffnet das Tafel-Fenster (bzw. holt es nach vorn); ausgeschaltet wird die Tafel durch Schließen des Fensters.
+        if (state.boardWin && !state.boardWin.closed) { state.boardWin.focus(); break; }
+        state.boardWin = window.open(location.href.split('#')[0] + '#/match/' + m.id + '/board', 'anzeigetafel-' + m.id);
+        if (!boardOn(m)) {
+          m.display = m.display || {};
           m.display.board = true;
-        } else {
-          m.display.board = !boardOn(m);
+          save('matches', m);
         }
-        save('matches', m).then(function () { refreshDisplayButtons(m); });
-        refreshDisplayButtons(m);
         break;
-      case 'toggle-theme':
+      case 'theme':
         m.display = m.display || {};
-        m.display.theme = boardLight(m) ? 'dark' : 'light';
+        m.display.theme = btn.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
         save('matches', m).then(function () { refreshDisplayButtons(m); });
         refreshDisplayButtons(m);
         break;

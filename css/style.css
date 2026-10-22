@@ -523,3 +523,13 @@ body.board-light .so-table td { border-bottom-color: #e5e5e5; }
 body.board-light .so-rank, body.board-light .so-name small, body.board-light .so-empty { color: #525252; }
 body.board-light .standby { color: #a3a3a3; }
 body.board-light .standby img { opacity: .8; }
+
+/* Hell/Dunkel der Anzeigetafel als zusammenhängendes Knopfpaar */
+.seg { display: inline-flex; }
+.seg .btn { border-radius: 0; }
+.seg .btn:first-child { border-radius: 8px 0 0 8px; }
+.seg .btn:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
+
+/* Pflichtfelder */
+.req { color: #c62828; font-weight: 700; }
+.req-note { margin: 0; }
