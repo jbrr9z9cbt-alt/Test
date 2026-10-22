@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '30';
+  var APP_BUILD = '31';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1718,12 +1718,17 @@
     return '<section class="card rules"><h2>Anleitung</h2>' +
       '<p class="muted">Kurzanleitung für den Wettkampftag. Alle Daten bleiben auf diesem Gerät; die App funktioniert auch ohne Internet.</p>' +
 
-      sec('1. Vorbereitung', [
-        'Unter <b>Mannschaften</b> lassen sich Turnernamen korrigieren und freie Startnummern belegen. Jede Änderung wird sofort gespeichert.',
-        'Auf iPad oder Smartphone kann die App über „Teilen → Zum Home-Bildschirm“ wie eine normale App installiert werden.'
+      sec('1. Installation', [
+        'Die App läuft im Browser und lässt sich zusätzlich wie eine normale App installieren. Sie startet dann ohne Adressleiste und funktioniert auch ohne Internet.',
+        '<b>iPad / iPhone:</b> In Safari auf „Teilen“ und dann „Zum Home-Bildschirm“ tippen.',
+        '<b>Android-Smartphone:</b> Im Chrome-Menü (⋮) „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen.',
+        '<b>Windows und macOS mit Chrome oder Edge:</b> Auf das Installationssymbol rechts in der Adressleiste klicken oder im Menü „App installieren“ wählen (bei Edge unter „Apps“).',
+        '<b>macOS mit Safari:</b> Im Menü „Ablage“ den Punkt „Zum Dock hinzufügen“ wählen.',
+        'Auf iPad und iPhone sowie mit Safari am Mac hat die installierte App eigene Daten, getrennt vom Browser – daher für eine Variante entscheiden.'
       ]) +
 
       sec('2. Wettkampf anlegen', [
+        'Vorab lassen sich unter <b>Mannschaften</b> Turnernamen korrigieren und freie Startnummern belegen. Jede Änderung wird sofort gespeichert.',
         'Unter <b>Wettkämpfe</b> auf „Neuer Wettkampf“ tippen, Datum, Heim- und Gastmannschaft sowie die Farben wählen.',
         'Bei <b>Anwesende Turner</b> sind zunächst alle Turner abgehakt; fehlende Turner abwählen. Namen lassen sich dort auch korrigieren oder ergänzen.',
         'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *). Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen.',
@@ -1753,7 +1758,7 @@
         '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
         '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Topscorer einblenden</b> zeigt die drei besten Scorer.',
         'Nach jeder Freigabe erscheinen die Scorepunkte 5 Sekunden groß auf der Tafel, Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.',
-        'Auf dem iPad funktioniert die Tafel nicht in der App vom Home-Bildschirm. Dort die App in Safari nutzen oder für die Tafel einen Laptop verwenden.'
+        'Soll die Anzeigetafel genutzt werden, empfiehlt sich ein Windows- oder Mac-Rechner mit <b>Chrome oder Edge</b>, im Browser oder als installierte App.'
       ]) +
 
       sec('7. Abschluss', [
