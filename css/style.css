@@ -541,3 +541,48 @@ body.board-light .standby img { opacity: .8; }
 .export-box p { margin: 0 0 .5rem; }
 .export-box select { max-width: 100%; }
 .export-box b { white-space: nowrap; }
+
+/* ---------- Landesliga: Eingabe je Übung ---------- */
+.cl-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
+.cl-head { margin-bottom: .4rem; font-weight: 600; }
+.cl-cell { display: flex; flex-direction: column; gap: .4rem; }
+.cl-cell.pending .side { box-shadow: 0 0 0 2px var(--warn); }
+.cl-cell.blocked { opacity: .55; }
+.cl-cell .duel-actions { grid-row: auto; grid-column: auto; }
+.cl-sums { font-size: .95rem; }
+.cl-sum { padding: 0 .5rem; }
+/* Streichwertung: Endnote grau durchgestrichen mit Hinweis */
+.struck-tag { display: none; font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; }
+.side.struck .struck-tag { display: inline; }
+.side.struck .final strong { text-decoration: line-through; color: var(--muted); }
+.scoreline .big.sums { font-size: 2.2rem; }
+@media (max-width: 700px) {
+  .cl-row { grid-template-columns: 1fr; }
+  .scoreline .big.sums { font-size: 1.5rem; }
+}
+
+/* ---------- Landesliga: Anzeigetafel ---------- */
+.board-big.sums { font-size: clamp(3rem, 8vw, 7rem); }
+.cd-pts.sums { font-size: clamp(1.4rem, 3vw, 2.6rem); text-align: center; white-space: nowrap; }
+.cd-cap { font-size: .45em; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: .05em; }
+body.board-light .cd-cap { color: #525252; }
+.cd-side.ghost { visibility: hidden; }
+.struck-val { color: #a3a3a3; white-space: nowrap; }
+.struck-val small { display: block; font-size: .5em; text-transform: uppercase; letter-spacing: .05em; }
+body.board-light .struck-val { color: #8a8a8a; }
+.board-duels tr.bsum td { border-bottom: 0; font-weight: 800; color: #d4d4d4; }
+body.board-light .board-duels tr.bsum td { color: #404040; }
+#score-flash.wide span { font-size: min(40vh, 26vw); }
+
+/* ---------- Landesliga: Protokoll ---------- */
+.print-table td.ps-s { text-decoration: line-through; color: #777; }
+.ps-struck { font-style: normal; color: #555; }
+
+/* Lange Vereinsnamen neben dem Spielstand dürfen umbrechen (kein seitliches Scrollen auf dem Handy). */
+.scoreline .team { min-width: 0; }
+.scoreline .team .name { overflow-wrap: break-word; }
+/* Landesliga auf dem Handy: Punktsummen unter den beiden Vereinsnamen */
+@media (max-width: 560px) {
+  .match-head .scoreline.sums { grid-template-columns: 1fr 1fr; }
+  .scoreline.sums .big { grid-column: 1 / -1; grid-row: 2; text-align: center; }
+}

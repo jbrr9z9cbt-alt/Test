@@ -211,3 +211,91 @@ test('Verschlüsselte Sicherung: Roundtrip und falsches Passwort', async () => {
   assert.deepEqual(await SB.decryptJSON(env, 'geheim123'), data);
   await assert.rejects(() => SB.decryptJSON(env, 'falsch'), /Falsches Passwort/);
 });
+
+// ---------- Landesliga (klassisches Modell) ----------
+
+const classicMatch = (startTeam = 'home') => {
+  const m = { rules: S.classicRules(2), startTeam, apparatus: {} };
+  S.APPARATUS.forEach(a => { m.apparatus[a.key] = { duels: [0, 1, 2, 3].map(() => S.emptyRow()) }; });
+  return m;
+};
+const cs = (d, e) => side(d, e, 0, { gymnastId: 'x' + Math.random() });
+
+test('Klassisch: die drei höchsten Wertungen zählen, niedrigste ist Streichwertung', () => {
+  const m = classicMatch();
+  const fx = m.apparatus.FX.duels;
+  [['4', '8'], ['4', '9'], ['3', '8'], ['5', '9']].forEach(([d, e], i) => { fx[i].home = cs(d, e); });
+  const r = S.apparatusResult(m.apparatus.FX, m.rules);
+  assert.deepEqual(r.home.struck, [2]);            // 11,00 ist die niedrigste
+  assert.equal(r.homeSum, 12000 + 13000 + 14000);
+  assert.equal(r.complete, false);                 // Gast fehlt noch
+});
+
+test('Klassisch: bei gleich niedrigen Wertungen wird die später geturnte gestrichen', () => {
+  const m = classicMatch();
+  const fx = m.apparatus.FX.duels;
+  [['4', '8'], ['5', '8'], ['4', '8'], ['5', '8']].forEach(([d, e], i) => { fx[i].home = cs(d, e); });
+  assert.deepEqual(S.apparatusResult(m.apparatus.FX, m.rules).home.struck, [2]);
+});
+
+test('Klassisch: mit drei oder weniger Wertungen wird nichts gestrichen', () => {
+  const m = classicMatch();
+  const fx = m.apparatus.FX.duels;
+  fx[0].home = cs('4', '8'); fx[1].home = cs('4', '9');
+  fx[2].home = Object.assign(S.emptySide(), { dns: true }); fx[3].home = Object.assign(S.emptySide(), { dns: true });
+  const r = S.apparatusResult(m.apparatus.FX, m.rules);
+  assert.equal(r.homeSum, 25000);                  // nur die zwei geturnten Wertungen (n.a. = 0)
+  assert.deepEqual(r.home.struck, [3]);            // 4 Werte (davon 2× 0): eine 0 wird gestrichen
+});
+
+test('Klassisch: Gerätepunkte, Gesamtsumme und Sieger', () => {
+  const m = classicMatch();
+  S.APPARATUS.forEach(a => m.apparatus[a.key].duels.forEach((d, i) => {
+    d.home = cs('4', '8');                          // 12,00
+    d.guest = cs('4', a.key === 'FX' ? '9' : '7,5'); // Boden 13,00, sonst 11,50
+  }));
+  const r = S.matchResult(m);
+  assert.equal(r.apparatus.FX.guestApp, 2);
+  assert.equal(r.apparatus.PH.homeApp, 2);
+  assert.equal(r.homeSum, 6 * 36000);
+  assert.equal(r.guestSum, 39000 + 5 * 34500);
+  assert.equal(r.winner, 'home');
+  assert.equal(r.homeMatch, 2);
+  assert.equal(r.homePoints, 0);                   // keine Scorepunkte
+});
+
+test('Klassisch: Startreihenfolge wechselt je Gerät, Positionen 1–8', () => {
+  const m = classicMatch('guest');
+  assert.deepEqual(S.classicOrder(m, 'FX'), ['guest', 'home']);
+  assert.deepEqual(S.classicOrder(m, 'PH'), ['home', 'guest']);
+  assert.equal(S.classicPosition(m, 'FX', 0, 'guest'), 1);
+  assert.equal(S.classicPosition(m, 'FX', 0, 'home'), 2);
+  assert.equal(S.classicPosition(m, 'FX', 3, 'home'), 8);
+});
+
+test('Klassisch: Freigabe je Übung, Korrektur und Tafelansicht', () => {
+  const m = classicMatch();
+  const d = m.apparatus.FX.duels[0];
+  d.home = cs('4', '8');
+  d.revs.home = { revealedAt: 't1', shown: S.snapshotSide(d.home) };
+  d.guest = cs('4', '9');                           // noch nicht freigegeben
+  const v = S.revealedView(m);
+  assert.equal(S.sideFinal(v.apparatus.FX.duels[0].home, m.rules), 12000);
+  assert.equal(S.sideFinal(v.apparatus.FX.duels[0].guest, m.rules), null);
+  assert.deepEqual(S.pendingCorrections(m), []);
+  d.home.d = 4500;
+  assert.deepEqual(S.pendingCorrections(m), [{ appKey: 'FX', idx: 0, side: 'home' }]);
+});
+
+test('Klassisch: Topscorer nach Summe aller geturnten Wertungen', () => {
+  const m = classicMatch();
+  const a = Object.assign(cs('4', '8'), { gymnastId: 'L1-1', number: 1, name: 'A' });
+  const b = Object.assign(cs('5', '9'), { gymnastId: 'L1-2', number: 2, name: 'B' });
+  m.apparatus.FX.duels[0].home = a;
+  m.apparatus.PH.duels[0].home = Object.assign(S.clone(a), {});
+  m.apparatus.FX.duels[1].home = b;
+  const top = S.topScorers(m, 3);
+  assert.equal(top[0].name, 'A');
+  assert.equal(top[0].points, 24000);
+  assert.equal(top[1].points, 14000);
+});

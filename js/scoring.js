@@ -11,7 +11,13 @@
  *    gestrichen, 10 − mittlerer Abzug.
  *  - Endnote = D-Note + Standbonus (0,1; nicht am Pauschenpferd) + E-Note − neutrale Abzüge.
  *
- * Ablauf:
+ * Zwei Wertungsmodelle:
+ *  - 'score' (Oberliga): Duelle mit Scorepunkten, siehe unten.
+ *  - 'classic' (Landesliga): bis zu 4 Turner je Mannschaft und Gerät turnen
+ *    abwechselnd; je Mannschaft zählen die 3 höchsten Wertungen (die niedrigste
+ *    ist die Streichwertung). Gerät und Wettkampf gewinnt die höhere Punktsumme.
+ *
+ * Ablauf im Modell 'score':
  *  - An jedem Gerät turnen Heim- und Gastturner paarweise im Duell.
  *  - Der Turner mit der höheren Endnote erhält Scorepunkte abhängig von der
  *    Notendifferenz (Schwellen konfigurierbar), der Gegner 0.
@@ -48,6 +54,16 @@
     // 'apparatus': dann entscheiden die Gerätepunkte.
     tieBreak: 'none',
     // Anzahl der E-Kampfrichter: 2 (mit neutralem E2) oder 3 (E2 Heim, E3 Gast).
+    eJudges: 2
+  };
+
+  // Feste Regeln der WTB-Landesliga (klassisches Modell).
+  var CLASSIC_RULES = {
+    model: 'classic',
+    duelsPerApparatus: 4, // Startplätze je Mannschaft und Gerät
+    counting: 3,          // so viele der höchsten Wertungen zählen
+    apparatusPoints: { win: 2, draw: 1, loss: 0 },
+    matchPoints: { win: 2, draw: 1, loss: 0 },
     eJudges: 2
   };
 
@@ -88,12 +104,31 @@
     return r;
   }
 
+  /** Regeln der Landesliga (klassisches Modell), nur die Zahl der E-Kampfrichter variiert. */
+  function classicRules(eJudges) {
+    var r = clone(CLASSIC_RULES);
+    r.eJudges = eJudges === 3 ? 3 : 2;
+    return r;
+  }
+
+  function isClassic(rules) {
+    return !!rules && rules.model === 'classic';
+  }
+
   function emptySide() {
     return { gymnastId: null, number: null, name: '', d: null, e1: null, e2: null, e3: null, nd: 0, bonus: false, zero: false, dns: false };
   }
 
   function emptyDuel() {
     return { home: emptySide(), guest: emptySide(), revealedAt: null };
+  }
+
+  /**
+   * Im klassischen Modell ist ein „Duell“ nur die Zeile k: der k-te Turner beider
+   * Mannschaften. Freigegeben wird jede Übung einzeln (revs.home / revs.guest).
+   */
+  function emptyRow() {
+    return { home: emptySide(), guest: emptySide(), revs: { home: { revealedAt: null }, guest: { revealedAt: null } } };
   }
 
   function isSet(v) {
@@ -150,6 +185,23 @@
     return flip ? [b, a] : [a, b];
   }
 
+  /**
+   * Klassisches Modell: Die am Gerät beginnende Mannschaft wechselt an jedem Gerät;
+   * innerhalb des Geräts turnen die Mannschaften abwechselnd (A1, B1, A2, B2 …).
+   * Liefert ['home', 'guest'] oder ['guest', 'home'] (beginnende Mannschaft zuerst).
+   */
+  function classicOrder(match, appKey) {
+    var appIdx = APPARATUS.map(function (a) { return a.key; }).indexOf(appKey);
+    var a = match.startTeam === 'guest' ? 'guest' : 'home';
+    var b = a === 'home' ? 'guest' : 'home';
+    return appIdx % 2 === 1 ? [b, a] : [a, b];
+  }
+
+  /** Startposition (1–8) einer Übung im klassischen Modell. */
+  function classicPosition(match, appKey, idx, sideKey) {
+    return idx * 2 + (classicOrder(match, appKey)[0] === sideKey ? 1 : 2);
+  }
+
   // Werte, die auf der Anzeigetafel angezeigt werden. Ändert sich einer davon nach
   // dem Anzeigen, muss die Korrektur erst angezeigt werden.
   var SHOWN_FIELDS = ['gymnastId', 'd', 'e1', 'e2', 'e3', 'nd', 'bonus', 'zero', 'dns'];
@@ -176,13 +228,28 @@
     return !!duel.shown && (sideDiffers(duel.home, duel.shown.home) || sideDiffers(duel.guest, duel.shown.guest));
   }
 
+  /** Freigabe-Stand einer einzelnen Übung im klassischen Modell. */
+  function revOf(duel, sideKey) {
+    return (duel.revs && duel.revs[sideKey]) || { revealedAt: null };
+  }
+
+  /** Klassisches Modell: Wurde eine bereits freigegebene Übung nachträglich geändert? */
+  function sidePending(duel, sideKey) {
+    var rev = revOf(duel, sideKey);
+    return !!rev.shown && sideDiffers(duel[sideKey], rev.shown);
+  }
+
+  /** Offene Korrekturen; im klassischen Modell je Übung (mit side). */
   function pendingCorrections(match) {
     var list = [];
+    var classic = isClassic(match.rules);
     APPARATUS.forEach(function (a) {
       var app = match.apparatus[a.key];
       if (!app) return;
       app.duels.forEach(function (duel, i) {
-        if (hasPendingCorrection(duel)) list.push({ appKey: a.key, idx: i });
+        if (classic) {
+          ['home', 'guest'].forEach(function (k) { if (sidePending(duel, k)) list.push({ appKey: a.key, idx: i, side: k }); });
+        } else if (hasPendingCorrection(duel)) list.push({ appKey: a.key, idx: i });
       });
     });
     return list;
@@ -194,6 +261,7 @@
    */
   function revealedView(match) {
     var view = clone(match);
+    var classic = isClassic(match.rules);
     APPARATUS.forEach(function (a) {
       var app = view.apparatus[a.key];
       if (!app) return;
@@ -201,8 +269,9 @@
         ['home', 'guest'].forEach(function (k) {
           var live = duel[k];
           var s = emptySide();
-          if (duel.shown) {
-            Object.assign(s, duel.shown[k]);
+          var shown = classic ? revOf(duel, k).shown : duel.shown && duel.shown[k];
+          if (shown) {
+            Object.assign(s, shown);
             // Namensänderungen im Kader direkt übernehmen, solange es derselbe Turner ist.
             if (live.gymnastId === s.gymnastId) { s.name = live.name; s.number = live.number; }
           } else {
@@ -246,6 +315,7 @@
   }
 
   function apparatusResult(app, rules) {
+    if (isClassic(rules)) return classicApparatusResult(app, rules);
     var duels = (app && app.duels) || [];
     var res = {
       duels: [], homePoints: 0, guestPoints: 0, homeSum: 0, guestSum: 0,
@@ -270,7 +340,64 @@
     return res;
   }
 
+  /**
+   * Klassisches Modell, eine Mannschaft an einem Gerät: Es zählen die
+   * rules.counting höchsten Wertungen; bei gleich niedrigen Wertungen ist die
+   * später geturnte die Streichwertung. Offene Übungen (null) zählen noch nicht.
+   */
+  function classicSide(values, rules) {
+    var done = values.map(function (v, i) { return { i: i, v: v }; }).filter(function (x) { return x.v !== null; });
+    var drop = Math.max(0, done.length - rules.counting);
+    var struck = done.slice().sort(function (a, b) { return a.v - b.v || b.i - a.i; }).slice(0, drop).map(function (x) { return x.i; });
+    var sum = 0;
+    done.forEach(function (x) { if (struck.indexOf(x.i) < 0) sum += x.v; });
+    return { values: values, struck: struck, sum: sum, done: done.length };
+  }
+
+  function classicApparatusResult(app, rules) {
+    var duels = (app && app.duels) || [];
+    var home = classicSide(duels.map(function (d) { return sideFinal(d.home, rules); }), rules);
+    var guest = classicSide(duels.map(function (d) { return sideFinal(d.guest, rules); }), rules);
+    var res = {
+      home: home, guest: guest, homeSum: home.sum, guestSum: guest.sum, homePoints: 0, guestPoints: 0,
+      complete: duels.length > 0 && home.done === duels.length && guest.done === duels.length,
+      started: home.done + guest.done > 0, homeApp: 0, guestApp: 0
+    };
+    if (res.complete) {
+      var ap = rules.apparatusPoints;
+      if (res.homeSum > res.guestSum) { res.homeApp = ap.win; res.guestApp = ap.loss; }
+      else if (res.homeSum < res.guestSum) { res.homeApp = ap.loss; res.guestApp = ap.win; }
+      else { res.homeApp = ap.draw; res.guestApp = ap.draw; }
+    }
+    return res;
+  }
+
+  function classicMatchResult(match) {
+    var rules = match.rules;
+    var res = {
+      apparatus: {}, homePoints: 0, guestPoints: 0, homeApp: 0, guestApp: 0,
+      homeSum: 0, guestSum: 0, complete: true, winner: null, homeMatch: 0, guestMatch: 0
+    };
+    APPARATUS.forEach(function (a) {
+      var r = classicApparatusResult(match.apparatus[a.key], rules);
+      res.apparatus[a.key] = r;
+      res.homeApp += r.homeApp;
+      res.guestApp += r.guestApp;
+      res.homeSum += r.homeSum;
+      res.guestSum += r.guestSum;
+      if (!r.complete) res.complete = false;
+    });
+    if (res.complete) {
+      res.winner = res.homeSum > res.guestSum ? 'home' : res.homeSum < res.guestSum ? 'guest' : 'draw';
+      var mp = rules.matchPoints;
+      res.homeMatch = res.winner === 'home' ? mp.win : res.winner === 'draw' ? mp.draw : mp.loss;
+      res.guestMatch = res.winner === 'guest' ? mp.win : res.winner === 'draw' ? mp.draw : mp.loss;
+    }
+    return res;
+  }
+
   function matchResult(match) {
+    if (isClassic(match.rules)) return classicMatchResult(match);
     var rules = match.rules;
     var res = {
       apparatus: {}, homePoints: 0, guestPoints: 0, homeApp: 0, guestApp: 0,
@@ -331,9 +458,35 @@
    * Gleichstand teilen sich Turner den Platz (1, 1, 3 …) und es werden
    * entsprechend mehr Turner aufgeführt.
    */
+  /**
+   * Klassisches Modell: Summe aller geturnten Wertungen je Turner (auch
+   * Streichwertungen; „nicht angetreten“ zählt nicht). points in Tausendsteln.
+   */
+  function classicScorers(match) {
+    var map = {};
+    APPARATUS.forEach(function (a) {
+      var app = match.apparatus[a.key];
+      if (!app) return;
+      app.duels.forEach(function (duel) {
+        ['home', 'guest'].forEach(function (k) {
+          var side = duel[k];
+          var v = sideFinal(side, match.rules);
+          if (side.dns || v === null || (!side.gymnastId && !side.name)) return;
+          var key = k + ':' + (side.gymnastId || side.name);
+          if (!map[key]) map[key] = { team: k, gymnastId: side.gymnastId, number: side.number, name: side.name, points: 0, starts: 0 };
+          map[key].points += v;
+          map[key].starts++;
+          if (side.name) map[key].name = side.name;
+        });
+      });
+    });
+    return Object.keys(map).map(function (k) { return map[k]; })
+      .sort(function (a, b) { return b.points - a.points || (a.number || 0) - (b.number || 0); });
+  }
+
   function topScorers(match, places) {
     var max = places || 3;
-    var list = scorers(match).filter(function (x) { return x.points > 0; });
+    var list = (isClassic(match.rules) ? classicScorers(match) : scorers(match)).filter(function (x) { return x.points > 0; });
     var out = [];
     for (var i = 0; i < list.length; i++) {
       var rank = i > 0 && list[i].points === list[i - 1].points ? out[i - 1].rank : i + 1;
@@ -377,12 +530,20 @@
   var api = {
     APPARATUS: APPARATUS,
     DEFAULT_RULES: DEFAULT_RULES,
+    CLASSIC_RULES: CLASSIC_RULES,
     clone: clone,
     leagueRules: leagueRules,
+    classicRules: classicRules,
+    isClassic: isClassic,
     parseScore: parseScore,
     formatScore: formatScore,
     emptySide: emptySide,
     emptyDuel: emptyDuel,
+    emptyRow: emptyRow,
+    classicOrder: classicOrder,
+    classicPosition: classicPosition,
+    revOf: revOf,
+    sidePending: sidePending,
     STAND_BONUS: STAND_BONUS,
     NO_BONUS_APPARATUS: NO_BONUS_APPARATUS,
     eJudgeCount: eJudgeCount,

@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '32';
+  var APP_BUILD = '33';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -103,7 +103,11 @@
 
   /** Feste Regeln eines Wettkampfs nach dem Wertungsmodell seiner Liga. */
   function rulesFor(leagueKey, eJudges) {
-    return S.leagueRules(eJudges);
+    return leagueOf(leagueKey).model === 'classic' ? S.classicRules(eJudges) : S.leagueRules(eJudges);
+  }
+
+  function isClassic(m) {
+    return S.isClassic(m.rules);
   }
 
   function colorOf(key) {
@@ -135,6 +139,22 @@
 
   function ptsPair(m, h, g, dark, sep) {
     return pts(m, 'home', h, dark) + '<span class="sp-sep">' + (sep || ':') + '</span>' + pts(m, 'guest', g, dark);
+  }
+
+  /** Wert einer Mannschaft in einem Ergebnis: Scorepunkte (Oberliga) bzw. Punktsumme (Landesliga). */
+  function teamValue(m, res, sideKey, board) {
+    if (isClassic(m)) return pts(m, sideKey, fmt(res[sideKey + 'Sum']), board);
+    return pts(m, sideKey, res[sideKey + 'Points'], board);
+  }
+
+  /** Stand beider Mannschaften (Wettkampf oder Gerät) im Format der jeweiligen Liga. */
+  function totalPair(m, res, board, sep) {
+    return teamValue(m, res, 'home', board) + '<span class="sp-sep">' + (sep || ':') + '</span>' + teamValue(m, res, 'guest', board);
+  }
+
+  /** „Duelle“ bzw. „Übungen“ – je nach Wertungsmodell. */
+  function unitWord(m) {
+    return isClassic(m) ? 'Übungen' : 'Duelle';
   }
 
   function colorChip(c, text) {
@@ -362,6 +382,7 @@
       var app = m.apparatus[a.key];
       if (!app) return;
       app.duels.forEach(function (d) {
+        if (m.league === 'landesliga' && !d.revs) { d.revs = { home: { revealedAt: null }, guest: { revealedAt: null } }; changed = true; }
         if (d.revealedAt === undefined) { d.revealedAt = null; changed = true; }
         if (d.revealedAt && !d.firstRevealedAt) { d.firstRevealedAt = d.revealedAt; changed = true; }
         if (d.revealedAt && !d.shown) {
@@ -425,7 +446,7 @@
 
   /** Bereiche, die noch nicht freigeschaltet sind, zeigen einen Platzhalter. */
   function leagueReady(key) {
-    return leagueOf(key).model === 'score';
+    return ['score', 'classic'].indexOf(leagueOf(key).model) >= 0;
   }
 
   var keepScroll = false;
@@ -490,7 +511,7 @@
       '<h1>' + esc(APP_NAME) + '</h1><p class="muted">Bitte die Liga wählen</p>' +
       '<div class="start-grid">' +
       '<a class="start-tile" href="#/oberliga"><span class="st-title">Oberliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
-      '<a class="start-tile" href="#/landesliga"><span class="st-title">Landesliga</span><span class="st-sub">folgt in Kürze</span></a>' +
+      '<a class="start-tile" href="#/landesliga"><span class="st-title">Landesliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
       '</div></section>';
   }
 
@@ -513,7 +534,7 @@
         '<div><div class="match-title">' + esc(fmtDate(m.date) || 'ohne Datum') + '</div>' +
         '<div class="muted">' + esc(matchLeague(m).name) + '</div></div>' +
         '<div class="match-teams">' + teamTag(m, 'home') + ' <span class="muted">vs.</span> ' + teamTag(m, 'guest') + '</div>' +
-        '<div class="match-score">' + ptsPair(m, r.homePoints, r.guestPoints) + '</div>' +
+        '<div class="match-score">' + totalPair(m, r) + '</div>' +
         '<div>' + statusBadge(m, r) + '</div></a>';
     }).join('') : '<p class="muted">Noch keine Wettkämpfe angelegt.</p>';
 
@@ -531,7 +552,7 @@
 
   function statusBadge(m, r) {
     if (m.status === 'final') return '<span class="badge final">abgeschlossen</span>';
-    if (r.complete) return '<span class="badge done">alle Duelle gewertet</span>';
+    if (r.complete) return '<span class="badge done">alle ' + unitWord(m) + ' gewertet</span>';
     var started = S.APPARATUS.some(function (a) { return r.apparatus[a.key].started; });
     return started ? '<span class="badge live">läuft</span>' : '<span class="badge">geplant</span>';
   }
@@ -740,7 +761,7 @@
         rules: rules, status: 'open', apparatus: {}, createdAt: new Date().toISOString()
       };
       S.APPARATUS.forEach(function (a) {
-        m.apparatus[a.key] = { duels: Array.from({ length: duels }, S.emptyDuel) };
+        m.apparatus[a.key] = { duels: Array.from({ length: duels }, S.isClassic(rules) ? S.emptyRow : S.emptyDuel) };
       });
       state.matches.unshift(m);
     } else {
@@ -752,7 +773,7 @@
       }
       S.APPARATUS.forEach(function (a) {
         var list = m.apparatus[a.key].duels;
-        while (list.length < duels) list.push(S.emptyDuel());
+        while (list.length < duels) list.push(isClassic(m) ? S.emptyRow() : S.emptyDuel());
         list.length = duels;
       });
       m.rules.duelsPerApparatus = duels;
@@ -786,16 +807,16 @@
     var tabs = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
       return '<button class="tab' + (a.key === tab ? ' active' : '') + (ar.complete ? ' complete' : '') + '" tabindex="-1" data-action="tab" data-tab="' + a.key + '">' +
-        '<span>' + a.name + '</span><span class="tab-score" data-out="tab-' + a.key + '">' + ptsPair(m, ar.homePoints, ar.guestPoints) + '</span></button>';
+        '<span>' + a.name + '</span><span class="tab-score" data-out="tab-' + a.key + '">' + totalPair(m, ar) + '</span></button>';
     }).join('');
 
     return '<section class="card match-head">' +
       '<div class="match-meta"><h2>' + esc(matchLeague(m).name) + '</h2>' +
       '<div class="muted">' + esc(fmtDate(m.date)) + ' · Beginn: ' + esc(teamName(m.startTeam === 'guest' ? m.guestTeamId : m.homeTeamId)) +
       ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
-      '<div class="scoreline">' +
+      '<div class="scoreline' + (isClassic(m) ? ' sums' : '') + '">' +
       '<div class="team home"><div class="label">Heim</div><div class="name">' + teamTag(m, 'home') + '</div></div>' +
-      '<div class="big" data-out="score">' + ptsPair(m, r.homePoints, r.guestPoints, false, ' : ') + '</div>' +
+      '<div class="big' + (isClassic(m) ? ' sums' : '') + '" data-out="score">' + totalPair(m, r, false, ' : ') + '</div>' +
       '<div class="team guest"><div class="label">Gast</div><div class="name">' + teamTag(m, 'guest') + '</div></div>' +
       '</div>' +
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong>' +
@@ -825,10 +846,11 @@
   function scorersLabel(on) { return on ? 'Topscorer ausblenden' : 'Topscorer einblenden'; }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
-  function duelBlocked(m, appKey, idx) {
+  function duelBlocked(m, appKey, idx, sideKey) {
     if (m.status === 'final') return true;
     var pending = S.pendingCorrections(m);
-    return pending.length > 0 && !pending.some(function (p) { return p.appKey === appKey && p.idx === idx; });
+    // Im klassischen Modell bleibt nur die geänderte Übung selbst bearbeitbar.
+    return pending.length > 0 && !pending.some(function (p) { return p.appKey === appKey && p.idx === idx && (!p.side || p.side === sideKey); });
   }
 
   function apparatusName(key) {
@@ -839,8 +861,8 @@
     var pending = S.pendingCorrections(m);
     if (!pending.length) return '';
     return '<div class="banner warn-banner">⚠ Nachträgliche Änderung: ' + pending.map(function (p) {
-      return apparatusName(p.appKey) + ', Duell ' + (p.idx + 1);
-    }).join('; ') + '. Bitte zuerst <strong>„Korrektur freigeben“</strong> drücken (oder die Änderung verwerfen) – bis dahin sind alle anderen Duelle gesperrt.</div>';
+      return apparatusName(p.appKey) + (p.side ? ', ' + S.classicPosition(m, p.appKey, p.idx, p.side) + '. Übung' : ', Duell ' + (p.idx + 1));
+    }).join('; ') + '. Bitte zuerst <strong>„Korrektur freigeben“</strong> drücken (oder die Änderung verwerfen) – bis dahin sind alle anderen ' + unitWord(m) + ' gesperrt.</div>';
   }
 
   function winnerText(m, r) {
@@ -885,7 +907,8 @@
       ' value="' + esc(v) + '" placeholder="' + (field === 'nd' ? '0,0' : '') + '"' + (locked ? ' disabled' : '') + '></label>';
   }
 
-  function sideHtml(m, appKey, idx, sideKey, side, locked, position) {
+  function sideHtml(m, appKey, idx, sideKey, side, locked, position, struck) {
+    var classic = isClassic(m);
     var dis = locked || side.dns || side.zero;
     var color = sideColor(m, sideKey);
     var key = appKey + '-' + idx + '-' + sideKey;
@@ -893,9 +916,10 @@
     var bonusAllowed = appKey !== S.NO_BONUS_APPARATUS;
     var eCols = three ? 3 : 2, dCols = bonusAllowed ? 3 : 2;
     var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"';
-    return '<div class="side ' + sideKey + (position === 1 ? ' first' : ' second') + (side.dns ? ' dns' : '') + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
-      (position === 1 ? '<span class="lead-tag">vorlegend</span>' : '') +
-      '<div class="side-head"><span class="order-no" title="Startreihenfolge im Duell">' + position + '.</span>' +
+    return '<div class="side ' + sideKey + (classic ? '' : position === 1 ? ' first' : ' second') + (side.dns ? ' dns' : '') + (struck ? ' struck' : '') +
+      '" data-key="' + key + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
+      (!classic && position === 1 ? '<span class="lead-tag">vorlegend</span>' : '') +
+      '<div class="side-head"><span class="order-no" title="' + (classic ? 'Startposition am Gerät' : 'Startreihenfolge im Duell') + '">' + position + '.</span>' +
       '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked || side.dns) + '</div>' +
       // Zwei Bereiche: E-Kampfgericht (Abzüge) und D-Kampfgericht (D-Note, Standbonus, neutraler Abzug).
@@ -912,7 +936,8 @@
       '</div></div>' +
       '<div class="result-row">' +
       '<span style="flex:' + eCols + '">E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</strong></span>' +
-      '<span class="final" style="flex:' + dCols + '">Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
+      '<span class="final" style="flex:' + dCols + '">' + (classic ? '<span class="struck-tag">Streichwertung</span> ' : '') +
+      'Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
       '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked ? ' disabled' : '') + '> nicht angetreten</label>' +
       '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') + (locked || side.dns ? ' disabled' : '') + '> Wertung 0,00 (angetreten)</label>' +
@@ -956,6 +981,7 @@
   }
 
   function apparatusPanel(m, appKey) {
+    if (isClassic(m)) return classicPanel(m, appKey);
     var a = S.APPARATUS.filter(function (x) { return x.key === appKey; })[0];
     var app = m.apparatus[appKey];
     var ar = S.apparatusResult(app, m.rules);
@@ -982,7 +1008,70 @@
       'Die Scorepunkte eines Duells zählen und erscheinen auf der Anzeigetafel erst nach „Wertung freigeben“. Jede Eingabe wird sofort gespeichert.</p>';
   }
 
+  // ---------- Landesliga: Eingabe je Übung ----------
+
+  /** Freigabe einer Übung: Turner gewählt und Wertung vollständig – oder „nicht angetreten“. */
+  function sideReady(m, s) {
+    return S.sideFinal(s, m.rules) !== null && (s.dns || !!s.gymnastId);
+  }
+
+  function sideActions(m, d, appKey, idx, sideKey, locked) {
+    var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"';
+    var ready = sideReady(m, d[sideKey]);
+    if (S.sidePending(d, sideKey)) {
+      var html = '<span class="changed">geändert – noch nicht freigegeben</span>';
+      if (!locked) {
+        html += '<button class="btn primary"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Korrektur freigeben</button>' +
+          '<button class="btn ghost" tabindex="-1"' + attrs + ' data-action="discard">Änderung verwerfen</button>';
+      }
+      return html;
+    }
+    if (S.revOf(d, sideKey).revealedAt) return '<span class="revealed">✓ freigegeben</span>';
+    if (locked) return '';
+    return '<button class="btn primary reveal-btn"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Wertung freigeben</button>';
+  }
+
+  function classicSumHtml(m, ar, sideKey) {
+    return 'Summe (beste ' + m.rules.counting + ') <strong>' + teamValue(m, ar, sideKey) + '</strong>';
+  }
+
+  /**
+   * Landesliga: links die Turner der am Gerät beginnenden Mannschaft, rechts die der
+   * anderen; jede Zeile ist ein Startpaar (A1/B1 …). DOM-Reihenfolge = Startreihenfolge.
+   */
+  function classicPanel(m, appKey) {
+    var a = S.APPARATUS.filter(function (x) { return x.key === appKey; })[0];
+    var app = m.apparatus[appKey];
+    var ar = S.apparatusResult(app, m.rules);
+    var order = S.classicOrder(m, appKey);
+    var rows = app.duels.map(function (d, i) {
+      return '<div class="cl-row">' + order.map(function (k) {
+        var locked = duelBlocked(m, appKey, i, k);
+        return '<div class="cl-cell' + (S.sidePending(d, k) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '') + '">' +
+          sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0) +
+          '<div class="duel-actions" data-out="sideact-' + appKey + '-' + i + '-' + k + '">' + sideActions(m, d, appKey, i, k, locked) + '</div></div>';
+      }).join('') + '</div>';
+    }).join('');
+    var sums = '<div class="cl-row cl-sums">' + order.map(function (k) {
+      return '<div class="cl-sum" data-out="clsum-' + appKey + '-' + k + '">' + classicSumHtml(m, ar, k) + '</div>';
+    }).join('') + '</div>';
+    return '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
+      (m.status === 'final' ? ' disabled' : '') + '>Einturnzeit (4:00) starten</button></div>' +
+      '<div class="card-head"><h3>' + a.name + '</h3>' +
+      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' +
+      '<div class="cl-row cl-head">' + order.map(function (k, n) {
+        return '<div>' + teamTag(m, k) + (n === 0 ? ' <span class="muted small">beginnt</span>' : '') + '</div>';
+      }).join('') + '</div>' + rows + sums +
+      '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
+      'Geturnt wird abwechselnd in der Reihenfolge der Startpositionen (1., 2., 3. …). Je Mannschaft zählen die ' + m.rules.counting +
+      ' höchsten Wertungen, die niedrigste ist die Streichwertung. Jede Übung wird einzeln mit „Wertung freigeben“ gezählt und auf der Anzeigetafel gezeigt. Jede Eingabe wird sofort gespeichert.</p>';
+  }
+
   function appSumHtml(m, ar) {
+    if (isClassic(m)) {
+      return 'Gerätesumme <strong>' + totalPair(m, ar) + '</strong>' +
+        (ar.complete ? ' · Gerätepunkte <strong>' + ar.homeApp + ':' + ar.guestApp + '</strong>' : ' · <span class="muted">noch nicht vollständig</span>');
+    }
     return 'Scorepunkte <strong>' + ptsPair(m, ar.homePoints, ar.guestPoints) + '</strong>' +
       (ar.complete ? ' · Gerätepunkte <strong>' + ar.homeApp + ':' + ar.guestApp + '</strong>' : ' · <span class="muted">noch nicht vollständig</span>');
   }
@@ -990,11 +1079,12 @@
   /** Topscorer: die ersten drei Plätze, bei Gleichstand entsprechend mehr. */
   function scorersHtml(m) {
     var list = S.topScorers(m, 3);
-    if (!list.length) return '<p class="muted">Noch keine Scorepunkte vergeben.</p>';
-    return '<div class="table-wrap"><table class="table compact"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">Scorepunkte</th></tr></thead><tbody>' +
+    var classic = isClassic(m);
+    if (!list.length) return '<p class="muted">' + (classic ? 'Noch keine Wertungen.' : 'Noch keine Scorepunkte vergeben.') + '</p>';
+    return '<div class="table-wrap"><table class="table compact"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">' + (classic ? 'Summe' : 'Scorepunkte') + '</th></tr></thead><tbody>' +
       list.map(function (s) {
         return '<tr><td>' + s.rank + '.</td><td>' + esc(gymnastLabel(s.number, s.name) || '–') + '</td><td>' + esc(teamName(s.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</td>' +
-          '<td class="num"><strong>' + pts(m, s.team, s.points) + '</strong></td></tr>';
+          '<td class="num"><strong>' + pts(m, s.team, classic ? fmt(s.points) : s.points) + '</strong></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
 
@@ -1005,13 +1095,13 @@
       var el = $app.querySelector('[data-out="' + key + '"]');
       if (el) el.innerHTML = html;
     }
-    out('score', ptsPair(m, r.homePoints, r.guestPoints, false, ' : '));
+    out('score', totalPair(m, r, false, ' : '));
     out('app', r.homeApp + ':' + r.guestApp);
     out('winner', winnerText(m, r));
     out('status', statusBadge(m, r));
     S.APPARATUS.forEach(function (a) {
       var ar = r.apparatus[a.key];
-      out('tab-' + a.key, ptsPair(m, ar.homePoints, ar.guestPoints));
+      out('tab-' + a.key, totalPair(m, ar));
       var tabBtn = $app.querySelector('.tab[data-tab="' + a.key + '"]');
       if (tabBtn) tabBtn.classList.toggle('complete', ar.complete);
     });
@@ -1019,6 +1109,23 @@
     var ar = r.apparatus[tab];
     out('app-sum', appSumHtml(m, ar));
     out('pending', pendingBanner(m));
+    if (isClassic(m)) {
+      m.apparatus[tab].duels.forEach(function (d, i) {
+        ['home', 'guest'].forEach(function (k) {
+          var key = tab + '-' + i + '-' + k;
+          var act = $app.querySelector('[data-out="sideact-' + key + '"]');
+          var html = sideActions(m, d, tab, i, k, duelBlocked(m, tab, i, k));
+          if (act && act.innerHTML !== html) act.innerHTML = html;
+          out('enote-' + key, fmt(S.eScore(d[k], m.rules)));
+          out('final-' + key, fmt(S.sideFinal(d[k], m.rules)));
+          var sideEl = $app.querySelector('.side[data-key="' + key + '"]');
+          if (sideEl) sideEl.classList.toggle('struck', ar[k].struck.indexOf(i) >= 0);
+        });
+      });
+      ['home', 'guest'].forEach(function (k) { out('clsum-' + tab + '-' + k, classicSumHtml(m, ar, k)); });
+      out('scorers', scorersHtml(m));
+      return;
+    }
     m.apparatus[tab].duels.forEach(function (d, i) {
       out('duel-' + tab + '-' + i, duelPoints(m, ar.duels[i]));
       // Knöpfe nur neu aufbauen, wenn sich etwas ändert – sonst ginge ein Fokus darauf verloren.
@@ -1041,7 +1148,7 @@
     var sideKey = el.getAttribute('data-side');
     var field = el.getAttribute('data-field');
     var side = m.apparatus[appKey].duels[idx][sideKey];
-    if (duelBlocked(m, appKey, idx)) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
+    if (duelBlocked(m, appKey, idx, sideKey)) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
     var pendingBefore = S.pendingCorrections(m).length;
 
     if (field === 'gymnast') {
@@ -1146,14 +1253,26 @@
   }
 
   function latestBy(m, field) {
-    var latest = { at: '', appKey: null, idx: -1 };
+    var latest = { at: '', appKey: null, idx: -1, side: null };
     S.APPARATUS.forEach(function (a) {
       m.apparatus[a.key].duels.forEach(function (d, i) {
-        var at = d[field] || (field === 'firstRevealedAt' ? d.revealedAt : null);
-        if (at && at > latest.at) latest = { at: at, appKey: a.key, idx: i };
+        (isClassic(m) ? ['home', 'guest'] : [null]).forEach(function (k) {
+          var u = k ? S.revOf(d, k) : d;
+          var at = u[field] || (field === 'firstRevealedAt' ? u.revealedAt : null);
+          if (at && at > latest.at) latest = { at: at, appKey: a.key, idx: i, side: k };
+        });
       });
     });
     return latest;
+  }
+
+  /** Ist das Duell bzw. (Landesliga) sind beide Übungen der Zeile freigegeben? */
+  function rowRevealed(m, d) {
+    return isClassic(m) ? !!(S.revOf(d, 'home').revealedAt && S.revOf(d, 'guest').revealedAt) : !!d.revealedAt;
+  }
+
+  function rowAnyRevealed(m, d) {
+    return isClassic(m) ? !!(S.revOf(d, 'home').revealedAt || S.revOf(d, 'guest').revealedAt) : !!d.revealedAt;
   }
 
   /** Gerät, das gerade läuft: das erste mit Eintragungen, aber noch nicht vollständig freigegeben. */
@@ -1163,11 +1282,11 @@
     S.APPARATUS.forEach(function (a) {
       var duels = m.apparatus[a.key].duels;
       var touched = duels.some(function (d) {
-        return d.revealedAt || d.home.gymnastId || d.guest.gymnastId || S.sideFinal(d.home, m.rules) !== null || S.sideFinal(d.guest, m.rules) !== null;
+        return rowAnyRevealed(m, d) || d.home.gymnastId || d.guest.gymnastId || S.sideFinal(d.home, m.rules) !== null || S.sideFinal(d.guest, m.rules) !== null;
       });
-      var allRevealed = duels.every(function (d) { return d.revealedAt; });
+      var allRevealed = duels.every(function (d) { return rowRevealed(m, d); });
       if (!current && touched && !allRevealed) current = a;
-      if (duels.some(function (d) { return d.revealedAt; })) lastRevealed = a;
+      if (duels.some(function (d) { return rowAnyRevealed(m, d); })) lastRevealed = a;
     });
     return current || lastRevealed;
   }
@@ -1196,6 +1315,59 @@
       '<div class="cd-row nd' + (nd || ndBefore ? '' : ' empty') + '"><span>Neutr. Abzug</span><strong>' + cell(nd || '–', ndBefore === undefined ? undefined : (ndBefore || '–')) + '</strong></div>' +
       '<div class="cd-final' + (won ? ' win' : '') + '"><span>Endnote</span><strong>' +
       cell(fmt(S.sideFinal(s, m.rules)), p ? fmt(S.sideFinal(p, m.rules)) : undefined) + '</strong></div></div>';
+  }
+
+  /** Unsichtbarer Platzhalter gleicher Größe (die Karte behält ihre Maße). */
+  function ghostSideHtml(m, sideKey) {
+    return duelSideHtml(m, S.emptySide(), sideKey, false).replace('class="cd-side"', 'class="cd-side ghost"');
+  }
+
+  /** Mitte der Landesliga-Karte: aktuelle Gerätesummen beider Mannschaften. */
+  function classicCardMiddle(m, ar) {
+    return '<div class="cd-pts sums"><div class="cd-cap">Gerätesumme</div>' + totalPair(m, ar, true) + '</div>';
+  }
+
+  /**
+   * Landesliga: Detailkarte der zuletzt geturnten Übung. Sie steht auf der Seite
+   * ihrer Mannschaft, die andere Seite bleibt leer; in der Mitte die Gerätesummen.
+   */
+  function currentExerciseCard(m, view, r) {
+    var latest = latestPerformed(m);
+    if (!latest.appKey) {
+      return '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' +
+        duelSideHtml(m, S.emptySide(), 'home', false) + classicCardMiddle(m, { homeSum: 0, guestSum: 0 }) +
+        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
+    }
+    var k = latest.side;
+    var s = view.apparatus[latest.appKey].duels[latest.idx][k];
+    var ar = r.apparatus[latest.appKey];
+    var struck = ar[k].struck.indexOf(latest.idx) >= 0;
+    var card = duelSideHtml(m, s, k, true).replace('</div><div class="cd-row">', (struck ? ' <span class="cd-tag">Streichwertung</span>' : '') + '</div><div class="cd-row">');
+    return '<div class="cur-duel"><div class="cd-head">' + apparatusName(latest.appKey) + ' · ' + S.classicPosition(m, latest.appKey, latest.idx, k) + '. Übung</div>' +
+      '<div class="cd-grid">' + (k === 'home' ? card : ghostSideHtml(m, 'home')) + classicCardMiddle(m, ar) +
+      (k === 'guest' ? card : ghostSideHtml(m, 'guest')) + '</div></div>';
+  }
+
+  /** Landesliga: Wertungen des laufenden Geräts je Startpaar, Streichwertung gekennzeichnet. */
+  function classicBoardDetail(m, view, r, current) {
+    var app = view.apparatus[current.key];
+    var ar = r.apparatus[current.key];
+    function val(k, i) {
+      var v = ar[k].values[i];
+      if (v === null) return '';
+      return ar[k].struck.indexOf(i) >= 0 ? '<span class="struck-val"><s>' + fmt(v) + '</s><small>Streichwertung</small></span>' : fmt(v);
+    }
+    function name(k, d, right) {
+      return '<td class="bn' + (right ? ' right' : '') + '" style="--team:' + boardTone(m, k) + '">' + esc(gymnastLabel(d[k].number, d[k].name) || '–') + '</td>';
+    }
+    return '<div class="board-detail"><h3>' + current.name + '</h3><table class="board-duels classic">' +
+      app.duels.map(function (d, i) {
+        return '<tr>' + name('home', d, false) + '<td class="num">' + val('home', i) + '</td><td></td>' +
+          '<td class="num">' + val('guest', i) + '</td>' + name('guest', d, true) + '</tr>';
+      }).join('') +
+      '<tr class="bsum"><td>Summe (beste ' + m.rules.counting + ')</td><td class="num">' + teamValue(m, ar, 'home', true) + '</td><td></td>' +
+      '<td class="num">' + teamValue(m, ar, 'guest', true) + '</td><td class="right">Summe (beste ' + m.rules.counting + ')</td></tr>' +
+      '</table></div>';
   }
 
   /** Detailkarte des zuletzt geturnten Duells (nach einer Korrektur bleibt es beim letzten Duell). */
@@ -1232,12 +1404,13 @@
     var rows = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
       return '<tr class="' + (current && current.key === a.key ? 'current' : '') + '"><td>' + a.name + '</td>' +
-        '<td class="num">' + (ar.started ? pts(m, 'home', ar.homePoints, true) : '–') + '</td><td class="num">' + (ar.started ? pts(m, 'guest', ar.guestPoints, true) : '–') + '</td>' +
+        '<td class="num">' + (ar.started ? teamValue(m, ar, 'home', true) : '–') + '</td><td class="num">' + (ar.started ? teamValue(m, ar, 'guest', true) : '–') + '</td>' +
         '<td class="num small">' + (ar.complete ? ar.homeApp + ':' + ar.guestApp : '') + '</td></tr>';
     }).join('');
 
     var detail = '';
-    if (current) {
+    if (current && isClassic(m)) detail = classicBoardDetail(m, view, r, current);
+    else if (current) {
       var app = view.apparatus[current.key];
       var ar = r.apparatus[current.key];
       detail = '<div class="board-detail"><h3>' + current.name + '</h3><table class="board-duels">' +
@@ -1257,13 +1430,13 @@
       '<div class="board-title">' + esc([matchLeague(m).name, fmtDate(m.date)].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="board-score">' +
       '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
-      '<div class="board-big">' + ptsPair(m, r.homePoints, r.guestPoints, true) + '</div>' +
+      '<div class="board-big' + (isClassic(m) ? ' sums' : '') + '">' + totalPair(m, r, true) + '</div>' +
       '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '<div class="board-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + winnerText(m, r) + '</div>' +
       '<div id="board-timers" class="board-timers"><div class="bt warm off" data-slot="warm"><span>&nbsp;</span><strong>0:00</strong></div>' +
       '<div class="bt fall off" data-slot="fall"><span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em></div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th><th class="num">GP</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-      '<div>' + currentDuelCard(m, view) + detail + '</div></div>' +
+      '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
       boardScorers(m, view) + '</div>';
   }
 
@@ -1271,12 +1444,13 @@
   function boardScorers(m, view) {
     if (!(m.display && m.display.scorers)) return '';
     var list = S.topScorers(view, 3);
+    var classic = isClassic(m);
     return '<div class="scorer-overlay"><div class="so-box"><div class="so-title">Topscorer</div>' +
       (list.length ? '<table class="so-table">' + list.map(function (x) {
         return '<tr><td class="so-rank">' + x.rank + '.</td><td class="so-name">' + esc(gymnastLabel(x.number, x.name) || '–') +
           '<small>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</small></td>' +
-          '<td class="so-pts">' + pts(m, x.team, x.points, true) + '</td></tr>';
-      }).join('') + '</table>' : '<div class="so-empty">Noch keine Scorepunkte</div>') + '</div></div>';
+          '<td class="so-pts">' + pts(m, x.team, classic ? fmt(x.points) : x.points, true) + '</td></tr>';
+      }).join('') + '</table>' : '<div class="so-empty">' + (classic ? 'Noch keine Wertungen' : 'Noch keine Scorepunkte') + '</div>') + '</div></div>';
   }
 
   /** Anzeigetafel ohne Scrollbalken ins Fenster einpassen (misst die tatsächlich dargestellte Größe). */
@@ -1305,6 +1479,7 @@
     }
     if (!latest.at || latest.at <= state.board.lastReveal) return;
     state.board.lastReveal = latest.at;
+    if (isClassic(m)) { classicBoardFlash(m, latest); return; }
     var raw = m.apparatus[latest.appKey].duels[latest.idx];
     var duel = S.revealedView(m).apparatus[latest.appKey].duels[latest.idx];
     var res = S.duelResult(duel, m.rules);
@@ -1313,6 +1488,26 @@
     var points = res.winner === 'home' ? res.homePoints : res.winner === 'guest' ? res.guestPoints : 0;
     var color = res.winner === 'draw' ? (boardLight(m) ? '#737373' : '#a3a3a3') : boardTone(m, res.winner);
     showFlash(points, color);
+  }
+
+  /** Landesliga: neue Endnote 5 Sekunden groß in Mannschaftsfarbe, Korrekturen 10 Sekunden. */
+  function classicBoardFlash(m, latest) {
+    var k = latest.side;
+    var rev = S.revOf(m.apparatus[latest.appKey].duels[latest.idx], k);
+    var view = S.revealedView(m);
+    var s = view.apparatus[latest.appKey].duels[latest.idx][k];
+    var v = S.sideFinal(s, m.rules);
+    if (v === null) return;
+    if (rev.revealKind === 'correction') {
+      var r = S.matchResult(view);
+      var card = duelSideHtml(m, s, k, true, rev.prevShown);
+      showOverlay('<div class="cd-head">' + apparatusName(latest.appKey) + ' · ' + S.classicPosition(m, latest.appKey, latest.idx, k) + '. Übung</div>' +
+        '<div class="cd-grid">' + (k === 'home' ? card : ghostSideHtml(m, 'home')) + classicCardMiddle(m, r.apparatus[latest.appKey]) +
+        (k === 'guest' ? card : ghostSideHtml(m, 'guest')) + '</div>');
+      return;
+    }
+    if (s.dns) return; // „nicht angetreten“: keine große Einblendung
+    showFlash(fmt(v), boardTone(m, k), true);
   }
 
   var correctionTimer = null;
@@ -1328,6 +1523,14 @@
     function col(sideKey) {
       return duelSideHtml(m, duel[sideKey], sideKey, res.winner === sideKey, prev ? prev[sideKey] : null);
     }
+    showOverlay('<div class="cd-head">' + apparatusName(appKey) + ' · Duell ' + (idx + 1) + '</div>' +
+      '<div class="cd-grid">' + col('home') +
+      '<div class="cd-pts">' + (prevRes && prevRes.complete ? '<div class="corr-old">' + prevRes.homePoints + ' : ' + prevRes.guestPoints + '</div>' : '') +
+      ptsPair(m, res.homePoints, res.guestPoints, true) + '</div>' + col('guest') + '</div>');
+  }
+
+  /** Korrektur-Overlay 10 Sekunden über der Anzeigetafel. */
+  function showOverlay(inner) {
     var el = document.getElementById('correction-overlay');
     if (!el) {
       el = document.createElement('div');
@@ -1335,11 +1538,7 @@
       el.setAttribute('aria-live', 'assertive');
       document.body.appendChild(el);
     }
-    el.innerHTML = '<div class="corr-box"><div class="corr-title">Korrektur</div>' +
-      '<div class="cd-head">' + apparatusName(appKey) + ' · Duell ' + (idx + 1) + '</div>' +
-      '<div class="cd-grid">' + col('home') +
-      '<div class="cd-pts">' + (prevRes && prevRes.complete ? '<div class="corr-old">' + prevRes.homePoints + ' : ' + prevRes.guestPoints + '</div>' : '') +
-      ptsPair(m, res.homePoints, res.guestPoints, true) + '</div>' + col('guest') + '</div></div>';
+    el.innerHTML = '<div class="corr-box"><div class="corr-title">Korrektur</div>' + inner + '</div>';
     el.classList.add('show');
     clearTimeout(correctionTimer);
     correctionTimer = setTimeout(function () { el.classList.remove('show'); }, CORRECTION_MS);
@@ -1347,8 +1546,8 @@
 
   var flashTimer = null;
 
-  /** Neue Scorepunkte 5 Sekunden bildschirmfüllend in der Mannschaftsfarbe zeigen. */
-  function showFlash(points, color) {
+  /** Neue Scorepunkte (bzw. Endnote, wide) 5 Sekunden bildschirmfüllend in der Mannschaftsfarbe zeigen. */
+  function showFlash(points, color, wide) {
     var el = document.getElementById('score-flash');
     if (!el) {
       el = document.createElement('div');
@@ -1358,6 +1557,7 @@
       document.body.appendChild(el);
     }
     var num = el.firstChild;
+    el.classList.toggle('wide', !!wide);
     num.textContent = points;
     num.style.color = color;
     el.classList.remove('show');
@@ -1600,34 +1800,124 @@
 
   // ---------- Ansicht: Protokoll ----------
 
-  function viewPrint(m) {
+  /** Kampfgericht, Mannschaftsführer und beginnende Mannschaft (beide Ligen). */
+  function printPanel(m) {
+    var three = S.eJudgeCount(m.rules) === 3;
+    var j = m.judges || {}, cap = m.captains || {};
+    return '<div class="ps-panel"><div><strong>Kampfgericht:</strong> E1 (Oberkampfrichter) ' + esc(j.e1 || '–') +
+      ' · E2 ' + (three ? '(Heim) ' : '(neutral) ') + esc(j.e2 || '–') + (three ? ' · E3 (Gast) ' + esc(j.e3 || '–') : '') +
+      ' · D1 (Heim) ' + esc(j.d1 || '–') + ' · D2 (Gast) ' + esc(j.d2 || '–') + '</div>' +
+      '<div><strong>Mannschaftsführer:</strong> Heim ' + esc(cap.home || '–') + ' · Gast ' + esc(cap.guest || '–') +
+      ' · <strong>Beginn:</strong> ' + esc(teamName(m.startTeam === 'guest' ? m.guestTeamId : m.homeTeamId)) + '</div></div>';
+  }
+
+  /** Knöpfe, Blattanfang und Kopf mit Logo, Liga, Begegnung und Datum (beide Ligen). */
+  function printHead(m) {
+    return '<div class="print-actions no-print"><a class="btn ghost" href="#/match/' + m.id + '">← zurück</a>' +
+      '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>' +
+      '<div class="print-page"><section class="print-sheet" id="print-sheet">' +
+      '<div class="ps-head"><div class="ps-title">' + PRINT_LOGO +
+      '<div class="ps-titletext"><div class="ps-league">' + esc(matchLeague(m).short) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
+      '<div class="ps-meta"><strong>' + esc(teamName(m.homeTeamId)) + ' – ' + esc(teamName(m.guestTeamId)) + '</strong><br><strong>' + esc(fmtDate(m.date)) + '</strong></div></div>' + printPanel(m);
+  }
+
+  /** Notenspalten einer Übung im Protokoll (n.a. bzw. W0 statt Noten). */
+  function printCells(m, s, head, reverse) {
+    var three = S.eJudgeCount(m.rules) === 3;
+    var c = (s.dns || s.zero) ? head.map(function (h, n) { return n === 0 ? (s.dns ? 'n.a.' : 'W0') : ''; }) :
+      [fmt1(s.d), s.bonus ? '0,1' : '', fmt1(s.e1), fmt1(s.e2)].concat(three ? [fmt1(s.e3)] : [])
+        .concat([fmt(S.eScore(s, m.rules)), s.nd ? fmt1(s.nd) : '', '']);
+    c[c.length - 1] = '<strong>' + fmt(S.sideFinal(s, m.rules)) + '</strong>';
+    return (reverse ? c.reverse() : c).map(function (x) { return '<td class="num">' + x + '</td>'; }).join('');
+  }
+
+  /** Spaltenköpfe; am Pauschenpferd bleibt die SB-Spalte, aber ohne Überschrift. */
+  function printHeadCells(appKey, cols) {
+    return cols.map(function (h) { return '<th class="num">' + (h === 'SB' && appKey === S.NO_BONUS_APPARATUS ? '' : h) + '</th>'; }).join('');
+  }
+
+  /** Topscorer-Tabelle im Protokoll (Scorepunkte bzw. Summe der Wertungen). */
+  function printScorers(m) {
+    var classic = isClassic(m);
+    var top = S.topScorers(m, 3);
+    return top.length ? '<table class="print-table scorer-table"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">' + (classic ? 'Summe' : 'SP') + '</th></tr></thead><tbody>' +
+      top.map(function (x) {
+        return '<tr><td>' + x.rank + '.</td><td class="pn">' + esc(gymnastLabel(x.number, x.name) || '–') + '</td><td>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) +
+          '</td><td class="num"><strong>' + pts(m, x.team, classic ? fmt(x.points) : x.points) + '</strong></td></tr>';
+      }).join('') + '</tbody></table>' : '<p class="muted">–</p>';
+  }
+
+  function printResultLine(m, r) {
+    return '<p class="ps-result">' + (r.complete ? 'Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong>' : 'Wettkampf noch nicht vollständig gewertet.') + '</p>';
+  }
+
+  /**
+   * Landesliga-Protokoll: je Gerät die Startpaare (Heim links, Gast rechts) mit
+   * Startposition; Streichwertungen durchgestrichen, darunter Gerätesummen und Zwischenstand.
+   */
+  function viewPrintClassic(m) {
     var r = S.matchResult(m);
     var three = S.eJudgeCount(m.rules) === 3;
     var head = ['D', 'SB', 'E1', 'E2'].concat(three ? ['E3'] : []).concat(['E', 'NA', 'End']);
     var homeName = esc(teamName(m.homeTeamId)), guestName = esc(teamName(m.guestTeamId));
     var running = { home: 0, guest: 0 };
-    var j = m.judges || {}, cap = m.captains || {};
-    var panel = '<div class="ps-panel"><div><strong>Kampfgericht:</strong> E1 (Oberkampfrichter) ' + esc(j.e1 || '–') +
-      ' · E2 ' + (three ? '(Heim) ' : '(neutral) ') + esc(j.e2 || '–') + (three ? ' · E3 (Gast) ' + esc(j.e3 || '–') : '') +
-      ' · D1 (Heim) ' + esc(j.d1 || '–') + ' · D2 (Gast) ' + esc(j.d2 || '–') + '</div>' +
-      '<div><strong>Mannschaftsführer:</strong> Heim ' + esc(cap.home || '–') + ' · Gast ' + esc(cap.guest || '–') +
-      ' · <strong>Beginn:</strong> ' + esc(teamName(m.startTeam === 'guest' ? m.guestTeamId : m.homeTeamId)) + '</div></div>';
+    var apps = S.APPARATUS.map(function (a) {
+      var app = m.apparatus[a.key];
+      var ar = r.apparatus[a.key];
+      running.home += ar.homeSum;
+      running.guest += ar.guestSum;
+      function nameCell(d, i, k, right) {
+        var struck = ar[k].struck.indexOf(i) >= 0;
+        var label = esc(gymnastLabel(d[k].number, d[k].name) || '–');
+        var pos = S.classicPosition(m, a.key, i, k) + '.';
+        return '<td class="pn' + (right ? ' right' : '') + '">' + (right ? label + ' ' + pos : pos + ' ' + label) + (struck ? ' <em class="ps-struck">(Streichw.)</em>' : '') + '</td>';
+      }
+      return '<div class="print-app"><div class="pa-head"><strong>' + a.name + '</strong> <span>Gerätesumme ' + totalPair(m, ar) +
+        (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
+        '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + printHeadCells(a.key, head) +
+        printHeadCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +
+        app.duels.map(function (d, i) {
+          // Notenspalten einer Streichwertung werden durchgestrichen.
+          function cells(k, reverse) {
+            var html = printCells(m, d[k], head, reverse);
+            return ar[k].struck.indexOf(i) >= 0 ? html.replace(/<td class="num">/g, '<td class="num ps-s">') : html;
+          }
+          return '<tr>' + nameCell(d, i, 'home', false) + cells('home', false) + cells('guest', true) + nameCell(d, i, 'guest', true) + '</tr>';
+        }).join('') + '</tbody></table>' +
+        '<div class="pa-inter">Zwischenstand nach ' + a.name + ': <strong>' + totalPair(m, { homeSum: running.home, guestSum: running.guest }, false, ' : ') + '</strong></div></div>';
+    }).join('');
+
+    return printHead(m) +
+      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Punkte</th><th class="num">Gerätepunkte</th></tr></thead><tbody>' +
+      '<tr><td>Heim</td><td>' + homeName + '</td><td class="num"><strong>' + teamValue(m, r, 'home') + '</strong></td><td class="num">' + r.homeApp + '</td></tr>' +
+      '<tr><td>Gast</td><td>' + guestName + '</td><td class="num"><strong>' + teamValue(m, r, 'guest') + '</strong></td><td class="num">' + r.guestApp + '</td></tr>' +
+      '</tbody></table>' + printResultLine(m, r) + apps +
+      '<div class="pa-head"><strong>Topscorer</strong> <span>(Summe aller geturnten Wertungen)</span></div>' + printScorers(m) +
+      '<p class="ps-note">1.–8. = Startposition am Gerät, Streichw. = Streichwertung (zählt nicht; je Mannschaft zählen die ' + m.rules.counting + ' höchsten Wertungen), ' +
+      'n.a. = nicht angetreten, W0 = Wertung 0,00, D = D-Note, SB = Standbonus, E1–E' + (three ? '3' : '2') + ' = Abzüge der E-Kampfrichter, E = ' +
+      (three ? '10 − mittlerer Abzug' : '10 − Mittelwert') + ', NA = neutraler Abzug; Gerätepunkte Sieg/Unentschieden ' +
+      m.rules.apparatusPoints.win + '/' + m.rules.apparatusPoints.draw + '. Status: ' + (m.status === 'final' ? 'abgeschlossen' : 'offen') +
+      '. Stand: ' + esc(fmtDateTime(m.updatedAt || new Date().toISOString())) + '</p>' +
+      '</section></div>';
+  }
+
+  function viewPrint(m) {
+    if (isClassic(m)) return viewPrintClassic(m);
+    var r = S.matchResult(m);
+    var three = S.eJudgeCount(m.rules) === 3;
+    var head = ['D', 'SB', 'E1', 'E2'].concat(three ? ['E3'] : []).concat(['E', 'NA', 'End']);
+    var homeName = esc(teamName(m.homeTeamId)), guestName = esc(teamName(m.guestTeamId));
+    var running = { home: 0, guest: 0 };
     var apps = S.APPARATUS.map(function (a) {
       var app = m.apparatus[a.key];
       var ar = r.apparatus[a.key];
       return '<div class="print-app"><div class="pa-head"><strong>' + a.name + '</strong> <span>Scorepunkte ' + ptsPair(m, ar.homePoints, ar.guestPoints) +
         (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
-        '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + headCells(a.key, head) +
-        '<th class="num sp">SP</th>' + headCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +
+        '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + printHeadCells(a.key, head) +
+        '<th class="num sp">SP</th>' + printHeadCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
-          function cells(s, reverse) {
-            var c = (s.dns || s.zero) ? head.map(function (h, n) { return n === 0 ? (s.dns ? 'n.a.' : 'W0') : ''; }) :
-              [fmt1(s.d), s.bonus ? '0,1' : '', fmt1(s.e1), fmt1(s.e2)].concat(three ? [fmt1(s.e3)] : [])
-                .concat([fmt(S.eScore(s, m.rules)), s.nd ? fmt1(s.nd) : '', '']);
-            c[c.length - 1] = '<strong>' + fmt(S.sideFinal(s, m.rules)) + '</strong>';
-            return (reverse ? c.reverse() : c).map(function (x) { return '<td class="num">' + x + '</td>'; }).join('');
-          }
+          function cells(s, reverse) { return printCells(m, s, head, reverse); }
           var first = S.startOrder(m, a.key, i)[0];
           function nameCell(k, right) {
             var lead = first === k;
@@ -1640,11 +1930,6 @@
         }).join('') + '</tbody></table>' + intermediate(a, ar) + '</div>';
     }).join('');
 
-    // Spaltenköpfe; am Pauschenpferd bleibt die SB-Spalte, aber ohne Überschrift.
-    function headCells(appKey, cols) {
-      return cols.map(function (h) { return '<th class="num">' + (h === 'SB' && appKey === S.NO_BONUS_APPARATUS ? '' : h) + '</th>'; }).join('');
-    }
-
     // Zwischenstand nach Scorepunkten nach diesem Gerät.
     function intermediate(a, ar) {
       running.home += ar.homePoints;
@@ -1652,29 +1937,17 @@
       return '<div class="pa-inter">Zwischenstand nach ' + a.name + ': <strong>' + ptsPair(m, running.home, running.guest, false, ' : ') + '</strong></div>';
     }
 
-    var top = S.topScorers(m, 3);
-    var scorerHtml = top.length ? '<table class="print-table scorer-table"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">SP</th></tr></thead><tbody>' +
-      top.map(function (x) {
-        return '<tr><td>' + x.rank + '.</td><td class="pn">' + esc(gymnastLabel(x.number, x.name) || '–') + '</td><td>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) +
-          '</td><td class="num"><strong>' + pts(m, x.team, x.points) + '</strong></td></tr>';
-      }).join('') + '</tbody></table>' : '<p class="muted">–</p>';
-
     var th = m.rules.thresholds.slice().sort(function (a, b) { return a.min - b.min; })
       .map(function (t) { return 'ab ' + fmt(t.min) + ' → ' + t.points; }).join(', ');
 
-    return '<div class="print-actions no-print"><a class="btn ghost" href="#/match/' + m.id + '">← zurück</a>' +
-      '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>' +
-      '<div class="print-page"><section class="print-sheet" id="print-sheet">' +
-      '<div class="ps-head"><div class="ps-title">' + PRINT_LOGO +
-      '<div class="ps-titletext"><div class="ps-league">' + esc(matchLeague(m).short) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
-      '<div class="ps-meta"><strong>' + esc(teamName(m.homeTeamId)) + ' – ' + esc(teamName(m.guestTeamId)) + '</strong><br><strong>' + esc(fmtDate(m.date)) + '</strong></div></div>' + panel +
+    return printHead(m) +
       '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Geturnte Punkte</th></tr></thead><tbody>' +
       '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + pts(m, 'home', r.homePoints) + '</strong></td><td class="num">' + r.homeApp + '</td><td class="num">' + fmt(r.homeSum) + '</td></tr>' +
       '<tr><td>Gast</td><td>' + esc(teamName(m.guestTeamId)) + '</td><td class="num"><strong>' + pts(m, 'guest', r.guestPoints) + '</strong></td><td class="num">' + r.guestApp + '</td><td class="num">' + fmt(r.guestSum) + '</td></tr>' +
       '</tbody></table>' +
-      '<p class="ps-result">' + (r.complete ? 'Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong>' : 'Wettkampf noch nicht vollständig gewertet.') + '</p>' +
+      printResultLine(m, r) +
       apps +
-      '<div class="pa-head"><strong>Topscorer</strong></div>' + scorerHtml +
+      '<div class="pa-head"><strong>Topscorer</strong></div>' + printScorers(m) +
       '<p class="ps-note">▶ ◀ = vorlegender Turner, n.a. = nicht angetreten, W0 = Wertung 0,00, D = D-Note, SB = Standbonus, E1–E' + (three ? '3' : '2') + ' = Abzüge der E-Kampfrichter, E = ' +
       (three ? '10 − mittlerer Abzug' : '10 − Mittelwert') + ', NA = neutraler Abzug, SP = Scorepunkte (' + esc(th) + '); Gerätepunkte Sieg/Unentschieden ' +
       m.rules.apparatusPoints.win + '/' + m.rules.apparatusPoints.draw + '. Status: ' + (m.status === 'final' ? 'abgeschlossen' : 'offen') +
@@ -1747,7 +2020,8 @@
   }
 
   function viewRules() {
-    var r = S.DEFAULT_RULES;
+    var classic = leagueOf(currentLeague).model === 'classic';
+    var r = classic ? S.CLASSIC_RULES : S.DEFAULT_RULES;
     var ap = r.apparatusPoints, mp = r.matchPoints, n = r.duelsPerApparatus;
     var names = S.APPARATUS.map(function (a) { return a.name; });
     function list(items) { return '<ul class="rules-list">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>'; }
@@ -1756,15 +2030,18 @@
     // „am Boden“, „an den Ringen“ usw. für das Beispiel der beginnenden Mannschaft
     var at = { FX: 'am Boden', PH: 'am Pauschenpferd', SR: 'an den Ringen', VT: 'am Sprung', PB: 'am Barren', HB: 'am Reck' };
     var example = S.APPARATUS.map(function (a, i) { return (i === 1 ? 'Mannschaft ' : '') + (i % 2 ? 'B ' : 'A ') + at[a.key]; });
-    return '<section class="card rules"><h2>Wertungsregeln</h2>' +
-      '<p class="muted">Die Regeln folgen dem Scoresystem der ' + esc(leagueOf(currentLeague).name) + '.</p>' +
+    var points = classic ? 'Punkte' : 'Scorepunkte';
 
-      '<h3>Grundprinzip</h3>' + list([
-        'Zwei Mannschaften treten in Duellen Mann gegen Mann an. Die beiden Turner eines Duells starten direkt hintereinander.',
-        'An jedem Gerät werden ' + n + ' Duelle geturnt. Jede Mannschaft kann also bis zu ' + n + ' Turner pro Gerät einsetzen.',
-        'Setzt eine Mannschaft in einem Duell keinen Turner ein, wird diese Übung mit 0 Punkten bewertet.'
-      ]) +
-
+    var basics = classic ? '<h3>Grundprinzip</h3>' + list([
+      'Zwei Mannschaften treten gegeneinander an. An jedem Gerät kann jede Mannschaft bis zu ' + n + ' Turner einsetzen; die Turner beider Mannschaften turnen abwechselnd.',
+      'Je Mannschaft zählen an jedem Gerät die ' + r.counting + ' höchsten Wertungen. Die niedrigste Wertung ist die Streichwertung; sind zwei Wertungen gleich niedrig, wird die später geturnte gestrichen.',
+      'Turnen weniger als ' + n + ' Turner, zählen die vorhandenen Wertungen – bei 2 Turnern also nur diese 2.',
+      'Jede Wertung wird einzeln veröffentlicht. Nach jeder Übung wird der aktuelle Zwischenstand angezeigt.'
+    ]) : '<h3>Grundprinzip</h3>' + list([
+      'Zwei Mannschaften treten in Duellen Mann gegen Mann an. Die beiden Turner eines Duells starten direkt hintereinander.',
+      'An jedem Gerät werden ' + n + ' Duelle geturnt. Jede Mannschaft kann also bis zu ' + n + ' Turner pro Gerät einsetzen.',
+      'Setzt eine Mannschaft in einem Duell keinen Turner ein, wird diese Übung mit 0 Punkten bewertet.'
+    ]) +
       '<h3>Scorepunkte je Duell</h3>' +
       '<p>Die Mannschaft des Turners mit der höheren Wertung erhält je nach Notendifferenz folgende Scorepunkte:</p>' +
       '<table class="table compact rules-table"><thead><tr><th>Notendifferenz</th><th class="num">Scorepunkte</th></tr></thead><tbody>' +
@@ -1773,22 +2050,28 @@
         var next = r.thresholds[i + 1];
         return '<tr><td>' + (next ? 'von ' + fmt(t.min) + ' bis ' + fmt(next.min - 50) : 'ab ' + fmt(t.min)) + '</td><td class="num">' + t.points + '</td></tr>';
       }).join('') + '</tbody></table>' +
-      list(['Die Wertungen bleiben bis zur Bekanntgabe der Scorepunkte geheim und werden danach veröffentlicht.']) +
+      list(['Die Wertungen bleiben bis zur Bekanntgabe der Scorepunkte geheim und werden danach veröffentlicht.']);
+
+    return '<section class="card rules"><h2>Wertungsregeln</h2>' +
+      '<p class="muted">Die Regeln folgen dem ' + (classic ? 'Wertungssystem' : 'Scoresystem') + ' der ' + esc(leagueOf(currentLeague).name) + '.</p>' +
+      basics +
 
       '<h3>Geräte- und Gesamtergebnis</h3>' + list([
-        'Für das Geräteergebnis werden die Scorepunkte an diesem Gerät addiert. Die Mannschaft mit mehr Scorepunkten gewinnt das Gerät, bei Gleichstand endet es unentschieden. ' +
-          'Ein Gerätesieg bringt ' + word(ap.win, 'Gerätepunkt') + ', ein Unentschieden ' + word(ap.draw, 'Gerätepunkt') + '.',
-        'Für das Gesamtergebnis werden alle Scorepunkte des Wettkampfs addiert. Die Mannschaft mit mehr Scorepunkten gewinnt den Wettkampf, bei Gleichstand endet er unentschieden. ' +
-          'Ein Sieg bringt ' + word(mp.win, 'Punkt') + ', ein Unentschieden ' + word(mp.draw, 'Punkt') + '.'
+        'Für das Geräteergebnis werden ' + (classic ? 'die gezählten Wertungen' : 'die Scorepunkte') + ' an diesem Gerät addiert. Die Mannschaft mit mehr ' + points + 'n' +
+          ' gewinnt das Gerät, bei Gleichstand endet es unentschieden. Ein Gerätesieg bringt ' + word(ap.win, 'Gerätepunkt') + ', ein Unentschieden ' + word(ap.draw, 'Gerätepunkt') + '.',
+        'Für das Gesamtergebnis werden ' + (classic ? 'die Punkte aller Geräte' : 'alle Scorepunkte des Wettkampfs') + ' addiert. Die Mannschaft mit mehr ' + points + 'n' +
+          ' gewinnt den Wettkampf, bei Gleichstand endet er unentschieden. Ein Sieg bringt ' + word(mp.win, 'Punkt') + ', ein Unentschieden ' + word(mp.draw, 'Punkt') + '.'
       ]) +
 
       '<h3>Wettkampfablauf</h3>' + list([
         'Geturnt wird in der olympischen Reihenfolge: ' + and(names) + '.',
-        'Die Farben beider Mannschaften werden frei gewählt. Die Scorepunkte werden in der Farbe der jeweiligen Mannschaft angezeigt.',
+        'Die Farben beider Mannschaften werden frei gewählt. ' + (classic ? 'Punkte und Wertungen' : 'Die Scorepunkte') + ' werden in der Farbe der jeweiligen Mannschaft angezeigt.',
         'Vor Beginn lost der Oberkampfrichter im Beisein beider Mannschaftsführer eine Mannschaft aus, zum Beispiel per Münzwurf. Deren Mannschaftsführer legt fest, welche Mannschaft am ersten Gerät beginnt.',
         'Die beginnende Mannschaft wechselt an jedem Gerät. Beginnt zum Beispiel Mannschaft A am Boden, beginnt ' + and(example.slice(1)) + '.',
-        'Die am Gerät beginnende Mannschaft beginnt die Duelle 1 und 2, die andere Mannschaft die Duelle 3 und 4. ' +
-          'Beginnt Mannschaft A, lauten die Duelle also A1 gegen B1, A2 gegen B2, B3 gegen A3 und B4 gegen A4; der zuerst genannte Turner turnt jeweils zuerst.',
+        classic
+          ? 'Am Gerät turnen die Mannschaften abwechselnd, beginnend mit der am Gerät beginnenden Mannschaft. Beginnt Mannschaft A, ist die Reihenfolge also A1, B1, A2, B2, A3, B3, A4 und B4.'
+          : 'Die am Gerät beginnende Mannschaft beginnt die Duelle 1 und 2, die andere Mannschaft die Duelle 3 und 4. ' +
+            'Beginnt Mannschaft A, lauten die Duelle also A1 gegen B1, A2 gegen B2, B3 gegen A3 und B4 gegen A4; der zuerst genannte Turner turnt jeweils zuerst.',
         'Beide Mannschaften können sich 1 Stunde vor Wettkampfbeginn und 4 Minuten vor jedem Gerät einturnen. Abweichende Regelungen, etwa wegen eines Geräteumbaus oder einer Pause nach 3 Geräten, können in Absprache mit der Gastmannschaft getroffen werden.'
       ]) +
 
@@ -1826,14 +2109,16 @@
       ]) +
 
       sec('3. Wertungen erfassen', [
-        'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „Vorlegend“ markiert.',
+        'Oben das Gerät wählen. <b>Oberliga:</b> Je Duell steht der vorlegende Turner links bzw. oben und ist mit „Vorlegend“ markiert. ' +
+          '<b>Landesliga:</b> Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).',
         'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
         'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell. Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
         '<b>nicht angetreten</b>: Die Übung zählt 0 Punkte, Turner und Wertung werden geleert. <b>Wertung 0,00 (angetreten)</b>: Der Turner ist angetreten, erhält aber die Endnote 0.'
       ]) +
 
       sec('4. Wertung freigeben', [
-        'Sind beide Turner gewählt und vollständig gewertet, wird <b>Wertung freigeben</b> aktiv. Erst dann zählen die Scorepunkte und erscheinen auf der Anzeigetafel.',
+        '<b>Oberliga:</b> Sind beide Turner eines Duells gewählt und vollständig gewertet, wird <b>Wertung freigeben</b> aktiv. Erst dann zählen die Scorepunkte und erscheinen auf der Anzeigetafel.',
+        '<b>Landesliga:</b> Jede Übung hat ihren eigenen Knopf <b>Wertung freigeben</b>. Je Mannschaft und Gerät zählen die drei höchsten Wertungen; die Streichwertung wird grau durchgestrichen angezeigt.',
         'Wird eine freigegebene Wertung nachträglich geändert, sind alle anderen Duelle gesperrt, bis die Änderung mit <b>Korrektur freigeben</b> bestätigt oder mit <b>Änderung verwerfen</b> zurückgenommen wird.'
       ]) +
 
@@ -1846,7 +2131,7 @@
       sec('6. Anzeigetafel', [
         '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
         '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Topscorer einblenden</b> zeigt die drei besten Scorer.',
-        'Nach jeder Freigabe erscheinen die Scorepunkte 5 Sekunden groß auf der Tafel, Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.',
+        'Nach jeder Freigabe erscheinen 5 Sekunden groß auf der Tafel die Scorepunkte (Oberliga) bzw. die Endnote der Übung (Landesliga), Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.',
         'Soll die Anzeigetafel genutzt werden, empfiehlt sich ein Windows- oder Mac-Rechner mit <b>Chrome oder Edge</b>, im Browser oder als installierte App.'
       ]) +
 
@@ -1944,6 +2229,50 @@
       if (channel) channel.postMessage({ type: 'changed' });
       render();
       toast(exists ? 'Wettkampf ersetzt' : 'Wettkampf hinzugefügt');
+    });
+  }
+
+  /** Setzt eine Übung auf den zuletzt freigegebenen Stand zurück. */
+  function restoreShownSide(m, d, k, shown) {
+    S.SHOWN_FIELDS.forEach(function (f) { d[k][f] = shown[f] === undefined ? null : shown[f]; });
+    d[k].nd = d[k].nd || 0;
+    d[k].bonus = !!d[k].bonus;
+    d[k].zero = !!d[k].zero;
+    d[k].dns = !!d[k].dns;
+    var tm = team(k === 'home' ? m.homeTeamId : m.guestTeamId);
+    var g = tm && tm.gymnasts.filter(function (x) { return x.id === d[k].gymnastId; })[0];
+    d[k].number = g ? g.number : shown.number;
+    d[k].name = g ? g.name : shown.name;
+  }
+
+  /** Landesliga: eine einzelne Übung freigeben (bzw. ihre Korrektur). */
+  function revealSide(m, btn) {
+    var appKey = btn.getAttribute('data-app');
+    var idx = parseInt(btn.getAttribute('data-duel'), 10);
+    var k = btn.getAttribute('data-side');
+    var d = m.apparatus[appKey].duels[idx];
+    if (!d || m.status === 'final') return;
+    if (!sideReady(m, d[k])) { toast('Übung ist noch nicht vollständig erfasst.', 'error'); return; }
+    d.revs = d.revs || { home: { revealedAt: null }, guest: { revealedAt: null } };
+    var rev = d.revs[k] = d.revs[k] || { revealedAt: null };
+    var wasCorrection = S.sidePending(d, k);
+    if (rev.shown && !wasCorrection) return;
+    rev.prevShown = wasCorrection ? rev.shown : null;
+    rev.revealKind = wasCorrection ? 'correction' : 'first';
+    rev.revealedAt = new Date().toISOString();
+    if (!rev.firstRevealedAt) rev.firstRevealedAt = rev.revealedAt;
+    rev.shown = S.snapshotSide(d[k]);
+    var viaKeyboard = lastInputKeyboard;
+    var cellKey = appKey + '-' + idx + '-' + k;
+    save('matches', m).then(function () {
+      rerenderPanel(m);
+      // Per Tastatur weiter zur nächsten Übung in Startreihenfolge.
+      var cells = Array.prototype.slice.call($app.querySelectorAll('#apparatus-panel .cl-cell'));
+      var pos = cells.map(function (c) { return c.querySelector('.side').getAttribute('data-key'); }).indexOf(cellKey);
+      var nextCell = cells[pos + 1];
+      var next = nextCell && nextCell.querySelector('select[data-field="gymnast"]:not([disabled]), input[data-field]:not([type=checkbox]):not([disabled])');
+      if (next && !wasCorrection && viaKeyboard) next.focus();
+      toast(wasCorrection ? 'Korrektur freigegeben' : 'Wertung freigegeben');
     });
   }
 
@@ -2130,7 +2459,7 @@
       case 'finalize':
         if (S.pendingCorrections(m).length) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); return; }
         var res = S.matchResult(m);
-        if (!res.complete && !confirm('Es sind noch nicht alle Duelle gewertet. Trotzdem abschließen?')) return;
+        if (!res.complete && !confirm('Es sind noch nicht alle ' + unitWord(m) + ' gewertet. Trotzdem abschließen?')) return;
         m.status = 'final';
         save('matches', m).then(function () {
           takeSnapshot('Wettkampf abgeschlossen');
@@ -2158,6 +2487,7 @@
         }).then(function () { location.hash = leagueHref('home', matchLeague(m).key); toast('Wettkampf gelöscht'); });
         break;
       case 'reveal':
+        if (m && isClassic(m)) { revealSide(m, btn); return; }
         var duel = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
         if (!duel || m.status === 'final') return;
         if (!duelReady(S.duelResult(duel, m.rules), duel)) { toast('Duell ist noch nicht vollständig erfasst.', 'error'); return; }
@@ -2223,19 +2553,13 @@
         break;
       case 'discard':
         var dd = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
-        if (!dd || !dd.shown) return;
+        if (!dd) return;
+        // Oberliga: das ganze Duell, Landesliga: nur die eine Übung.
+        var dSides = isClassic(m) ? [btn.getAttribute('data-side')] : ['home', 'guest'];
+        var dShown = function (k) { return isClassic(m) ? S.revOf(dd, k).shown : dd.shown && dd.shown[k]; };
+        if (!dShown(dSides[0])) return;
         if (!confirm('Änderung verwerfen und den angezeigten Stand wiederherstellen?')) return;
-        ['home', 'guest'].forEach(function (k) {
-          S.SHOWN_FIELDS.forEach(function (f) { dd[k][f] = dd.shown[k][f] === undefined ? null : dd.shown[k][f]; });
-          dd[k].nd = dd[k].nd || 0;
-          dd[k].bonus = !!dd[k].bonus;
-          dd[k].zero = !!dd[k].zero;
-          dd[k].dns = !!dd[k].dns;
-          var tm = team(k === 'home' ? m.homeTeamId : m.guestTeamId);
-          var g = tm && tm.gymnasts.filter(function (x) { return x.id === dd[k].gymnastId; })[0];
-          dd[k].number = g ? g.number : dd.shown[k].number;
-          dd[k].name = g ? g.name : dd.shown[k].name;
-        });
+        dSides.forEach(function (k) { restoreShownSide(m, dd, k, dShown(k)); });
         save('matches', m).then(function () { rerenderPanel(m); toast('Änderung verworfen'); });
         break;
       case 'fullscreen':

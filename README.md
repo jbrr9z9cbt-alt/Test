@@ -1,16 +1,31 @@
 # WTB-Liga – Wettkampf-App Gerätturnen männlich
 
-Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätturnen männlich
-mit einem **Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL)**.
+Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätturnen männlich –
+**Oberliga** mit einem Scoresystem nach dem Vorbild der Deutschen Turnliga (DTL),
+**Landesliga** mit dem klassischen Modell (die drei besten Wertungen je Gerät zählen).
 
 ## Seiten
 
-Kopfzeile: Wettkämpfe · Mannschaften · Regeln · Datensicherung · Anleitung (Kurzanleitung zur Bedienung).
+Kopfzeile je Liga: Wettkämpfe · Mannschaften · Regeln · Datensicherung · Anleitung (Kurzanleitung zur Bedienung).
+Adressen: `#/oberliga/…` bzw. `#/landesliga/…`; ein Wettkampf (`#/match/<id>`) gehört fest zu seiner Liga.
 
 ## Startseite
 
-Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktionen) oder **Landesliga**
-(Bereich folgt später).
+Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen denselben Kern
+(Eingabe, Timer, Anzeigetafel, Protokoll, Datensicherung); nur Wertungsmodell und Darstellung unterscheiden sich.
+
+## Landesliga (klassisches Modell)
+
+- Je Gerät bis zu 4 Turner pro Mannschaft, **abwechselnd** (A1, B1, A2, B2 …); die beginnende Mannschaft
+  wird ausgelost und wechselt an jedem Gerät.
+- Eingabe: links die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen, mit Startposition 1–8.
+- Jede Übung wird **einzeln freigegeben** und auf der Tafel gezeigt (Endnote 5 s groß in Mannschaftsfarbe).
+- Je Mannschaft und Gerät zählen die **3 höchsten Wertungen**; die niedrigste ist die **Streichwertung**
+  (bei Gleichstand die später geturnte) und wird in Eingabe, Tafel und Protokoll durchgestrichen gekennzeichnet.
+- Gerätepunkte 2/1/0 nach Gerätesumme, Sieger nach Gesamtpunktzahl (2/1/0 Punkte).
+- Topscorer: die drei Turner mit der höchsten Summe ihrer geturnten Wertungen.
+- Mannschaften: TSV Kierspe 2, TuS Leopoldshöhe 2, TV Jahn Plettenberg, SG Wünnenberg/Elsen,
+  TuS Stockum, SG Coesfeld, SG Langenei-Kickenbach/Gleidorf (Turner noch offen).
 
 ## Funktionen (Oberliga)
 
@@ -83,7 +98,8 @@ Beim Öffnen wählt man die Liga: **Oberliga** (alle unten beschriebenen Funktio
 
 ## Mannschaften festlegen (nur Betreiber)
 
-In `js/config.js` stehen der Liganame (`league`) und die 7 Mannschaften mit `id` und `name`.
+In `js/config.js` stehen je Liga (`leagues`) Schlüssel, Name, Wertungsmodell (`score` bzw. `classic`),
+`rosterVersion` und die Mannschaften mit `id`, `name` und vorgegebenen Turnern.
 Die Namen dürfen dort geändert werden; die `id` bitte **nie** ändern, sonst verlieren
 bereits erfasste Wettkämpfe und Turnernamen die Zuordnung. Nach einer Änderung neu
 veröffentlichen (Push auf `main`) – die installierten Apps laden das Update beim nächsten Start mit Internet.
@@ -112,16 +128,17 @@ Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ zusam
 - **Dauerhafter Speicher**: die App fordert beim Browser an, dass die Daten nicht automatisch gelöscht werden.
 - **Automatische Sicherungspunkte**: die letzten 30 Stände werden aufbewahrt und lassen sich wiederherstellen.
   Vor Import, Wiederherstellung und Löschen wird immer zuerst gesichert.
-- **Export/Import** als JSON-Datei, wahlweise
-  - **Gesamtsicherung** (`wtb-oberliga_GESAMTSICHERUNG_<Datum>_<Uhrzeit>.json`): alle Mannschaften,
-    Turnernamen und Wettkämpfe; beim Import werden alle Daten ersetzt.
-  - **Einzelner Wettkampf** (`wtb-oberliga_EINZELWETTKAMPF_<Datum>_<Heim>_<Gast>.json`): nur dieser
+- **Export/Import** als JSON-Datei, **getrennt je Liga** (Dateinamen beginnen mit `wtb-oberliga_` bzw. `wtb-landesliga_`), wahlweise
+  - **Gesamtsicherung** (`wtb-<liga>_GESAMTSICHERUNG_<Datum>_<Uhrzeit>.json`): alle Mannschaften,
+    Turnernamen und Wettkämpfe der Liga; beim Import werden nur die Daten dieser Liga ersetzt.
+    Eine Datei der anderen Liga wird abgelehnt.
+  - **Einzelner Wettkampf** (`wtb-<liga>_EINZELWETTKAMPF_<Datum>_<Heim>_<Gast>.json`): nur dieser
     Wettkampf; beim Import wird er hinzugefügt bzw. ersetzt nur denselben Wettkampf, alles andere bleibt.
 
   Nach dem Abschließen eines Wettkampfs fragt die App „Nur diesen Wettkampf“ / „Alles sichern“ / „Nein“ –
   die Daten bleiben auch ohne diese Sicherung gespeichert. Ältere, verschlüsselt exportierte Dateien lassen sich weiterhin
   importieren (die App fragt dann nach dem Passwort).
-- **Alle Daten löschen** entfernt alle Wettkämpfe und eigene Änderungen an den Turnernamen;
+- **Alle Daten löschen** (je Liga) entfernt alle Wettkämpfe und eigene Änderungen an den Turnernamen dieser Liga;
   die Mannschaften und die vorgegebenen Turner aus `js/config.js` bleiben sofort erhalten.
 - **Offline-fähig (PWA)**: ein Service Worker hält die App im Cache. Nach dem ersten Aufruf
   funktioniert sie ohne Internet und lässt sich als App installieren („Zum Startbildschirm hinzufügen“).
