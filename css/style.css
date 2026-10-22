@@ -229,7 +229,7 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .board-timers { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: -.5rem 0 1.25rem; }
 /* Feste Plätze: inaktive Timer sind unsichtbar, nehmen aber ihren Platz ein */
 .bt { display: flex; align-items: baseline; justify-content: center; gap: .8rem; padding: .35rem 1.2rem; border-radius: 12px;
-  font-size: clamp(1.1rem, 2.2vw, 1.8rem); background: #262626; white-space: nowrap; overflow: hidden; }
+  font-size: clamp(1.4rem, 2.7vw, 2.3rem); background: #262626; white-space: nowrap; overflow: hidden; }
 .bt.off { visibility: hidden; }
 .bt strong { font-size: 1.6em; font-variant-numeric: tabular-nums; }
 .bt em { font-style: normal; font-weight: 800; }
@@ -264,20 +264,23 @@ body.board-mode main { max-width: none; padding: 0; }
 .board-bar { display: flex; justify-content: space-between; opacity: .4; }
 .board-bar:hover { opacity: 1; }
 .board-bar .btn { color: #fff; }
-.board-title { text-align: center; font-size: 1.4rem; color: #a3a3a3; }
+.board-title { text-align: center; font-size: 1.8rem; color: #a3a3a3; }
 .board-score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 2rem; margin: 1rem 0; }
 .board-team { font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 800; }
 .board-team:first-child { text-align: right; color: #fafafa; }
 .board-team:last-child { color: #d4d4d4; }
 .board-big { font-size: clamp(4rem, 14vw, 11rem); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
 .board-big span { color: #525252; margin: 0 .1em; }
-.board-sub { text-align: center; font-size: 1.3rem; color: #d4d4d4; margin-bottom: 1.5rem; }
-.board-grid { display: grid; grid-template-columns: minmax(260px, 1fr) 2fr; gap: 2rem; }
-.board-table, .board-duels { width: 100%; border-collapse: collapse; font-size: clamp(1rem, 2vw, 1.6rem); }
+.board-sub { text-align: center; font-size: 1.7rem; color: #d4d4d4; margin-bottom: 1rem; }
+.board-grid { display: grid; grid-template-columns: minmax(0, .72fr) minmax(0, 2.28fr); gap: 1.5rem; }
+.board-table, .board-duels { width: 100%; border-collapse: collapse; }
+.board-table { font-size: clamp(1.1rem, 2.1vw, 1.8rem); }
+.board-duels { font-size: clamp(1.2rem, 2.4vw, 2.1rem); }
 .board-table td, .board-table th, .board-duels td { padding: .45rem .6rem; border-bottom: 1px solid #2e2e2e; }
+.board-table td, .board-table th { padding: .5rem .35rem; }
 .board-table th { color: #737373; font-weight: 600; text-align: left; }
 .board-table tr.current { background: #2e2e2e; }
-.board-detail h3 { margin-top: 0; font-size: 1.6rem; color: #e5e5e5; }
+.board-detail h3 { margin-top: 0; font-size: 2rem; color: #e5e5e5; }
 .board-duels .bn { color: #d4d4d4; }
 .board-duels .bn.win { color: var(--team, #fff); font-weight: 800; }
 .board-duels .right { text-align: right; }
@@ -306,11 +309,11 @@ body.board-mode main { max-width: none; padding: 0; }
 body.board-mode .update-banner { display: none; }
 
 /* Aktuelles Duell auf der Anzeigetafel */
-.cur-duel { background: #262626; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+.cur-duel { background: #262626; border-radius: 12px; padding: 1.2rem 1.6rem; margin-bottom: 1.25rem; }
 .cur-duel.empty { color: #737373; text-align: center; font-size: 1.2rem; }
-.cd-head { color: #a3a3a3; font-size: 1.1rem; margin-bottom: .5rem; }
+.cd-head { color: #a3a3a3; font-size: 1.5rem; margin-bottom: .5rem; }
 .cd-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem; align-items: stretch; }
-.cd-side { border-top: 5px solid var(--team); padding-top: .5rem; font-size: clamp(1rem, 1.8vw, 1.5rem); display: flex; flex-direction: column; }
+.cd-side { border-top: 5px solid var(--team); padding-top: .5rem; font-size: clamp(1.4rem, 2.7vw, 2.4rem); display: flex; flex-direction: column; }
 .cd-pts { align-self: center; }
 .cd-name { font-weight: 800; color: var(--team); margin-bottom: .35rem; }
 .cd-row, .cd-final { display: flex; justify-content: space-between; gap: 1rem; font-variant-numeric: tabular-nums; }
@@ -345,7 +348,7 @@ body.board-mode .update-banner { display: none; }
 select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,0,0,.2); }
 .cd-final { margin-top: auto; padding-top: .35rem; border-top: 1px solid #404040; }
 .cd-row:last-of-type { margin-bottom: .35rem; }
-.cd-final strong { font-size: 1.5em; }
+.cd-final strong { font-size: 1.6em; }
 .cd-final.win strong { color: var(--team); }
 .cd-dns { color: #a3a3a3; font-style: italic; }
 .cd-pts { font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; font-variant-numeric: tabular-nums; }
@@ -563,9 +566,8 @@ body.board-light .standby img { opacity: .8; }
 
 /* ---------- Landesliga: Anzeigetafel ---------- */
 .board-big.sums { font-size: clamp(3rem, 8vw, 7rem); }
-.cd-pts.sums { font-size: clamp(1.4rem, 3vw, 2.6rem); text-align: center; white-space: nowrap; }
-.cd-cap { font-size: .45em; font-weight: 600; color: #a3a3a3; text-transform: uppercase; letter-spacing: .05em; }
-body.board-light .cd-cap { color: #525252; }
+.cd-pts.single { font-size: clamp(4rem, 9vw, 8rem); text-align: center; }
+.cd-pts.none { min-width: 2rem; }
 .cd-side.ghost { visibility: hidden; }
 .struck-val { color: #a3a3a3; white-space: nowrap; }
 .struck-val small { display: block; font-size: .5em; text-transform: uppercase; letter-spacing: .05em; }

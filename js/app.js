@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '33';
+  var APP_BUILD = '34';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1322,9 +1322,15 @@
     return duelSideHtml(m, S.emptySide(), sideKey, false).replace('class="cd-side"', 'class="cd-side ghost"');
   }
 
-  /** Mitte der Landesliga-Karte: aktuelle Gerätesummen beider Mannschaften. */
-  function classicCardMiddle(m, ar) {
-    return '<div class="cd-pts sums"><div class="cd-cap">Gerätesumme</div>' + totalPair(m, ar, true) + '</div>';
+  /** Mitte der Landesliga-Karte bleibt leer (die Summen stehen in Liste und Tabelle). */
+  function classicCardMiddle() {
+    return '<div class="cd-pts none"></div>';
+  }
+
+  /** Oberliga-Karte: Scorepunkte des Duells als einzelne Zahl in der Farbe des Siegers (Unentschieden: graue 0). */
+  function duelPointsBig(m, res) {
+    if (res.winner === 'draw') return '<span class="sp-num" style="color:' + (boardLight(m) ? '#737373' : '#a3a3a3') + '">0</span>';
+    return pts(m, res.winner, res.winner === 'home' ? res.homePoints : res.guestPoints, true);
   }
 
   /**
@@ -1335,16 +1341,15 @@
     var latest = latestPerformed(m);
     if (!latest.appKey) {
       return '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' +
-        duelSideHtml(m, S.emptySide(), 'home', false) + classicCardMiddle(m, { homeSum: 0, guestSum: 0 }) +
+        duelSideHtml(m, S.emptySide(), 'home', false) + classicCardMiddle() +
         duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
     }
     var k = latest.side;
     var s = view.apparatus[latest.appKey].duels[latest.idx][k];
-    var ar = r.apparatus[latest.appKey];
-    var struck = ar[k].struck.indexOf(latest.idx) >= 0;
+    var struck = r.apparatus[latest.appKey][k].struck.indexOf(latest.idx) >= 0;
     var card = duelSideHtml(m, s, k, true).replace('</div><div class="cd-row">', (struck ? ' <span class="cd-tag">Streichwertung</span>' : '') + '</div><div class="cd-row">');
     return '<div class="cur-duel"><div class="cd-head">' + apparatusName(latest.appKey) + ' · ' + S.classicPosition(m, latest.appKey, latest.idx, k) + '. Übung</div>' +
-      '<div class="cd-grid">' + (k === 'home' ? card : ghostSideHtml(m, 'home')) + classicCardMiddle(m, ar) +
+      '<div class="cd-grid">' + (k === 'home' ? card : ghostSideHtml(m, 'home')) + classicCardMiddle() +
       (k === 'guest' ? card : ghostSideHtml(m, 'guest')) + '</div></div>';
   }
 
@@ -1376,14 +1381,14 @@
     if (!latest.appKey) {
       // Gleiche Größe wie eine gefüllte Karte: Platzhalter unsichtbar, Hinweis darüber.
       return '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' +
-        duelSideHtml(m, S.emptySide(), 'home', false) + '<div class="cd-pts">' + ptsPair(m, 0, 0, true) + '</div>' +
+        duelSideHtml(m, S.emptySide(), 'home', false) + '<div class="cd-pts single">' + pts(m, 'home', 0, true) + '</div>' +
         duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
     }
     var duel = view.apparatus[latest.appKey].duels[latest.idx];
     var res = S.duelResult(duel, m.rules);
     return '<div class="cur-duel"><div class="cd-head">' + apparatusName(latest.appKey) + ' · Duell ' + (latest.idx + 1) + '</div>' +
       '<div class="cd-grid">' + duelSideHtml(m, duel.home, 'home', res.winner === 'home') +
-      '<div class="cd-pts">' + ptsPair(m, res.homePoints, res.guestPoints, true) + '</div>' +
+      '<div class="cd-pts single">' + duelPointsBig(m, res) + '</div>' +
       duelSideHtml(m, duel.guest, 'guest', res.winner === 'guest') + '</div></div>';
   }
 
@@ -1453,17 +1458,29 @@
       }).join('') + '</table>' : '<div class="so-empty">' + (classic ? 'Noch keine Wertungen' : 'Noch keine Scorepunkte') + '</div>') + '</div></div>';
   }
 
-  /** Anzeigetafel ohne Scrollbalken ins Fenster einpassen (misst die tatsächlich dargestellte Größe). */
+  /**
+   * Anzeigetafel ohne Scrollbalken ins Fenster einpassen (misst die tatsächlich dargestellte Größe).
+   * Bleibt Platz, wird sie vergrößert, damit alle Schriften so groß wie möglich sind.
+   */
   function fitBoard() {
     var b = document.querySelector('.board');
     if (!b || b.classList.contains('board-standby')) return;
     b.style.zoom = '';
     var z = 1;
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 10; i++) {
       var rect = b.getBoundingClientRect();
       var over = Math.max(rect.height / window.innerHeight, b.scrollWidth / b.clientWidth);
-      if (over <= 1.001) break;
-      z = z / over * 0.99;
+      if (over <= 1.001 && over >= 0.97) break;
+      if (over < 0.97 && z >= 2) break;
+      z = Math.min(2, z / over * 0.99);
+      b.style.zoom = z;
+    }
+    // Sicherheitshalber: nie größer als das Fenster
+    for (var j = 0; j < 4; j++) {
+      var r2 = b.getBoundingClientRect();
+      var o2 = Math.max(r2.height / window.innerHeight, b.scrollWidth / b.clientWidth);
+      if (o2 <= 1.001) break;
+      z = z / o2 * 0.99;
       b.style.zoom = z;
     }
   }
@@ -1499,10 +1516,9 @@
     var v = S.sideFinal(s, m.rules);
     if (v === null) return;
     if (rev.revealKind === 'correction') {
-      var r = S.matchResult(view);
       var card = duelSideHtml(m, s, k, true, rev.prevShown);
       showOverlay('<div class="cd-head">' + apparatusName(latest.appKey) + ' · ' + S.classicPosition(m, latest.appKey, latest.idx, k) + '. Übung</div>' +
-        '<div class="cd-grid">' + (k === 'home' ? card : ghostSideHtml(m, 'home')) + classicCardMiddle(m, r.apparatus[latest.appKey]) +
+        '<div class="cd-grid">' + (k === 'home' ? card : ghostSideHtml(m, 'home')) + classicCardMiddle() +
         (k === 'guest' ? card : ghostSideHtml(m, 'guest')) + '</div>');
       return;
     }
