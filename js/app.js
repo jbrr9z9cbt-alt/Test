@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '43';
+  var APP_BUILD = '44';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -634,7 +634,7 @@
       return '<label><span>' + label + ' <span class="req" aria-hidden="true">*</span></span><input type="text" name="' + name + '" value="' + esc(value || '') + '" autocomplete="off" required></label>';
     }
     function sameCheck(name, who, on) {
-      return '<label class="check same-judge"><input type="checkbox" name="' + name + '"' + (on ? ' checked' : '') + '> gleiche Person wie ' + who + '</label>';
+      return '<label class="check same-judge"><input type="checkbox" name="' + name + '"' + (on ? ' checked' : '') + '> ist gleich ' + who + '</label>';
     }
     function teamCol(side, label) {
       var teamId = m ? (side === 'home' ? m.homeTeamId : m.guestTeamId) : null;
@@ -719,7 +719,7 @@
     syncSameJudges(form);
   }
 
-  /** „gleiche Person wie D1/D2“: E2 (Heim) bzw. E3 (Gast) übernimmt den Namen und ist gesperrt. */
+  /** „ist gleich D1/D2“: E2 (Heim) bzw. E3 (Gast) übernimmt den Namen und ist gesperrt. */
   function syncSameJudges(form) {
     [['sameE2', 'judgeE2Home', 'judgeD1'], ['sameE3', 'judgeE3Guest', 'judgeD2']].forEach(function (x) {
       var on = !form.neutralE2.checked && form[x[0]].checked;
@@ -2224,7 +2224,7 @@
         'Vorab lassen sich unter <b>Mannschaften</b> Turnernamen korrigieren und freie Startnummern belegen. Jede Änderung wird sofort gespeichert.',
         'Unter <b>Wettkämpfe</b> auf „Neuer Wettkampf“ tippen, Datum, Heim- und Gastmannschaft sowie die Farben wählen.',
         'Bei <b>Anwesende Turner</b> sind zunächst alle Turner abgehakt; fehlende Turner abwählen. Namen lassen sich dort auch korrigieren oder ergänzen.',
-        'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *). Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen.',
+        'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *). Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen; ist es dieselbe Person wie D1 bzw. D2, genügt das Häkchen „ist gleich“.',
         'Die per Los bestimmte <b>beginnende Mannschaft</b> wählen. Die Startreihenfolge an allen Geräten ergibt sich daraus automatisch.',
         'Alle Angaben lassen sich später über <b>Wettkampf Setup</b> ändern.'
       ]) +
