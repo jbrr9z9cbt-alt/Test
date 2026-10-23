@@ -651,3 +651,12 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 .pw-clock.pw-end { font-size: clamp(4rem, 10vw, 9rem); padding: .4em 0; animation: flash-blink 1s ease-in-out infinite; }
 body.board-light .pause-overlay { background: rgba(244,244,244,.55); }
 body.board-light .pause-win { background: #fff; color: #171717; }
+
+/* Anzeigetafel mit Hell/Dunkel als Schalter im selben Rahmen (Felder in normaler Knopfgröße) */
+.board-switch { display: inline-flex; align-items: center; gap: .35rem; padding: 2px 2px 2px 0; border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; }
+.board-switch .bs-main { border: 0; font-weight: 600; }
+.bs-theme { display: inline-flex; gap: 2px; padding: 2px; border-radius: 6px; background: #ececec; }
+.bs-theme button { font: inherit; font-size: .92rem; padding: .5rem 1rem; border: 0; border-radius: 5px; background: transparent; color: #404040; cursor: pointer; }
+.bs-theme button:hover { background: #dcdcdc; }
+.bs-theme button.on { background: #171717; color: #fff; }
+.bs-theme button:focus-visible, .board-switch .bs-main:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }

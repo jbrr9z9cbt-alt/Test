@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '45';
+  var APP_BUILD = '46';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -848,10 +848,11 @@
       '<div class="actions wrap">' +
       // Alles, was die Anzeigetafel betrifft, als eine Gruppe
       '<div class="board-group" role="group" aria-label="Anzeigetafel">' +
-      '<button class="btn" data-action="open-board">Anzeigetafel</button>' +
-      '<span class="seg" role="group" aria-label="Design der Anzeigetafel">' +
-      '<button class="btn toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
-      '<button class="btn toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span>' +
+      // „Anzeigetafel“ und die Wahl Hell/Dunkel in einem gemeinsamen Rahmen
+      '<span class="board-switch"><button class="btn bs-main" data-action="open-board">Anzeigetafel</button>' +
+      '<span class="bs-theme" role="group" aria-label="Design der Anzeigetafel">' +
+      '<button class="toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
+      '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span></span>' +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
       scorersLabel(m.display && m.display.scorers) + '</button>' + pauseControls() + '</div>' +
       // Knöpfe zum Wettkampf selbst als zweite Gruppe; „Löschen“ steht für sich.
