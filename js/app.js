@@ -7,13 +7,14 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '40';
+  var APP_BUILD = '41';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
   var WARMUP_MS = 4 * 60 * 1000;   // Einturnzeit je Gerät
+  var PAUSE_MINUTES = [10, 15, 20]; // Pause-Timer, groß als Fenster auf der Tafel
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
   // Ligen aus js/config.js; die aktuelle Liga ergibt sich aus der Adresse (#/oberliga/…, #/landesliga/…).
   var LEAGUES = CFG.leagues;
@@ -832,7 +833,7 @@
       '<button class="btn toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
       '<button class="btn toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span>' +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
-      scorersLabel(m.display && m.display.scorers) + '</button></div>' +
+      scorersLabel(m.display && m.display.scorers) + '</button>' + pauseControls(m) + '</div>' +
       // Knöpfe zum Wettkampf selbst als zweite Gruppe; „Löschen“ steht für sich.
       '<div class="board-group" role="group" aria-label="Wettkampf">' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
@@ -850,6 +851,19 @@
   }
 
   /** Knopfbeschriftung nennt, was beim Drücken passiert. */
+  /** Pause: Dauer wählen (10/15/20 Min.) und starten; während der Pause zeigt der Knopf die Restzeit. */
+  function pauseControls(m) {
+    var min = pauseMinutes(m);
+    return '<span class="pause-ctl"><span class="seg" role="group" aria-label="Dauer der Pause">' + PAUSE_MINUTES.map(function (n) {
+      return '<button class="btn toggle' + (n === min ? ' on' : '') + '" data-action="pause-min" data-min="' + n + '">' + n + ' Min.</button>';
+    }).join('') + '</span><button class="btn timer-btn" data-action="pause-timer">Pause starten</button></span>';
+  }
+
+  function pauseMinutes(m) {
+    var n = m.display && m.display.pauseMin;
+    return PAUSE_MINUTES.indexOf(n) >= 0 ? n : 15;
+  }
+
   function scorersLabel(on) { return on ? 'Wettkampfergebnis ausblenden' : 'Wettkampfergebnis einblenden'; }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
@@ -1459,7 +1473,16 @@
       '<div class="bt fall off" data-slot="fall"><span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em></div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th><th class="num">GP</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
-      '</div>' + boardScorers(m, view);
+      '</div>' + boardScorers(m, view) + '<div id="pause-box">' + pauseBoxHtml(m) + '</div>';
+  }
+
+  /** Pause-Fenster über der Tafel: Restzeit groß, nach Ablauf kurz „Zeit abgelaufen“. */
+  function pauseBoxHtml(m) {
+    var p = pauseState(m);
+    var end = !p && m.timers && m.timers.pause && timerEnded(m.timers.pause, m.timers.pause.ms, PAUSE_END_MS);
+    if (!p && !end) return '';
+    return '<div class="pause-overlay"><div class="pause-win"><div class="pw-title">Pause</div>' +
+      (p ? '<div class="pw-clock">' + clock(p.remaining) + '</div>' : '<div class="pw-clock pw-end">Zeit abgelaufen</div>') + '</div></div>';
   }
 
   /**
@@ -1641,7 +1664,15 @@
     return { t: t, remaining: WARMUP_MS - el };
   }
 
-  var WARMUP_END_MS = 10000, FALL_END_MS = 5000;
+  function pauseState(m) {
+    var t = m && m.timers && m.timers.pause;
+    if (!t) return null;
+    var el = Date.now() - t.start;
+    if (el < 0 || el >= t.ms) return null;
+    return { t: t, remaining: t.ms - el };
+  }
+
+  var WARMUP_END_MS = 10000, FALL_END_MS = 5000, PAUSE_END_MS = 5000;
 
   /** Kurz nach regulärem Ablauf (nicht nach manuellem Stopp) zeigt die Tafel einen Hinweis. */
   function timerEnded(t, duration, showMs) {
@@ -1682,6 +1713,20 @@
       var wl = won ? '⏱ Einturnzeit ' + clock(warm.remaining) + ' – Stopp' : 'Einturnzeit (4:00) starten';
       if (wb.textContent !== wl) wb.textContent = wl;
       wb.classList.toggle('t-running', won);
+    }
+    var pause = pauseState(m);
+    var pb = $app.querySelector('[data-action="pause-timer"]');
+    if (pb) {
+      var pl = pause ? 'Pause ' + clock(pause.remaining) + ' – beenden' : 'Pause starten';
+      if (pb.textContent !== pl) pb.textContent = pl;
+      pb.classList.toggle('t-running', !!pause);
+      var pseg = pb.parentNode.querySelector('.seg');
+      if (pseg) pseg.hidden = !!pause;
+    }
+    var pbox = document.getElementById('pause-box');
+    if (pbox) {
+      var ph = pauseBoxHtml(m);
+      if (pbox.innerHTML !== ph) pbox.innerHTML = ph;
     }
     var bt = document.getElementById('board-timers');
     if (bt && bt.querySelector('[data-slot]')) {
@@ -1834,7 +1879,8 @@
       if (!tm) return;
       if (tm.warmup && now - tm.warmup.start < WARMUP_MS + 6000) active = true;
       if (tm.fall && now - tm.fall.start < 2 * FALL_PHASE_MS + 3000) active = true;
-      [['warmup', WARMUP_MS, 'bell'], ['fall', FALL_PHASE_MS, 'beep'], ['fall', 2 * FALL_PHASE_MS, 'error']].forEach(function (c) {
+      if (tm.pause && now - tm.pause.start < tm.pause.ms + 3000) active = true;
+      [['warmup', WARMUP_MS, 'bell'], ['fall', FALL_PHASE_MS, 'beep'], ['fall', 2 * FALL_PHASE_MS, 'error'], ['pause', tm.pause && tm.pause.ms, 'error']].forEach(function (c) {
         var t = tm[c[0]];
         if (!t) return;
         var el = now - t.start;
@@ -1926,7 +1972,8 @@
         var struck = ar[k].struck.indexOf(i) >= 0;
         var label = esc(gymnastLabel(d[k].number, d[k].name) || '–');
         var pos = S.classicPosition(m, a.key, i, k) + '.';
-        return '<td class="pn' + (right ? ' right' : '') + '">' + (right ? label + ' ' + pos : pos + ' ' + label) + (struck ? ' <em class="ps-struck">(Streichw.)</em>' : '') + '</td>';
+        return '<td class="pn' + (right ? ' right' : '') + '">' + (right ? (struck ? '<em class="ps-struck">(Streichw.)</em> ' : '') + label + ' ' + pos
+          : pos + ' ' + label + (struck ? ' <em class="ps-struck">(Streichw.)</em>' : '')) + '</td>';
       }
       return '<div class="print-app"><div class="pa-head"><strong>' + appIcon(a.key, 'pa-ico') + a.name + '</strong> <span>Gerätesumme ' + totalPair(m, ar) +
         (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
@@ -2186,7 +2233,8 @@
 
       sec('6. Anzeigetafel', [
         '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
-        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand).',
+        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet.',
+        '<b>Pause</b>: 10, 15 oder 20 Minuten wählen und „Pause starten“. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         'Nach jeder Freigabe erscheinen 5 Sekunden groß auf der Tafel die Scorepunkte (Oberliga) bzw. die Endnote der Übung (Landesliga), Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.',
         'Soll die Anzeigetafel genutzt werden, empfiehlt sich ein Windows- oder Mac-Rechner mit <b>Chrome oder Edge</b>, im Browser oder als installierte App.'
       ]) +
@@ -2570,11 +2618,26 @@
         // Öffnet das Tafel-Fenster (bzw. holt es nach vorn); ausgeschaltet wird die Tafel durch Schließen des Fensters.
         if (state.boardWin && !state.boardWin.closed) { state.boardWin.focus(); break; }
         state.boardWin = window.open(location.href.split('#')[0] + '#/match/' + m.id + '/board', 'anzeigetafel-' + m.id);
-        if (!boardOn(m)) {
+        // Die Tafel öffnet immer ohne das Fenster „Wettkampfergebnis“.
+        if (!boardOn(m) || (m.display && m.display.scorers)) {
           m.display = m.display || {};
           m.display.board = true;
+          m.display.scorers = false;
           save('matches', m);
+          refreshDisplayButtons(m);
         }
+        break;
+      case 'pause-min':
+        m.display = m.display || {};
+        m.display.pauseMin = parseInt(btn.getAttribute('data-min'), 10);
+        save('matches', m);
+        btn.parentNode.querySelectorAll('[data-action="pause-min"]').forEach(function (b) { b.classList.toggle('on', b === btn); });
+        break;
+      case 'pause-timer':
+        m.timers = m.timers || {};
+        m.timers.pause = pauseState(m) ? null : { start: Date.now(), ms: pauseMinutes(m) * 60000 };
+        save('matches', m).then(tickTimers);
+        tickTimers();
         break;
       case 'theme':
         m.display = m.display || {};
