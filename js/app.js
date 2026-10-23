@@ -633,6 +633,9 @@
     function input(name, label, value) {
       return '<label><span>' + label + ' <span class="req" aria-hidden="true">*</span></span><input type="text" name="' + name + '" value="' + esc(value || '') + '" autocomplete="off" required></label>';
     }
+    function sameCheck(name, who, on) {
+      return '<label class="check same-judge"><input type="checkbox" name="' + name + '"' + (on ? ' checked' : '') + '> gleiche Person wie ' + who + '</label>';
+    }
     function teamCol(side, label) {
       var teamId = m ? (side === 'home' ? m.homeTeamId : m.guestTeamId) : null;
       return '<div class="team-col"><label>' + label + '<select name="' + side + '" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(teamId, leagueKey) + '</select></label>' +
@@ -648,13 +651,15 @@
       '<label class="check"><input type="radio" name="startTeam" value="guest"' + (start === 'guest' ? ' checked' : '') + '> Gast</label></fieldset></div>' +
       '<div class="row2 teams-row">' + teamCol('home', 'Heimmannschaft') + teamCol('guest', 'Gastmannschaft') + '</div>' +
       '<fieldset class="judges"><legend>Kampfgericht</legend>' +
+      '<div class="row2">' + input('judgeD1', 'D1 – Vereinskampfrichter Heim', j.d1) + input('judgeD2', 'D2 – Vereinskampfrichter Gast', j.d2) + '</div>' +
       input('judgeE1', 'E1 – Oberkampfrichter', j.e1) +
       '<label class="check"><input type="checkbox" name="neutralE2"' + (neutral ? ' checked' : '') + (hasScores ? ' disabled' : '') + '> Neutraler Kampfrichter E2' +
       (hasScores ? ' <span class="muted small">(nach Beginn der Wertung nicht mehr änderbar)</span>' : '') + '</label>' +
       '<div class="judge-neutral">' + input('judgeE2', 'E2 – neutral', neutral ? j.e2 : '') + '</div>' +
-      '<div class="judge-split row2">' + input('judgeE2Home', 'E2 – Heim', neutral ? '' : j.e2) + input('judgeE3Guest', 'E3 – Gast', j.e3) + '</div>' +
+      // Ohne neutralen E2: E2 (Heim) bzw. E3 (Gast) kann dieselbe Person wie der D-Kampfrichter des Vereins sein.
+      '<div class="judge-split row2"><div>' + input('judgeE2Home', 'E2 – Heim', neutral ? '' : j.e2) + sameCheck('sameE2', 'D1 (Heim)', !neutral && !!j.e2 && j.e2 === j.d1) + '</div>' +
+      '<div>' + input('judgeE3Guest', 'E3 – Gast', j.e3) + sameCheck('sameE3', 'D2 (Gast)', !neutral && !!j.e3 && j.e3 === j.d2) + '</div></div>' +
       '<p class="muted small judge-hint">' + (neutral ? 'E-Note: 10 − Mittelwert der Abzüge von E1 und E2.' : 'E-Note: höchster und niedrigster Abzug werden gestrichen, der mittlere zählt.') + '</p>' +
-      '<div class="row2">' + input('judgeD1', 'D1 – Vereinskampfrichter Heim', j.d1) + input('judgeD2', 'D2 – Vereinskampfrichter Gast', j.d2) + '</div>' +
       '</fieldset>' +
 
       '<p class="muted small req-note"><span class="req">*</span> Pflichtfeld</p>' +
@@ -711,6 +716,18 @@
     form.judgeE3Guest.required = !neutral;
     form.querySelector('.judge-hint').textContent = neutral ? 'E-Note: 10 − Mittelwert der Abzüge von E1 und E2.'
       : 'E-Note: höchster und niedrigster Abzug werden gestrichen, der mittlere zählt.';
+    syncSameJudges(form);
+  }
+
+  /** „gleiche Person wie D1/D2“: E2 (Heim) bzw. E3 (Gast) übernimmt den Namen und ist gesperrt. */
+  function syncSameJudges(form) {
+    [['sameE2', 'judgeE2Home', 'judgeD1'], ['sameE3', 'judgeE3Guest', 'judgeD2']].forEach(function (x) {
+      var on = !form.neutralE2.checked && form[x[0]].checked;
+      var f = form[x[1]];
+      f.readOnly = on;
+      f.classList.toggle('locked', on);
+      if (on) f.value = form[x[2]].value;
+    });
   }
 
   function colorPicker(name, label, selected) {
@@ -949,7 +966,7 @@
     var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"';
     return '<div class="side ' + sideKey + (classic ? '' : position === 1 ? ' first' : ' second') + (side.dns ? ' dns' : '') + (struck ? ' struck' : '') +
       '" data-key="' + key + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
-      (!classic && position === 1 ? '<span class="lead-tag">vorlegend</span>' : '') +
+      (!classic && position === 1 ? '<span class="lead-tag">legt vor</span>' : '') +
       '<div class="side-head"><span class="order-no" title="' + (classic ? 'Startposition am Gerät' : 'Startreihenfolge im Duell') + '">' + position + '.</span>' +
       '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked || side.dns) + '</div>' +
@@ -2215,7 +2232,7 @@
       sec('2. Wertungen erfassen', [
         classic
           ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
-          : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „Vorlegend“ markiert.',
+          : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „legt vor“ markiert.',
         'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
           ' Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
@@ -2412,11 +2429,18 @@
 
   // ---------- Ereignisse ----------
 
+  // Namen von D1/D2 sofort in ein verbundenes E2-/E3-Feld übernehmen.
+  $app.addEventListener('input', function (ev) {
+    var el = ev.target;
+    if ((el.name === 'judgeD1' || el.name === 'judgeD2') && el.form && el.form.getAttribute('data-form') === 'match') syncSameJudges(el.form);
+  });
+
   $app.addEventListener('change', function (ev) {
     var el = ev.target;
     if (el.dataset && el.dataset.picking) return; // erst mit Enter übernehmen
     if (el.hasAttribute('data-field')) { handleScoreChange(el); return; }
     if (el.name === 'neutralE2' && el.form) { syncJudgeFields(el.form); return; }
+    if ((el.name === 'sameE2' || el.name === 'sameE3') && el.form) { syncSameJudges(el.form); return; }
     if (el.classList.contains('lineup-check')) { syncLineup(el.form); return; }
     if ((el.name === 'home' || el.name === 'guest') && el.form && el.form.getAttribute('data-form') === 'match') {
       el.form.querySelector('[data-lineup="' + el.name + '"]').innerHTML = lineupHtml(el.name, el.value, null);
