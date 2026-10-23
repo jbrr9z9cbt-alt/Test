@@ -83,7 +83,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
     dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
   - Knopf „Wettkampfergebnis einblenden/ausblenden“ zeigt Stand, Gerätepunkte und Topscorer als Fenster über der Tafel
     (Überschrift „Zwischenstand“, solange der Wettkampf läuft); beim Öffnen der Tafel ist es immer ausgeblendet
-  - Pause: 10, 15 oder 20 Minuten wählen und „Pause starten“ – Restzeit groß als Fenster über der Tafel,
+  - Knopf „Wettkampfpause“: im aufklappenden Menü 10, 15 oder 20 Minuten wählen, die Pause startet sofort – Restzeit groß als Fenster über der Tafel,
     am Ende Signalton und 5 Sekunden „Zeit abgelaufen“; ein Klick auf den laufenden Knopf beendet die Pause
   - passt sich automatisch ins Fenster ein (keine Scrollbalken); Timer und Detailwertungen haben feste Plätze
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.

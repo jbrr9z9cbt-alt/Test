@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '44';
+  var APP_BUILD = '45';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -853,7 +853,7 @@
       '<button class="btn toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
       '<button class="btn toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span>' +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
-      scorersLabel(m.display && m.display.scorers) + '</button>' + pauseControls(m) + '</div>' +
+      scorersLabel(m.display && m.display.scorers) + '</button>' + pauseControls() + '</div>' +
       // Knöpfe zum Wettkampf selbst als zweite Gruppe; „Löschen“ steht für sich.
       '<div class="board-group" role="group" aria-label="Wettkampf">' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
@@ -871,17 +871,17 @@
   }
 
   /** Knopfbeschriftung nennt, was beim Drücken passiert. */
-  /** Pause: Dauer wählen (10/15/20 Min.) und starten; während der Pause zeigt der Knopf die Restzeit. */
-  function pauseControls(m) {
-    var min = pauseMinutes(m);
-    return '<span class="pause-ctl"><span class="seg" role="group" aria-label="Dauer der Pause">' + PAUSE_MINUTES.map(function (n) {
-      return '<button class="btn toggle' + (n === min ? ' on' : '') + '" data-action="pause-min" data-min="' + n + '">' + n + ' Min.</button>';
-    }).join('') + '</span><button class="btn timer-btn" data-action="pause-timer">Pause starten</button></span>';
+  /** Wettkampfpause: ein Knopf; ein Klick öffnet die Auswahl der Dauer, die Wahl startet die Pause sofort. */
+  function pauseControls() {
+    return '<span class="pause-ctl"><button class="btn timer-btn" data-action="pause-timer" aria-haspopup="menu">Wettkampfpause</button>' +
+      '<div class="pause-menu" role="menu" hidden><div class="pm-head">Dauer wählen</div>' + PAUSE_MINUTES.map(function (n) {
+        return '<button class="btn" role="menuitem" data-action="pause-start" data-min="' + n + '">' + n + ' Minuten</button>';
+      }).join('') + '</div></span>';
   }
 
-  function pauseMinutes(m) {
-    var n = m.display && m.display.pauseMin;
-    return PAUSE_MINUTES.indexOf(n) >= 0 ? n : 15;
+  function closePauseMenu() {
+    var pm = $app.querySelector('.pause-menu');
+    if (pm) pm.hidden = true;
   }
 
   function scorersLabel(on) { return on ? 'Wettkampfergebnis ausblenden' : 'Wettkampfergebnis einblenden'; }
@@ -1737,11 +1737,9 @@
     var pause = pauseState(m);
     var pb = $app.querySelector('[data-action="pause-timer"]');
     if (pb) {
-      var pl = pause ? 'Pause ' + clock(pause.remaining) + ' – beenden' : 'Pause starten';
+      var pl = pause ? 'Wettkampfpause ' + clock(pause.remaining) + ' – beenden' : 'Wettkampfpause';
       if (pb.textContent !== pl) pb.textContent = pl;
       pb.classList.toggle('t-running', !!pause);
-      var pseg = pb.parentNode.querySelector('.seg');
-      if (pseg) pseg.hidden = !!pause;
     }
     var pbox = document.getElementById('pause-box');
     if (pbox) {
@@ -2257,7 +2255,7 @@
       sec('5. Anzeigetafel', [
         '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
         '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet.',
-        '<b>Pause</b>: 10, 15 oder 20 Minuten wählen und „Pause starten“. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
+        '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         (classic ? 'Nach jeder Freigabe erscheint 5 Sekunden groß auf der Tafel die Endnote der Übung' : 'Nach jeder Freigabe erscheinen 5 Sekunden groß auf der Tafel die Scorepunkte des Duells') +
           ', Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.'
       ]) +
@@ -2600,6 +2598,14 @@
     }
   });
 
+  // Auswahl der Pausendauer schließt bei Klick daneben oder mit Esc.
+  document.addEventListener('click', function (ev) {
+    if (!ev.target.closest('.pause-ctl')) closePauseMenu();
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') closePauseMenu();
+  });
+
   $app.addEventListener('click', function (ev) {
     var btn = ev.target.closest('[data-action]');
     if (!btn) return;
@@ -2681,15 +2687,22 @@
           refreshDisplayButtons(m);
         }
         break;
-      case 'pause-min':
-        m.display = m.display || {};
-        m.display.pauseMin = parseInt(btn.getAttribute('data-min'), 10);
-        save('matches', m);
-        btn.parentNode.querySelectorAll('[data-action="pause-min"]').forEach(function (b) { b.classList.toggle('on', b === btn); });
-        break;
       case 'pause-timer':
+        // Läuft eine Pause, beendet der Knopf sie; sonst öffnet bzw. schließt er die Auswahl der Dauer.
+        if (pauseState(m)) {
+          m.timers.pause = null;
+          save('matches', m).then(tickTimers);
+          tickTimers();
+        } else {
+          var pm = btn.parentNode.querySelector('.pause-menu');
+          pm.hidden = !pm.hidden;
+          if (!pm.hidden && lastInputKeyboard) pm.querySelector('button').focus();
+        }
+        break;
+      case 'pause-start':
+        closePauseMenu();
         m.timers = m.timers || {};
-        m.timers.pause = pauseState(m) ? null : { start: Date.now(), ms: pauseMinutes(m) * 60000 };
+        m.timers.pause = { start: Date.now(), ms: parseInt(btn.getAttribute('data-min'), 10) * 60000 };
         save('matches', m).then(tickTimers);
         tickTimers();
         break;

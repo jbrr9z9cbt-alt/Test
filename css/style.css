@@ -635,9 +635,14 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 .start-apparatus { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: .4rem 0 1.4rem; }
 .start-apparatus .app-ico { width: 56px; height: 56px; }
 
-/* Pause: Auswahl der Dauer und Startknopf in der Gruppe der Anzeigetafel */
-.pause-ctl { display: inline-flex; align-items: center; gap: .5rem; }
-.pause-ctl .seg[hidden] { display: none; }
+/* Wettkampfpause: ein Knopf in der Gruppe der Anzeigetafel, Dauer im aufklappenden Menü */
+.pause-ctl { position: relative; display: inline-flex; }
+.pause-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; min-width: 100%; display: flex; flex-direction: column; gap: .25rem;
+  padding: .35rem; background: #fff; border: 1px solid #cfcfcf; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+.pause-menu[hidden] { display: none; }
+.pause-menu .btn { justify-content: flex-start; border-color: transparent; }
+.pause-menu .btn:hover, .pause-menu .btn:focus-visible { background: #f2f2f2; }
+.pm-head { white-space: nowrap; font-size: .75rem; color: #737373; padding: .2rem .6rem; text-transform: uppercase; letter-spacing: .04em; }
 /* Pause-Fenster über der Tafel (über dem Wettkampfergebnis, unter den Einblendungen) */
 .pause-overlay { position: fixed; inset: 0; z-index: 185; display: flex; align-items: center; justify-content: center; background: rgba(10,10,10,.55); }
 .pause-win { background: #262626; color: #fafafa; border: 3px solid #a3a3a3; border-radius: 18px; padding: 2.5rem 6rem; text-align: center; min-width: min(1100px, 80vw); }
