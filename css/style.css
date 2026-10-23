@@ -473,6 +473,8 @@ body.no-league .topbar nav { visibility: hidden; }
 .start-tile:hover, .start-tile:focus-visible { border-color: var(--primary); }
 .st-title { font-size: 1.6rem; font-weight: 800; }
 .st-sub { color: var(--muted); font-size: .9rem; }
+.start-tile.wide { grid-column: 1 / -1; padding: 1.1rem 1rem; }
+.start-tile.wide .st-title { font-size: 1.15rem; }
 @media (max-width: 560px) { .start-grid { grid-template-columns: 1fr; } }
 
 /* ---------- Anwesende Turner (Wettkampf anlegen) ---------- */

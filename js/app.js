@@ -438,6 +438,7 @@
       var m = match(parts[1]);
       return { league: m ? matchLeague(m).key : LEAGUES[0].key, name: first, id: parts[1], sub: parts[2] };
     }
+    if (first === 'info') return { league: null, name: 'info' };
     return { league: null, name: 'start' };
   }
 
@@ -483,6 +484,7 @@
       case 'data': html = viewData(); break;
       case 'rules': html = viewRules(); break;
       case 'help': html = viewHelp(); break;
+      case 'info': html = viewInfo(); break;
       default: html = viewStart();
     }
     $app.innerHTML = (state.persistent ? '' : warningBanner()) + html;
@@ -516,6 +518,7 @@
       '<div class="start-grid">' +
       '<a class="start-tile" href="#/oberliga"><span class="st-title">Oberliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
       '<a class="start-tile" href="#/landesliga"><span class="st-title">Landesliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
+      '<a class="start-tile wide" href="#/info"><span class="st-title">Installation und Datensicherung</span><span class="st-sub">App installieren, Daten sichern, Updates</span></a>' +
       '</div></section>';
   }
 
@@ -2186,12 +2189,75 @@
 
   // ---------- Ansicht: Anleitung ----------
 
+  function helpSec(title, items) {
+    return '<h3>' + title + '</h3><ul class="rules-list">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>';
+  }
+
+  var INFO_LINK = '<a href="#/info">Installation und Datensicherung</a>';
+
+  /** Anleitung der Liga: nur der Wettkampftag, Texte passend zum Wertungsmodell der Liga. */
   function viewHelp() {
-    function sec(title, items) {
-      return '<h3>' + title + '</h3><ul class="rules-list">' + items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>';
-    }
-    return '<section class="card rules"><h2>Anleitung</h2>' +
-      '<p class="muted">Kurzanleitung für den Wettkampftag. Alle Daten bleiben auf diesem Gerät; die App funktioniert auch ohne Internet.</p>' +
+    var sec = helpSec;
+    var lg = leagueOf(currentLeague);
+    var classic = lg.model === 'classic';
+    return '<section class="card rules"><h2>Anleitung ' + esc(lg.short) + '</h2>' +
+      '<p class="muted">Kurzanleitung für den Wettkampftag. Installation, Datensicherung und Updates stehen auf der Startseite unter ' + INFO_LINK + '.</p>' +
+
+      sec('1. Wettkampf anlegen', [
+        'Vorab lassen sich unter <b>Mannschaften</b> Turnernamen korrigieren und freie Startnummern belegen. Jede Änderung wird sofort gespeichert.',
+        'Unter <b>Wettkämpfe</b> auf „Neuer Wettkampf“ tippen, Datum, Heim- und Gastmannschaft sowie die Farben wählen.',
+        'Bei <b>Anwesende Turner</b> sind zunächst alle Turner abgehakt; fehlende Turner abwählen. Namen lassen sich dort auch korrigieren oder ergänzen.',
+        'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *). Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen.',
+        'Die per Los bestimmte <b>beginnende Mannschaft</b> wählen. Die Startreihenfolge an allen Geräten ergibt sich daraus automatisch.',
+        'Alle Angaben lassen sich später über <b>Wettkampf Setup</b> ändern.'
+      ]) +
+
+      sec('2. Wertungen erfassen', [
+        classic
+          ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
+          : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „Vorlegend“ markiert.',
+        'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
+        (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
+          ' Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
+        '<b>nicht angetreten</b>: Die Übung zählt 0 Punkte, Turner und Wertung werden geleert. <b>Wertung 0,00 (angetreten)</b>: Der Turner ist angetreten, erhält aber die Endnote 0.'
+      ]) +
+
+      sec('3. Wertung freigeben', classic ? [
+        'Jede Übung hat ihren eigenen Knopf <b>Wertung freigeben</b>. Erst dann zählt die Wertung und erscheint auf der Anzeigetafel.',
+        'Je Mannschaft und Gerät zählen die drei höchsten Wertungen; die Streichwertung wird grau durchgestrichen angezeigt.',
+        'Wird eine freigegebene Wertung nachträglich geändert, sind alle anderen Übungen gesperrt, bis die Änderung mit <b>Korrektur freigeben</b> bestätigt oder mit <b>Änderung verwerfen</b> zurückgenommen wird.'
+      ] : [
+        'Sind beide Turner eines Duells gewählt und vollständig gewertet, wird <b>Wertung freigeben</b> aktiv. Erst dann zählen die Scorepunkte und erscheinen auf der Anzeigetafel.',
+        'Wird eine freigegebene Wertung nachträglich geändert, sind alle anderen Duelle gesperrt, bis die Änderung mit <b>Korrektur freigeben</b> bestätigt oder mit <b>Änderung verwerfen</b> zurückgenommen wird.'
+      ]) +
+
+      sec('4. Timer', [
+        '<b>Einturnzeit (4:00)</b> über dem jeweiligen Gerät starten. Nach Ablauf ertönt 5 Sekunden lang eine Schelle.',
+        '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: nach 30 Sekunden ein kurzer Doppelton, nach weiteren 30 Sekunden ein Fehlerton und „Abzug 0,3“.',
+        'Ein erneuter Klick auf den laufenden Timer stoppt ihn. Die Lautstärke wird am Gerät eingestellt.'
+      ]) +
+
+      sec('5. Anzeigetafel', [
+        '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
+        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet.',
+        '<b>Pause</b>: 10, 15 oder 20 Minuten wählen und „Pause starten“. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
+        (classic ? 'Nach jeder Freigabe erscheint 5 Sekunden groß auf der Tafel die Endnote der Übung' : 'Nach jeder Freigabe erscheinen 5 Sekunden groß auf der Tafel die Scorepunkte des Duells') +
+          ', Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.'
+      ]) +
+
+      sec('6. Abschluss', [
+        '<b>Wettkampf abschließen</b> sperrt die Eingabe. Anschließend fragt die App, ob nur dieser Wettkampf oder alles gesichert werden soll.',
+        '<b>Protokoll / Drucken</b> erstellt das Wettkampfprotokoll auf einer DIN-A4-Seite (auch als PDF speicherbar).',
+        'Über <b>Wieder öffnen</b> kann ein abgeschlossener Wettkampf erneut bearbeitet werden.',
+        'Die Sicherungsdateien lassen sich jederzeit unter <b>Datensicherung</b> erstellen; wie das funktioniert, steht unter ' + INFO_LINK + '.'
+      ]) + '</section>';
+  }
+
+  /** Allgemeine Hinweise, von der Startseite aus erreichbar: gelten für beide Ligen. */
+  function viewInfo() {
+    var sec = helpSec;
+    return '<section class="card rules"><h2>Installation und Datensicherung</h2>' +
+      '<p class="muted">Hinweise für beide Ligen. Was am Wettkampftag zu tun ist, steht in der jeweiligen Liga unter <b>Anleitung</b>.</p>' +
 
       sec('1. Installation', [
         'Die App läuft im Browser und lässt sich zusätzlich wie eine normale App installieren. Sie startet dann ohne Adressleiste und funktioniert auch ohne Internet.',
@@ -2202,59 +2268,23 @@
         'Auf iPad und iPhone sowie mit Safari am Mac hat die installierte App eigene Daten, getrennt vom Browser – daher für eine Variante entscheiden.'
       ]) +
 
-      sec('2. Wettkampf anlegen', [
-        'Vorab lassen sich unter <b>Mannschaften</b> Turnernamen korrigieren und freie Startnummern belegen. Jede Änderung wird sofort gespeichert.',
-        'Unter <b>Wettkämpfe</b> auf „Neuer Wettkampf“ tippen, Datum, Heim- und Gastmannschaft sowie die Farben wählen.',
-        'Bei <b>Anwesende Turner</b> sind zunächst alle Turner abgehakt; fehlende Turner abwählen. Namen lassen sich dort auch korrigieren oder ergänzen.',
-        'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *). Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen.',
-        'Die per Los bestimmte <b>beginnende Mannschaft</b> wählen. Die Startreihenfolge an allen Geräten ergibt sich daraus automatisch.',
-        'Alle Angaben lassen sich später über <b>Wettkampf Setup</b> ändern.'
-      ]) +
-
-      sec('3. Wertungen erfassen', [
-        'Oben das Gerät wählen. <b>Oberliga:</b> Je Duell steht der vorlegende Turner links bzw. oben und ist mit „Vorlegend“ markiert. ' +
-          '<b>Landesliga:</b> Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).',
-        'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
-        'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell. Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
-        '<b>nicht angetreten</b>: Die Übung zählt 0 Punkte, Turner und Wertung werden geleert. <b>Wertung 0,00 (angetreten)</b>: Der Turner ist angetreten, erhält aber die Endnote 0.'
-      ]) +
-
-      sec('4. Wertung freigeben', [
-        '<b>Oberliga:</b> Sind beide Turner eines Duells gewählt und vollständig gewertet, wird <b>Wertung freigeben</b> aktiv. Erst dann zählen die Scorepunkte und erscheinen auf der Anzeigetafel.',
-        '<b>Landesliga:</b> Jede Übung hat ihren eigenen Knopf <b>Wertung freigeben</b>. Je Mannschaft und Gerät zählen die drei höchsten Wertungen; die Streichwertung wird grau durchgestrichen angezeigt.',
-        'Wird eine freigegebene Wertung nachträglich geändert, sind alle anderen Duelle gesperrt, bis die Änderung mit <b>Korrektur freigeben</b> bestätigt oder mit <b>Änderung verwerfen</b> zurückgenommen wird.'
-      ]) +
-
-      sec('5. Timer', [
-        '<b>Einturnzeit (4:00)</b> über dem jeweiligen Gerät starten. Nach Ablauf ertönt 5 Sekunden lang eine Schelle.',
-        '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: nach 30 Sekunden ein kurzer Doppelton, nach weiteren 30 Sekunden ein Fehlerton und „Abzug 0,3“.',
-        'Ein erneuter Klick auf den laufenden Timer stoppt ihn. Die Lautstärke wird am Gerät eingestellt.'
-      ]) +
-
-      sec('6. Anzeigetafel', [
-        '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
-        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet.',
-        '<b>Pause</b>: 10, 15 oder 20 Minuten wählen und „Pause starten“. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
-        'Nach jeder Freigabe erscheinen 5 Sekunden groß auf der Tafel die Scorepunkte (Oberliga) bzw. die Endnote der Übung (Landesliga), Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.',
+      sec('2. Empfohlene Geräte', [
+        'Alle Daten bleiben auf diesem Gerät; die App braucht am Wettkampftag kein Internet.',
         'Soll die Anzeigetafel genutzt werden, empfiehlt sich ein Windows- oder Mac-Rechner mit <b>Chrome oder Edge</b>, im Browser oder als installierte App.'
       ]) +
 
-      sec('7. Abschluss', [
-        '<b>Wettkampf abschließen</b> sperrt die Eingabe. Anschließend fragt die App, ob nur dieser Wettkampf oder alles gesichert werden soll.',
-        '<b>Protokoll / Drucken</b> erstellt das Wettkampfprotokoll auf einer DIN-A4-Seite (auch als PDF speicherbar).',
-        'Über <b>Wieder öffnen</b> kann ein abgeschlossener Wettkampf erneut bearbeitet werden.'
-      ]) +
-
-      sec('8. Datensicherung', [
-        'Unter <b>Datensicherung</b> regelmäßig eine Gesamtsicherung oder einzelne Wettkämpfe als Datei sichern, z. B. auf einen USB-Stick. Der Dateiname zeigt die Art der Sicherung.',
-        'Beim Importieren ersetzt eine Gesamtsicherung alle Daten; ein einzelner Wettkampf wird nur hinzugefügt bzw. ersetzt.',
+      sec('3. Datensicherung', [
+        'Die Daten jeder Liga werden <b>getrennt gesichert</b>. Die Seite <b>Datensicherung</b> befindet sich deshalb in der jeweiligen Liga (oben im Menü).',
+        'Dort regelmäßig eine Gesamtsicherung oder einzelne Wettkämpfe als Datei sichern, z. B. auf einen USB-Stick. Der Dateiname zeigt Liga und Art der Sicherung.',
+        'Beim Importieren ersetzt eine Gesamtsicherung alle Daten dieser Liga; die andere Liga bleibt unverändert. Ein einzelner Wettkampf wird nur hinzugefügt bzw. ersetzt.',
         'Die App legt zusätzlich automatische Sicherungspunkte an, aus denen sich ein früherer Stand wiederherstellen lässt.',
-        '<b>Alle Daten löschen</b> entfernt alle Wettkämpfe und eigene Änderungen an Turnernamen; die vorgegebenen Turner bleiben erhalten.'
+        '<b>Alle Daten löschen</b> entfernt alle Wettkämpfe und eigene Änderungen an Turnernamen dieser Liga; die vorgegebenen Turner bleiben erhalten.'
       ]) +
 
-      sec('9. Updates', [
+      sec('4. Updates', [
         'Die App sucht beim Start und alle 30 Minuten nach einer neuen Version. Ist eine da, erscheint ein Hinweis; nach „Jetzt aktualisieren“ ist sie aktiv. Alle Daten bleiben erhalten.'
-      ]) + '</section>';
+      ]) +
+      '<p><a class="btn" href="#/">← Zur Startseite</a></p></section>';
   }
 
   function refreshDataView() {
