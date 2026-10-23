@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '39';
+  var APP_BUILD = '40';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1095,9 +1095,9 @@
     var list = S.topScorers(m, 3);
     var classic = isClassic(m);
     if (!list.length) return '<p class="muted">' + (classic ? 'Noch keine Wertungen.' : 'Noch keine Scorepunkte vergeben.') + '</p>';
-    return '<div class="table-wrap"><table class="table compact"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">' + (classic ? 'Summe' : 'Scorepunkte') + '</th></tr></thead><tbody>' +
+    return '<div class="table-wrap"><table class="table compact"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">Geräte</th><th class="num">' + (classic ? 'Summe' : 'Scorepunkte') + '</th></tr></thead><tbody>' +
       list.map(function (s) {
-        return '<tr><td>' + s.rank + '.</td><td>' + esc(gymnastLabel(s.number, s.name) || '–') + '</td><td>' + esc(teamName(s.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</td>' +
+        return '<tr><td>' + s.rank + '.</td><td>' + esc(gymnastLabel(s.number, s.name) || '–') + '</td><td>' + esc(teamName(s.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</td><td class="num">' + s.starts + '</td>' +
           '<td class="num"><strong>' + pts(m, s.team, classic ? fmt(s.points) : s.points) + '</strong></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
@@ -1475,11 +1475,11 @@
       '<div class="so-result"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
       '<div class="big">' + totalPair(m, r, true) + '</div>' +
       '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
-      '<div class="so-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + '</div>' +
+      '<div class="so-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + (r.complete ? ' · Wettkampfpunkte ' + r.homeMatch + ':' + r.guestMatch : '') + '</div>' +
       '<div class="so-title so-h">Topscorer</div>' +
       (list.length ? '<table class="so-table">' + list.map(function (x) {
         return '<tr><td class="so-rank">' + x.rank + '.</td><td class="so-name">' + esc(gymnastLabel(x.number, x.name) || '–') +
-          '<small>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</small></td>' +
+          '<small>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</small></td><td class="so-app">' + x.starts + (x.starts === 1 ? ' Gerät' : ' Geräte') + '</td>' +
           '<td class="so-pts">' + pts(m, x.team, classic ? fmt(x.points) : x.points, true) + '</td></tr>';
       }).join('') + '</table>' : '<div class="so-empty">' + (classic ? 'Noch keine Wertungen' : 'Noch keine Scorepunkte') + '</div>') + '</div></div>';
   }
@@ -1889,14 +1889,17 @@
     return cols.map(function (h) { return '<th class="num">' + (h === 'SB' && appKey === S.NO_BONUS_APPARATUS ? '' : h) + '</th>'; }).join('');
   }
 
+  /** Wettkampfpunkte (2/1/0) – erst wenn der Wettkampf vollständig ist, sonst „–“. */
+  function matchPts(r, side) { return r.complete ? String(side === 'home' ? r.homeMatch : r.guestMatch) : '–'; }
+
   /** Topscorer-Tabelle im Protokoll (Scorepunkte bzw. Summe der Wertungen). */
   function printScorers(m) {
     var classic = isClassic(m);
     var top = S.topScorers(m, 3);
-    return top.length ? '<table class="print-table scorer-table"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">' + (classic ? 'Summe' : 'SP') + '</th></tr></thead><tbody>' +
+    return top.length ? '<table class="print-table scorer-table"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">Geräte</th><th class="num">' + (classic ? 'Summe' : 'SP') + '</th></tr></thead><tbody>' +
       top.map(function (x) {
         return '<tr><td>' + x.rank + '.</td><td class="pn">' + esc(gymnastLabel(x.number, x.name) || '–') + '</td><td>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) +
-          '</td><td class="num"><strong>' + pts(m, x.team, classic ? fmt(x.points) : x.points) + '</strong></td></tr>';
+          '</td><td class="num">' + x.starts + '</td><td class="num"><strong>' + pts(m, x.team, classic ? fmt(x.points) : x.points) + '</strong></td></tr>';
       }).join('') + '</tbody></table>' : '<p class="muted">–</p>';
   }
 
@@ -1941,9 +1944,9 @@
     }).join('');
 
     return printHead(m) +
-      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Punkte</th><th class="num">Gerätepunkte</th></tr></thead><tbody>' +
-      '<tr><td>Heim</td><td>' + homeName + '</td><td class="num"><strong>' + teamValue(m, r, 'home') + '</strong></td><td class="num">' + r.homeApp + '</td></tr>' +
-      '<tr><td>Gast</td><td>' + guestName + '</td><td class="num"><strong>' + teamValue(m, r, 'guest') + '</strong></td><td class="num">' + r.guestApp + '</td></tr>' +
+      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Punkte</th><th class="num">Wettkampfpunkte</th><th class="num">Gerätepunkte</th></tr></thead><tbody>' +
+      '<tr><td>Heim</td><td>' + homeName + '</td><td class="num"><strong>' + teamValue(m, r, 'home') + '</strong></td><td class="num">' + matchPts(r, 'home') + '</td><td class="num">' + r.homeApp + '</td></tr>' +
+      '<tr><td>Gast</td><td>' + guestName + '</td><td class="num"><strong>' + teamValue(m, r, 'guest') + '</strong></td><td class="num">' + matchPts(r, 'guest') + '</td><td class="num">' + r.guestApp + '</td></tr>' +
       '</tbody></table>' + printResultLine(m, r) + apps +
       '<div class="pa-head"><strong>Topscorer</strong> <span>(Summe aller geturnten Wertungen)</span></div>' + printScorers(m) +
       '<p class="ps-note">1.–8. = Startposition am Gerät, Streichw. = Streichwertung (zählt nicht; je Mannschaft zählen die ' + m.rules.counting + ' höchsten Wertungen), ' +
@@ -1994,9 +1997,9 @@
       .map(function (t) { return 'ab ' + fmt(t.min) + ' → ' + t.points; }).join(', ');
 
     return printHead(m) +
-      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Gerätepunkte</th><th class="num">Geturnte Punkte</th></tr></thead><tbody>' +
-      '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + pts(m, 'home', r.homePoints) + '</strong></td><td class="num">' + r.homeApp + '</td><td class="num">' + fmt(r.homeSum) + '</td></tr>' +
-      '<tr><td>Gast</td><td>' + esc(teamName(m.guestTeamId)) + '</td><td class="num"><strong>' + pts(m, 'guest', r.guestPoints) + '</strong></td><td class="num">' + r.guestApp + '</td><td class="num">' + fmt(r.guestSum) + '</td></tr>' +
+      '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Scorepunkte</th><th class="num">Wettkampfpunkte</th><th class="num">Gerätepunkte</th><th class="num">Geturnte Punkte</th></tr></thead><tbody>' +
+      '<tr><td>Heim</td><td>' + esc(teamName(m.homeTeamId)) + '</td><td class="num"><strong>' + pts(m, 'home', r.homePoints) + '</strong></td><td class="num">' + matchPts(r, 'home') + '</td><td class="num">' + r.homeApp + '</td><td class="num">' + fmt(r.homeSum) + '</td></tr>' +
+      '<tr><td>Gast</td><td>' + esc(teamName(m.guestTeamId)) + '</td><td class="num"><strong>' + pts(m, 'guest', r.guestPoints) + '</strong></td><td class="num">' + matchPts(r, 'guest') + '</td><td class="num">' + r.guestApp + '</td><td class="num">' + fmt(r.guestSum) + '</td></tr>' +
       '</tbody></table>' +
       printResultLine(m, r) +
       apps +

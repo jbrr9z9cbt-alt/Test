@@ -224,6 +224,7 @@ body.board-mode:not(.board-light) .draw0 { color: #fff !important; }
 
 /* Timer */
 .warmup-row { margin-bottom: .75rem; }
+.warmup-btn { border: 2px solid #b5b5b5; }
 .timer-btn { font-variant-numeric: tabular-nums; }
 .timer-btn.t-yellow { background: #facc15; border-color: #eab308; color: #171717; font-weight: 700; }
 .timer-btn.t-red { background: #dc2626; border-color: #b91c1c; color: #fff; font-weight: 700; }
@@ -239,7 +240,8 @@ body.board-mode:not(.board-light) .draw0 { color: #fff !important; }
 .bt.warm { background: #14361f; } .bt.warm strong { color: #86efac; }
 /* Nach Ablauf: Hinweis leicht blinkend */
 .bt.ended strong { animation: flash-blink 1s ease-in-out infinite; }
-.bt.fall.ended { background: #262626; } .bt.fall.ended strong { color: #fafafa; }
+/* Nach Ablauf des Sturztimers bleibt „Übung beendet“ rot */
+.bt.fall.ended { background: #4a1414; } .bt.fall.ended strong { color: #f87171; }
 .bt.fall.phase1 { background: #3f3a12; } .bt.fall.phase1 strong { color: #facc15; }
 .bt.fall.phase2 { background: #4a1414; } .bt.fall.phase2 strong, .bt.fall.phase2 em { color: #f87171; }
 .duel-open { color: var(--muted); font-style: italic; }
@@ -331,13 +333,15 @@ body.board-mode .update-banner { display: none; }
 
 /* Topscorer-Overlay auf der Tafel */
 .scorer-overlay { position: fixed; inset: 0; z-index: 180; display: flex; align-items: center; justify-content: center; background: rgba(10,10,10,.8); }
-.so-box { background: #262626; border: 3px solid #a3a3a3; border-radius: 18px; padding: 2rem 3.5rem; min-width: min(1700px, 94vw); }
+.so-box { background: #262626; color: #fafafa; border: 3px solid #a3a3a3; border-radius: 18px; padding: 2rem 3.5rem; min-width: min(1700px, 94vw); }
 .so-title { font-size: clamp(1.8rem, 3.8vw, 3.4rem); font-weight: 900; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .75rem; text-align: center; }
 .so-table { width: 100%; border-collapse: collapse; font-size: clamp(1.5rem, 3.4vw, 3rem); }
 .so-table td { padding: .35rem .6rem; border-bottom: 1px solid #404040; }
 .so-rank { width: 3em; color: #a3a3a3; font-weight: 800; }
 .so-name small { display: block; font-size: .5em; color: #a3a3a3; }
 .so-pts { text-align: right; font-size: 1.4em; }
+/* Anzahl der geturnten Geräte als eigene Spalte zwischen Name und Punkten */
+.so-app { width: 1%; white-space: nowrap; text-align: right; padding-right: 2.5em !important; font-size: .75em; color: #d4d4d4; }
 .so-empty { text-align: center; color: #a3a3a3; font-size: 1.4rem; }
 
 /* Ruhebild der Tafel */
@@ -515,7 +519,7 @@ body.board-light .cd-row.nd strong { color: #b91c1c; }
 body.board-light .cd-row strong small, body.board-light .cd-row span small.sb { color: #15803d; }
 body.board-light .bt { background: #fff; color: #171717; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
 body.board-light .bt.warm { background: #dcfce7; } body.board-light .bt.warm strong { color: #166534; }
-body.board-light .bt.fall.ended { background: #fff; } body.board-light .bt.fall.ended strong { color: #171717; }
+body.board-light .bt.fall.ended { background: #fee2e2; } body.board-light .bt.fall.ended strong { color: #b91c1c; }
 body.board-light .bt.fall.phase1 { background: #fef3c7; } body.board-light .bt.fall.phase1 strong { color: #92400e; }
 body.board-light .bt.fall.phase2 { background: #fee2e2; } body.board-light .bt.fall.phase2 strong, body.board-light .bt.fall.phase2 em { color: #b91c1c; }
 body.board-light #score-flash { background: #f4f4f4; }
@@ -526,6 +530,7 @@ body.board-light .scorer-overlay { background: rgba(244,244,244,.85); }
 body.board-light .so-box { background: #fff; border-color: #a3a3a3; color: #171717; }
 body.board-light .so-table td { border-bottom-color: #e5e5e5; }
 body.board-light .so-rank, body.board-light .so-name small, body.board-light .so-empty { color: #525252; }
+body.board-light .so-app { color: #404040; }
 body.board-light .standby { color: #a3a3a3; }
 body.board-light .standby img { opacity: .8; }
 
