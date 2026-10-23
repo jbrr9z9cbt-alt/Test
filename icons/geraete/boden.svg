@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Piktogramm: Bodenfläche (vereinfacht) -->
+  <rect width="64" height="64" rx="14" fill="#262626"/>
+  <path d="M19 22 H45 L56 44 H8 Z" fill="#808080" stroke="#808080" stroke-width="2" stroke-linejoin="round"/>
+</svg>

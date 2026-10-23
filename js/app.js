@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '38';
+  var APP_BUILD = '39';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -509,7 +509,9 @@
   function viewStart() {
     return '<section class="start">' +
       '<img src="icons/icon.svg" alt="" width="96" height="96" class="start-logo">' +
-      '<h1>' + esc(APP_NAME) + '</h1><p class="muted">Bitte die Liga wählen</p>' +
+      '<h1>' + esc(APP_NAME) + '</h1>' +
+      '<div class="start-apparatus">' + S.APPARATUS.map(function (a) { return appIcon(a.key); }).join('') + '</div>' +
+      '<p class="muted">Bitte die Liga wählen</p>' +
       '<div class="start-grid">' +
       '<a class="start-tile" href="#/oberliga"><span class="st-title">Oberliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
       '<a class="start-tile" href="#/landesliga"><span class="st-title">Landesliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
@@ -808,7 +810,7 @@
     var tabs = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
       return '<button class="tab' + (a.key === tab ? ' active' : '') + (ar.complete ? ' complete' : '') + '" tabindex="-1" data-action="tab" data-tab="' + a.key + '">' +
-        '<span>' + a.name + '</span><span class="tab-score" data-out="tab-' + a.key + '">' + totalPair(m, ar) + '</span></button>';
+        appIcon(a.key, 'tab-ico') + '<span class="tab-name">' + a.name + '</span><span class="tab-score" data-out="tab-' + a.key + '">' + totalPair(m, ar) + '</span></button>';
     }).join('');
 
     return '<section class="card match-head">' +
@@ -856,6 +858,13 @@
     var pending = S.pendingCorrections(m);
     // Im klassischen Modell bleibt nur die geänderte Übung selbst bearbeitbar.
     return pending.length > 0 && !pending.some(function (p) { return p.appKey === appKey && p.idx === idx && (!p.side || p.side === sideKey); });
+  }
+
+  // Geräte-Logos (neutral grau) in icons/geraete/
+  var APPARATUS_ICON = { FX: 'boden', PH: 'pauschenpferd', SR: 'ringe', VT: 'sprung', PB: 'barren', HB: 'reck' };
+
+  function appIcon(key, cls) {
+    return '<img src="icons/geraete/' + APPARATUS_ICON[key] + '.svg" class="app-ico' + (cls ? ' ' + cls : '') + '" alt="">';
   }
 
   function apparatusName(key) {
@@ -1370,7 +1379,7 @@
     function name(k, d, right) {
       return '<td class="bn' + (right ? ' right' : '') + '" style="--team:' + boardTone(m, k) + '">' + esc(gymnastLabel(d[k].number, d[k].name) || '–') + '</td>';
     }
-    return '<div class="board-detail"><h3>' + current.name + '</h3><table class="board-duels classic">' +
+    return '<div class="board-detail"><h3>' + appIcon(current.key, 'bd-ico') + current.name + '</h3><table class="board-duels classic">' +
       app.duels.map(function (d, i) {
         return '<tr>' + name('home', d, false) + '<td class="num">' + val('home', i) + '</td><td></td>' +
           '<td class="num">' + val('guest', i) + '</td>' + name('guest', d, true) + '</tr>';
@@ -1413,7 +1422,7 @@
     var homeColor = boardTone(m, 'home'), guestColor = boardTone(m, 'guest');
     var rows = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
-      return '<tr class="' + (current && current.key === a.key ? 'current' : '') + '"><td>' + a.name + '</td>' +
+      return '<tr class="' + (current && current.key === a.key ? 'current' : '') + '"><td>' + appIcon(a.key, 'bt-ico') + a.name + '</td>' +
         '<td class="num">' + (ar.started ? teamValue(m, ar, 'home', true) : '–') + '</td><td class="num">' + (ar.started ? teamValue(m, ar, 'guest', true) : '–') + '</td>' +
         '<td class="num small">' + (ar.complete ? ar.homeApp + ':' + ar.guestApp : '') + '</td></tr>';
     }).join('');
@@ -1423,7 +1432,7 @@
     else if (current) {
       var app = view.apparatus[current.key];
       var ar = r.apparatus[current.key];
-      detail = '<div class="board-detail"><h3>' + current.name + '</h3><table class="board-duels">' +
+      detail = '<div class="board-detail"><h3>' + appIcon(current.key, 'bd-ico') + current.name + '</h3><table class="board-duels">' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
           return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + homeColor + '">' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' +
@@ -1679,21 +1688,21 @@
       // Feste Plätze: Inhalt wird nur sichtbar/unsichtbar geschaltet, die Größe bleibt gleich.
       var ws = bt.querySelector('[data-slot="warm"]'), fs = bt.querySelector('[data-slot="fall"]');
       var wEnd = !warm && timerEnded(m.timers && m.timers.warmup, WARMUP_MS, WARMUP_END_MS);
-      var wh = warm ? '<span>Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong>'
-        : wEnd ? '<span>' + apparatusName(m.timers.warmup.appKey) + '</span><strong>Einturnen beendet</strong>' : '<span>&nbsp;</span><strong>0:00</strong>';
+      var wh = warm ? '<span>' + appIcon(warm.t.appKey, 'tm-ico') + 'Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong>'
+        : wEnd ? '<span>' + appIcon(m.timers.warmup.appKey, 'tm-ico') + apparatusName(m.timers.warmup.appKey) + '</span><strong>Einturnen beendet</strong>' : '<span>&nbsp;</span><strong>0:00</strong>';
       if (ws.innerHTML !== wh) ws.innerHTML = wh;
       ws.classList.toggle('off', !warm && !wEnd);
       ws.classList.toggle('ended', wEnd);
       var fh = '<span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em>';
       if (fall) {
         var fsd = m.apparatus[fall.t.appKey].duels[fall.t.idx][fall.t.side];
-        fh = '<span>Sturz · ' + esc(gymnastLabel(fsd.number, fsd.name) || teamName(fall.t.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
+        fh = '<span>' + appIcon(fall.t.appKey, 'tm-ico') + 'Sturz · ' + esc(gymnastLabel(fsd.number, fsd.name) || teamName(fall.t.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
           '<strong>' + clock(fall.remaining) + '</strong><em' + (fall.phase === 2 ? '' : ' class="hide"') + '>Abzug 0,3</em>';
       }
       var fEnd = !fall && timerEnded(m.timers && m.timers.fall, 2 * FALL_PHASE_MS, FALL_END_MS);
       if (fEnd) {
         var fe = m.timers.fall, fed = m.apparatus[fe.appKey].duels[fe.idx][fe.side];
-        fh = '<span>' + esc(gymnastLabel(fed.number, fed.name) || teamName(fe.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span><strong>Übung beendet</strong><em class="hide">Abzug 0,3</em>';
+        fh = '<span>' + appIcon(fe.appKey, 'tm-ico') + esc(gymnastLabel(fed.number, fed.name) || teamName(fe.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span><strong>Übung beendet</strong><em class="hide">Abzug 0,3</em>';
       }
       if (fs.innerHTML !== fh) fs.innerHTML = fh;
       fs.classList.toggle('off', !fall && !fEnd);
@@ -1702,10 +1711,10 @@
       fs.classList.toggle('phase2', !!fall && fall.phase === 2);
     } else if (bt) {
       var html = '';
-      if (warm) html += '<div class="bt warm"><span>Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong></div>';
+      if (warm) html += '<div class="bt warm"><span>' + appIcon(warm.t.appKey, 'tm-ico') + 'Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong></div>';
       if (fall) {
         var s = m.apparatus[fall.t.appKey].duels[fall.t.idx][fall.t.side];
-        html += '<div class="bt fall phase' + fall.phase + '"><span>Sturz · ' + esc(gymnastLabel(s.number, s.name) || teamName(fall.t.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
+        html += '<div class="bt fall phase' + fall.phase + '"><span>' + appIcon(fall.t.appKey, 'tm-ico') + 'Sturz · ' + esc(gymnastLabel(s.number, s.name) || teamName(fall.t.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
           '<strong>' + clock(fall.remaining) + '</strong>' + (fall.phase === 2 ? '<em>Abzug 0,3</em>' : '') + '</div>';
       }
       if (bt.innerHTML !== html) bt.innerHTML = html;
@@ -1916,7 +1925,7 @@
         var pos = S.classicPosition(m, a.key, i, k) + '.';
         return '<td class="pn' + (right ? ' right' : '') + '">' + (right ? label + ' ' + pos : pos + ' ' + label) + (struck ? ' <em class="ps-struck">(Streichw.)</em>' : '') + '</td>';
       }
-      return '<div class="print-app"><div class="pa-head"><strong>' + a.name + '</strong> <span>Gerätesumme ' + totalPair(m, ar) +
+      return '<div class="print-app"><div class="pa-head"><strong>' + appIcon(a.key, 'pa-ico') + a.name + '</strong> <span>Gerätesumme ' + totalPair(m, ar) +
         (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
         '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + printHeadCells(a.key, head) +
         printHeadCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +
@@ -1955,7 +1964,7 @@
     var apps = S.APPARATUS.map(function (a) {
       var app = m.apparatus[a.key];
       var ar = r.apparatus[a.key];
-      return '<div class="print-app"><div class="pa-head"><strong>' + a.name + '</strong> <span>Scorepunkte ' + ptsPair(m, ar.homePoints, ar.guestPoints) +
+      return '<div class="print-app"><div class="pa-head"><strong>' + appIcon(a.key, 'pa-ico') + a.name + '</strong> <span>Scorepunkte ' + ptsPair(m, ar.homePoints, ar.guestPoints) +
         (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
         '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + printHeadCells(a.key, head) +
         '<th class="num sp">SP</th>' + printHeadCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +

@@ -603,3 +603,26 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 .so-sub { text-align: center; font-size: clamp(1.4rem, 2.8vw, 2.4rem); }
 /* Überschrift „Topscorer“ wie die Fensterüberschrift, mit etwa einer Zeile Abstand zu den Gerätepunkten */
 .so-title.so-h { margin-top: 1.4em; }
+
+/* ---------- Geräte-Logos ---------- */
+.app-ico { display: inline-block; vertical-align: middle; }
+/* 1: Gerätereiter – Logo über dem Namen; auf dem Handy nur Logo und Stand */
+.tab .tab-ico { display: block; width: 38px; height: 38px; margin: 0 auto 4px; }
+@media (max-width: 560px) {
+  .tabs { gap: .25rem; overflow-x: visible; }
+  .tab { flex: 1; min-width: 0; padding: .35rem .2rem; }
+  .tab .tab-name { display: none; }
+  .tab .tab-ico { width: 34px; height: 34px; }
+  .tab .tab-score { font-size: .85rem; }
+}
+/* 2: Anzeigetafel – Tabelle (laufendes Gerät voll, andere abgeschwächt), Geräteüberschrift, Timer */
+.board-table .bt-ico { width: 1.5em; height: 1.5em; margin-right: .45em; opacity: .55; }
+.board-table tr.current .bt-ico { opacity: 1; }
+.board-detail h3 { display: flex; align-items: center; }
+.board-detail .bd-ico { width: 1.8em; height: 1.8em; margin-right: .5em; }
+.bt .tm-ico { width: 1.4em; height: 1.4em; margin-right: .45em; vertical-align: -.35em; }
+/* 4: Protokoll */
+.pa-head .pa-ico { width: 6mm; height: 6mm; margin-right: 2mm; vertical-align: middle; }
+/* 5: Startseite */
+.start-apparatus { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: .4rem 0 1.4rem; }
+.start-apparatus .app-ico { width: 56px; height: 56px; }

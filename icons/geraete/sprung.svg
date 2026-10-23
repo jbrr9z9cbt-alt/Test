@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Piktogramm: Sprungtisch (vereinfacht) -->
+  <rect width="64" height="64" rx="14" fill="#262626"/>
+  <g stroke="#c4c4c4" stroke-linecap="round">
+    <!-- Säule und Bodenplatte -->
+    <path d="M31 31 V51" stroke-width="5"/>
+    <path d="M18 52 H46" stroke-width="3.5"/>
+  </g>
+  <!-- Tischfläche: links sanft ansteigend, rechts abgerundet, unten gerade -->
+  <path d="M13 28.5 Q13 25 18 23.5 Q24 21 31 21 H46 Q51 21 51 26 Q51 31 46 31 H15.5 Q13 31 13 28.5 Z" fill="#808080"/>
+</svg>

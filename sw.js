@@ -7,7 +7,7 @@
  * die neue Version aktiv (Nachricht SKIP_WAITING). So werden alte und neue
  * Dateien nie gemischt.
  */
-const VERSION = 'v38';
+const VERSION = 'v39';
 const CACHE = 'turnwettkampf-' + VERSION;
 const ASSETS = [
   './',
@@ -22,7 +22,13 @@ const ASSETS = [
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',
-  'icons/wtb-logo.png'
+  'icons/wtb-logo.png',
+  'icons/geraete/boden.svg',
+  'icons/geraete/pauschenpferd.svg',
+  'icons/geraete/ringe.svg',
+  'icons/geraete/sprung.svg',
+  'icons/geraete/barren.svg',
+  'icons/geraete/reck.svg'
 ];
 
 self.addEventListener('install', (event) => {

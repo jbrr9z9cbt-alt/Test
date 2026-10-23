@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Piktogramm: Pauschenpferd (vereinfacht) -->
+  <rect width="64" height="64" rx="14" fill="#262626"/>
+  <g stroke="#c4c4c4" stroke-linecap="round">
+    <path d="M22 36 L19 52 M42 36 L45 52" stroke-width="3.5"/>
+    <path d="M11 33 H53" stroke-width="9"/>
+  </g>
+  <!-- Pauschen -->
+  <path d="M24 24.5 V28 M40 24.5 V28" stroke="#808080" stroke-width="4" stroke-linecap="round"/>
+</svg>
