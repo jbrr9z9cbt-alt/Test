@@ -6,7 +6,8 @@ Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätt
 
 ## Seiten
 
-Kopfzeile je Liga: Wettkämpfe · Mannschaften · Regeln · Datensicherung · Anleitung (Kurzanleitung zur Bedienung).
+Kopfzeile je Liga: Wettkämpfe · Mannschaften · Regeln · Datensicherung · Anleitung (Kurzanleitung für den Wettkampftag, Texte je Liga).
+Von der Startseite aus: „Installation und Datensicherung“ (`#/info`) mit Installation, empfohlenen Geräten, Datensicherung und Updates für beide Ligen.
 Adressen: `#/oberliga/…` bzw. `#/landesliga/…`; ein Wettkampf (`#/match/<id>`) gehört fest zu seiner Liga.
 
 ## Startseite
