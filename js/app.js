@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '34';
+  var APP_BUILD = '35';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -822,16 +822,18 @@
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong>' +
       '<span data-out="winner">' + winnerText(m, r) + '</span></div>' +
       '<div class="actions wrap">' +
+      // Alles, was die Anzeigetafel betrifft, als eine Gruppe
+      '<div class="board-group" role="group" aria-label="Anzeigetafel">' +
       '<button class="btn" data-action="open-board">Anzeigetafel</button>' +
       '<span class="seg" role="group" aria-label="Design der Anzeigetafel">' +
       '<button class="btn toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
       '<button class="btn toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span>' +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
-      scorersLabel(m.display && m.display.scorers) + '</button>' +
-      '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a>' +
+      scorersLabel(m.display && m.display.scorers) + '</button></div>' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
       (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
         : '<button class="btn primary" data-action="finalize">Wettkampf abschließen</button>') +
+      '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a>' +
       '<button class="btn danger ghost" data-action="del-match">Löschen</button>' +
       '<span id="save-status" class="save-status"></span>' +
       '</div></section>' +
@@ -949,7 +951,7 @@
   function duelPoints(m, r) {
     if (!r.complete) return '<span class="duel-open">offen</span>';
     var n = r.winner === 'home' ? r.homePoints : r.winner === 'guest' ? r.guestPoints : 0;
-    var num = r.winner === 'draw' ? '<span class="sp-num draw">0</span>' : pts(m, r.winner, n);
+    var num = r.winner === 'draw' ? '<span class="sp-num draw0">0</span>' : pts(m, r.winner, n);
     return '<span class="duel-pts">' + num + '</span>' +
       '<span class="duel-diff">' + (r.winner === 'draw' ? 'unentschieden · ' : '') + 'Diff. ' + fmt(r.diff) + '</span>';
   }
@@ -1327,9 +1329,9 @@
     return '<div class="cd-pts none"></div>';
   }
 
-  /** Oberliga-Karte: Scorepunkte des Duells als einzelne Zahl in der Farbe des Siegers (Unentschieden: graue 0). */
+  /** Oberliga-Karte: Scorepunkte des Duells als einzelne Zahl in der Farbe des Siegers (Unentschieden: umrandete 0). */
   function duelPointsBig(m, res) {
-    if (res.winner === 'draw') return '<span class="sp-num" style="color:' + (boardLight(m) ? '#737373' : '#a3a3a3') + '">0</span>';
+    if (res.winner === 'draw') return '<span class="sp-num draw0">0</span>';
     return pts(m, res.winner, res.winner === 'home' ? res.homePoints : res.guestPoints, true);
   }
 
@@ -1426,7 +1428,10 @@
             '<td class="num pts">' + (dr.complete ? ptsPair(m, dr.homePoints, dr.guestPoints, true, ' : ') : '') + '</td>' +
             '<td class="num">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
             '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
-        }).join('') + '</table></div>';
+        }).join('') +
+        '<tr class="bsum"><td>Summe Scorepunkte</td><td></td><td class="num pts">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ' : ') + '</td>' +
+        '<td></td><td class="right">Summe Scorepunkte</td></tr>' +
+        '</table></div>';
     }
 
     return '<div class="board">' +
@@ -1503,8 +1508,7 @@
     if (!res.complete) return;
     if (raw.revealKind === 'correction') { showCorrection(m, latest.appKey, latest.idx, duel, raw.prevShown); return; }
     var points = res.winner === 'home' ? res.homePoints : res.winner === 'guest' ? res.guestPoints : 0;
-    var color = res.winner === 'draw' ? (boardLight(m) ? '#737373' : '#a3a3a3') : boardTone(m, res.winner);
-    showFlash(points, color);
+    showFlash(points, res.winner === 'draw' ? '' : boardTone(m, res.winner), false, res.winner === 'draw');
   }
 
   /** Landesliga: neue Endnote 5 Sekunden groß in Mannschaftsfarbe, Korrekturen 10 Sekunden. */
@@ -1563,7 +1567,7 @@
   var flashTimer = null;
 
   /** Neue Scorepunkte (bzw. Endnote, wide) 5 Sekunden bildschirmfüllend in der Mannschaftsfarbe zeigen. */
-  function showFlash(points, color, wide) {
+  function showFlash(points, color, wide, draw) {
     var el = document.getElementById('score-flash');
     if (!el) {
       el = document.createElement('div');
@@ -1576,6 +1580,8 @@
     el.classList.toggle('wide', !!wide);
     num.textContent = points;
     num.style.color = color;
+    // Unentschieden: umrandete 0, damit sie sich von jeder Mannschaftsfarbe (auch Hellgrau) abhebt.
+    num.classList.toggle('draw0', !!draw);
     el.classList.remove('show');
     void el.offsetWidth; // Animation neu starten
     el.classList.add('show');
