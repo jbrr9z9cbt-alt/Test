@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '35';
+  var APP_BUILD = '36';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -27,7 +27,8 @@
     { key: 'rot', name: 'Rot', hex: '#d32f2f', onDark: '#ff5a5a', onLight: '#c62828', fg: '#fff' },
     { key: 'blau', name: 'Blau', hex: '#1e63c6', onDark: '#5b9bff', onLight: '#1e63c6', fg: '#fff' },
     { key: 'orange', name: 'Orange', hex: '#f07c00', onDark: '#ff9a2e', onLight: '#c25e00', fg: '#171717' },
-    { key: 'hellgrau', name: 'Hellgrau', hex: '#c8c8c8', onDark: '#dcdcdc', onLight: '#8a8a8a', fg: '#171717' },
+    // Hellgrau auf der dunklen Tafel als mittleres Grau, damit es sich von der weißen 0 (Unentschieden) abhebt.
+    { key: 'hellgrau', name: 'Hellgrau', hex: '#c8c8c8', onDark: '#b0b0b0', onLight: '#8a8a8a', fg: '#171717' },
     { key: 'violett', name: 'Violett', hex: '#7b3fa0', onDark: '#b884e3', onLight: '#7b3fa0', fg: '#fff' },
     { key: 'gelb', name: 'Gelb', hex: '#f5c400', onDark: '#ffd60a', onLight: '#a88200', fg: '#171717' },
     { key: 'gruen', name: 'Grün', hex: '#2e7d32', onDark: '#4ade80', onLight: '#2e7d32', fg: '#fff' }
@@ -1329,7 +1330,7 @@
     return '<div class="cd-pts none"></div>';
   }
 
-  /** Oberliga-Karte: Scorepunkte des Duells als einzelne Zahl in der Farbe des Siegers (Unentschieden: umrandete 0). */
+  /** Oberliga-Karte: Scorepunkte des Duells als einzelne Zahl in der Farbe des Siegers (Unentschieden: schwarze bzw. weiße 0). */
   function duelPointsBig(m, res) {
     if (res.winner === 'draw') return '<span class="sp-num draw0">0</span>';
     return pts(m, res.winner, res.winner === 'home' ? res.homePoints : res.guestPoints, true);
@@ -1580,7 +1581,7 @@
     el.classList.toggle('wide', !!wide);
     num.textContent = points;
     num.style.color = color;
-    // Unentschieden: umrandete 0, damit sie sich von jeder Mannschaftsfarbe (auch Hellgrau) abhebt.
+    // Unentschieden: 0 in Kontrastfarbe (schwarz bzw. weiß), damit sie sich von jeder Mannschaftsfarbe (auch Hellgrau) abhebt.
     num.classList.toggle('draw0', !!draw);
     el.classList.remove('show');
     void el.offsetWidth; // Animation neu starten

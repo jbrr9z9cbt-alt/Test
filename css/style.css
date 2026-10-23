@@ -214,9 +214,9 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .modal .actions { justify-content: flex-end; margin-top: 1rem; }
 .modal .btn { min-width: 6rem; }
 .duel-pts { font-size: 2.6rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
-/* Unentschieden: umrandete 0 (weiß mit schwarzem Rand, auf der dunklen Tafel schwarz mit weißem Rand) */
-.draw0 { color: #fff !important; -webkit-text-stroke: max(2px, .09em) #171717; paint-order: stroke fill; }
-body.board-mode:not(.board-light) .draw0 { color: #171717 !important; -webkit-text-stroke-color: #fff; }
+/* Unentschieden: 0 in Kontrastfarbe zum Hintergrund – schwarz (hell), weiß auf der dunklen Tafel */
+.draw0 { color: #171717 !important; }
+body.board-mode:not(.board-light) .draw0 { color: #fff !important; }
 .duel-sep { font-size: 1.5rem; color: #a3a3a3; }
 .duel-diff { flex-basis: 100%; font-size: .75rem; color: var(--muted); }
 .sp-num { font-weight: 800; font-variant-numeric: tabular-nums; }
