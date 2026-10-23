@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '36';
+  var APP_BUILD = '37';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -831,10 +831,12 @@
       '<button class="btn toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span>' +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
       scorersLabel(m.display && m.display.scorers) + '</button></div>' +
+      // Knöpfe zum Wettkampf selbst als zweite Gruppe; „Löschen“ steht für sich.
+      '<div class="board-group" role="group" aria-label="Wettkampf">' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
       (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
         : '<button class="btn primary" data-action="finalize">Wettkampf abschließen</button>') +
-      '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a>' +
+      '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a></div>' +
       '<button class="btn danger ghost" data-action="del-match">Löschen</button>' +
       '<span id="save-status" class="save-status"></span>' +
       '</div></section>' +
@@ -846,7 +848,7 @@
   }
 
   /** Knopfbeschriftung nennt, was beim Drücken passiert. */
-  function scorersLabel(on) { return on ? 'Topscorer ausblenden' : 'Topscorer einblenden'; }
+  function scorersLabel(on) { return on ? 'Wettkampfergebnis ausblenden' : 'Wettkampfergebnis einblenden'; }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
   function duelBlocked(m, appKey, idx, sideKey) {
@@ -1451,12 +1453,21 @@
       boardScorers(m, view) + '</div>';
   }
 
-  /** Topscorer-Overlay auf der Tafel (nur angezeigte Wertungen), per Knopf ein-/ausschaltbar. */
+  /**
+   * Fenster „Wettkampfergebnis“ (während des Wettkampfs „Zwischenstand“) auf der Tafel:
+   * Stand, Gerätepunkte und Topscorer – nur angezeigte Wertungen, per Knopf ein-/ausschaltbar.
+   */
   function boardScorers(m, view) {
     if (!(m.display && m.display.scorers)) return '';
+    var r = S.matchResult(view);
     var list = S.topScorers(view, 3);
     var classic = isClassic(m);
-    return '<div class="scorer-overlay"><div class="so-box"><div class="so-title">Topscorer</div>' +
+    return '<div class="scorer-overlay"><div class="so-box"><div class="so-title">' + (r.complete ? 'Wettkampfergebnis' : 'Zwischenstand') + '</div>' +
+      '<div class="so-result"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
+      '<div class="big">' + totalPair(m, r, true) + '</div>' +
+      '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="so-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + '</div>' +
+      '<div class="so-h">Topscorer</div>' +
       (list.length ? '<table class="so-table">' + list.map(function (x) {
         return '<tr><td class="so-rank">' + x.rank + '.</td><td class="so-name">' + esc(gymnastLabel(x.number, x.name) || '–') +
           '<small>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</small></td>' +
@@ -2153,7 +2164,7 @@
 
       sec('6. Anzeigetafel', [
         '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
-        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Topscorer einblenden</b> zeigt die drei besten Scorer.',
+        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand).',
         'Nach jeder Freigabe erscheinen 5 Sekunden groß auf der Tafel die Scorepunkte (Oberliga) bzw. die Endnote der Übung (Landesliga), Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.',
         'Soll die Anzeigetafel genutzt werden, empfiehlt sich ein Windows- oder Mac-Rechner mit <b>Chrome oder Edge</b>, im Browser oder als installierte App.'
       ]) +

@@ -80,7 +80,8 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   - Knopf „Anzeigetafel“ öffnet das Tafel-Fenster (bzw. holt es nach vorn); beendet wird sie durch Schließen des Fensters
   - Knöpfe „Hell“ / „Dunkel“ daneben: hell ist Standard (gut lesbar mit Beamer in heller Halle),
     dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
-  - Knopf „Topscorer einblenden/ausblenden“ legt die Topscorer als Overlay über die Tafel
+  - Knopf „Wettkampfergebnis einblenden/ausblenden“ zeigt Stand, Gerätepunkte und Topscorer als Fenster über der Tafel
+    (Überschrift „Zwischenstand“, solange der Wettkampf läuft)
   - passt sich automatisch ins Fenster ein (keine Scrollbalken); Timer und Detailwertungen haben feste Plätze
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.
     Der Knopf ist erst aktiv, wenn beide Turner gewählt und vollständig gewertet sind
