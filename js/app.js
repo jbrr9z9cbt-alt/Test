@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '37';
+  var APP_BUILD = '38';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1450,7 +1450,7 @@
       '<div class="bt fall off" data-slot="fall"><span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em></div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th><th class="num">GP</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
-      boardScorers(m, view) + '</div>';
+      '</div>' + boardScorers(m, view);
   }
 
   /**
@@ -1467,7 +1467,7 @@
       '<div class="big">' + totalPair(m, r, true) + '</div>' +
       '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '<div class="so-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + '</div>' +
-      '<div class="so-h">Topscorer</div>' +
+      '<div class="so-title so-h">Topscorer</div>' +
       (list.length ? '<table class="so-table">' + list.map(function (x) {
         return '<tr><td class="so-rank">' + x.rank + '.</td><td class="so-name">' + esc(gymnastLabel(x.number, x.name) || '–') +
           '<small>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</small></td>' +
@@ -1500,6 +1500,16 @@
       z = z / o2 * 0.99;
       b.style.zoom = z;
     }
+    fitResultBox();
+  }
+
+  /** Das Ergebnis-Fenster liegt über der Tafel (nicht mitverkleinert) und schrumpft nur, wenn es sonst nicht passt. */
+  function fitResultBox() {
+    var box = document.querySelector('.so-box');
+    if (!box) return;
+    box.style.zoom = '';
+    var over = Math.max(box.getBoundingClientRect().height / (window.innerHeight * 0.96), box.getBoundingClientRect().width / (window.innerWidth * 0.98));
+    if (over > 1) box.style.zoom = 1 / over;
   }
   window.addEventListener('resize', fitBoard);
 
