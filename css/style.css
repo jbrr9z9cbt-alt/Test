@@ -776,3 +776,8 @@ body.board-light #score-flash .sf-who { color: #171717; }
 .unlock-bar { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; margin: .25rem 0 .5rem; }
 .done-bar .btn, .unlock-bar .btn { margin-left: auto; }
 .modal .linkish { background: none; border: 0; color: #737373; text-decoration: underline; font: inherit; font-size: .85rem; cursor: pointer; padding: 0; margin-right: auto; }
+
+/* Anzeigetafel Oberliga: rechte Wertung gespiegelt (linksbündig), gleicher Abstand zu den Scorepunkten wie links */
+.board-duels td.num.mirror { text-align: left !important; }
+/* Anzeigetafel Landesliga: zählende Wertungen in Mannschaftsfarbe */
+.board-duels .team-val { font-weight: 600; }

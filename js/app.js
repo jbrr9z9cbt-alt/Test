@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '57';
+  var APP_BUILD = '58';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -1484,7 +1484,8 @@
     function val(k, i) {
       var v = ar[k].values[i];
       if (v === null) return '';
-      return ar[k].struck.indexOf(i) >= 0 ? '<span class="struck-val"><s>' + fmt(v) + '</s><small>Streichwertung</small></span>' : fmt(v);
+      return ar[k].struck.indexOf(i) >= 0 ? '<span class="struck-val"><s>' + fmt(v) + '</s><small>Streichwertung</small></span>'
+        : '<span class="team-val" style="color:' + boardTone(m, k) + '">' + fmt(v) + '</span>';
     }
     function name(k, d, right) {
       return '<td class="bn' + (right ? ' right' : '') + '" style="--team:' + boardTone(m, k) + '">' + esc(gymnastLabel(d[k].number, d[k].name) || '–') + '</td>';
@@ -1548,7 +1549,7 @@
           return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + homeColor + '">' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' +
             '<td class="num">' + (dr.home === null ? '' : fmt(dr.home)) + '</td>' +
             '<td class="num pts">' + (dr.complete ? ptsPair(m, dr.homePoints, dr.guestPoints, true, ' : ') : '') + '</td>' +
-            '<td class="num">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
+            '<td class="num mirror">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
             '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
         }).join('') +
         '<tr class="bsum"><td>Summe Scorepunkte</td><td></td><td class="num pts">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ' : ') + '</td>' +
