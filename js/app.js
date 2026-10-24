@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '50';
+  var APP_BUILD = '51';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1500,7 +1500,7 @@
     var wEnd = !warm && timerEnded(m.timers && m.timers.warmup, WARMUP_MS, WARMUP_END_MS);
     if (!warm && !wEnd) return '';
     var key = warm ? warm.t.appKey : m.timers.warmup.appKey;
-    return '<div class="pause-overlay warm-overlay"><div class="pause-win warm-win">' +
+    return '<div class="pause-overlay warm-overlay"><div class="pause-win warm-win">' + scoreHeadHtml(m) +
       '<div class="fw-name">' + appIcon(key, 'tm-ico') + 'Einturnzeit ' + apparatusName(key) + '</div>' +
       (warm ? '<div class="pw-clock">' + fixedDigits(clock(warm.remaining)) + '</div>' : '<div class="pw-clock pw-end">Einturnen beendet</div>') + '</div></div>';
   }
@@ -1530,19 +1530,21 @@
     return ['fz-0', 'fz-1', 'fz-2', 'fz-2', 'fz-2', 'fz-2 fz-pulse'][Math.min(5, fall.step)];
   }
 
+  /** Kopf der Pause- und Einturn-Fenster: aktueller Zwischenstand (nur freigegebene Wertungen, wie auf der Tafel). */
+  function scoreHeadHtml(m) {
+    var r = S.matchResult(S.revealedView(m));
+    return '<div class="pw-score"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
+      '<div class="s">' + totalPair(m, r, true) + '</div>' +
+      '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="pw-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + '</div>';
+  }
+
   /** Pause-Fenster über der Tafel: Restzeit groß, nach Ablauf kurz „Zeit abgelaufen“. */
   function pauseBoxHtml(m) {
     var p = pauseState(m);
     var end = !p && m.timers && m.timers.pause && timerEnded(m.timers.pause, m.timers.pause.ms, PAUSE_END_MS);
     if (!p && !end) return '';
-    // Ganz oben der aktuelle Zwischenstand (nur freigegebene Wertungen, wie auf der Tafel).
-    var r = S.matchResult(S.revealedView(m));
-    return '<div class="pause-overlay"><div class="pause-win">' +
-      '<div class="pw-score"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
-      '<div class="s">' + totalPair(m, r, true) + '</div>' +
-      '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
-      '<div class="pw-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + '</div>' +
-      '<div class="pw-title">Pause</div>' +
+    return '<div class="pause-overlay"><div class="pause-win">' + scoreHeadHtml(m) + '<div class="pw-title">Pause</div>' +
       (p ? '<div class="pw-clock">' + fixedDigits(clock(p.remaining)) + '</div>' : '<div class="pw-clock pw-end">Zeit abgelaufen</div>') + '</div></div>';
   }
 
