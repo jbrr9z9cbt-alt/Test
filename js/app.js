@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '47';
+  var APP_BUILD = '48';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1505,7 +1505,7 @@
     var name = esc(gymnastLabel(d.number, d.name) || teamName(t.side === 'home' ? m.homeTeamId : m.guestTeamId));
     return '<div class="pause-overlay fall-overlay"><div class="pause-win fall-win ' + (fall ? 'phase' + fall.phase : 'ended') + '">' +
       '<div class="fw-name">' + appIcon(t.appKey, 'tm-ico') + (fall ? 'Sturz · ' : '') + name + '</div>' +
-      (fall ? '<div class="pw-clock">' + clock(fall.remaining) + '</div>' : '<div class="pw-clock pw-end">Übung beendet</div>') +
+      (fall ? '<div class="pw-clock">' + secs(fall.remaining) + '</div>' : '<div class="pw-clock pw-end">Übung beendet</div>') +
       '<div class="fw-note' + (fall && fall.phase === 2 ? '' : ' hide') + '">Abzug 0,3</div></div></div>';
   }
 
@@ -1514,7 +1514,14 @@
     var p = pauseState(m);
     var end = !p && m.timers && m.timers.pause && timerEnded(m.timers.pause, m.timers.pause.ms, PAUSE_END_MS);
     if (!p && !end) return '';
-    return '<div class="pause-overlay"><div class="pause-win"><div class="pw-title">Pause</div>' +
+    // Ganz oben der aktuelle Zwischenstand (nur freigegebene Wertungen, wie auf der Tafel).
+    var r = S.matchResult(S.revealedView(m));
+    return '<div class="pause-overlay"><div class="pause-win">' +
+      '<div class="pw-score"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
+      '<div class="s">' + totalPair(m, r, true) + '</div>' +
+      '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="pw-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + '</div>' +
+      '<div class="pw-title">Pause</div>' +
       (p ? '<div class="pw-clock">' + clock(p.remaining) + '</div>' : '<div class="pw-clock pw-end">Zeit abgelaufen</div>') + '</div></div>';
   }
 
@@ -1714,6 +1721,11 @@
     return el >= duration && el < duration + showMs;
   }
 
+  /** Sturz-Timer: nur Sekunden (eine Phase dauert höchstens 30 Sekunden). */
+  function secs(ms) {
+    return String(Math.ceil(ms / 1000));
+  }
+
   function clock(ms) {
     var sec = Math.ceil(ms / 1000);
     return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
@@ -1735,7 +1747,7 @@
     var fall = fallState(m), warm = warmupState(m);
     $app.querySelectorAll('[data-action="fall-timer"]').forEach(function (btn) {
       var on = !!fall && fall.t.appKey === btn.getAttribute('data-app') && String(fall.t.idx) === btn.getAttribute('data-duel') && fall.t.side === btn.getAttribute('data-side');
-      var label = on ? '⏱ ' + clock(fall.remaining) + (fall.phase === 2 ? ' · Abzug 0,3' : '') + ' – Stopp' : 'Sturz-Timer';
+      var label = on ? '⏱ ' + secs(fall.remaining) + (fall.phase === 2 ? ' · Abzug 0,3' : '') + ' – Stopp' : 'Sturz-Timer';
       if (btn.textContent !== label) btn.textContent = label;
       btn.classList.toggle('t-yellow', on && fall.phase === 1);
       btn.classList.toggle('t-red', on && fall.phase === 2);
