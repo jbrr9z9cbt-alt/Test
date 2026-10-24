@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '51';
+  var APP_BUILD = '52';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -661,6 +661,8 @@
       '<div>' + input('judgeE3Guest', 'E3 – Gast', j.e3) + sameCheck('sameE3', 'D2 (Gast)', !neutral && !!j.e3 && j.e3 === j.d2) + '</div></div>' +
       '<p class="muted small judge-hint">' + (neutral ? 'E-Note: 10 − Mittelwert der Abzüge von E1 und E2.' : 'E-Note: höchster und niedrigster Abzug werden gestrichen, der mittlere zählt.') + '</p>' +
       '</fieldset>' +
+      (isNew ? '' : '<label class="check"><input type="checkbox" name="unlockApparatus"' + (m.unlockApparatus ? ' checked' : '') + '> Gerätesperre aufheben ' +
+        '<span class="muted small">(Notfall: alle Geräte frei wählbar, auch wenn ein anderes noch nicht abgeschlossen ist)</span></label>') +
 
       '<p class="muted small req-note"><span class="req">*</span> Pflichtfeld</p>' +
       '<div class="actions"><button class="btn primary" type="submit">' + (isNew ? 'Anlegen' : 'Speichern') + '</button>' +
@@ -811,6 +813,7 @@
     m.captains = { home: text('captainHome'), guest: text('captainGuest') };
     m.startTeam = fd.get('startTeam') === 'guest' ? 'guest' : 'home';
     m.date = fd.get('date') || '';
+    if (form.unlockApparatus) m.unlockApparatus = form.unlockApparatus.checked;
     save('matches', m).then(function () { location.hash = '#/match/' + m.id; });
   }
 
@@ -821,16 +824,48 @@
   // ---------- Ansicht: Wettkampf (Erfassung) ----------
 
   function currentTab(m) {
-    return state.ui.tab[m.id] || S.APPARATUS[0].key;
+    var tab = state.ui.tab[m.id] || S.APPARATUS[0].key;
+    // Ein gesperrtes Gerät nie anzeigen, sondern das laufende.
+    return appStatus(m)[tab] === 'locked' ? runningApparatus(m).key : tab;
+  }
+
+  /**
+   * Status je Gerät nach freigegebenen Wertungen: done (abgeschlossen), run (läuft), open (offen)
+   * bzw. locked, solange ein anderes Gerät läuft – außer bei aufgehobener Gerätesperre.
+   */
+  function appStatus(m) {
+    var r = S.matchResult(S.revealedView(m)), st = {};
+    S.APPARATUS.forEach(function (a) {
+      var ar = r.apparatus[a.key];
+      st[a.key] = ar.complete ? 'done' : ar.started ? 'run' : 'open';
+    });
+    var running = S.APPARATUS.some(function (a) { return st[a.key] === 'run'; });
+    if (running && !m.unlockApparatus && m.status !== 'final') {
+      S.APPARATUS.forEach(function (a) { if (st[a.key] === 'open') st[a.key] = 'locked'; });
+    }
+    return st;
+  }
+
+  function runningApparatus(m) {
+    var st = appStatus(m);
+    return S.APPARATUS.filter(function (a) { return st[a.key] === 'run'; })[0];
+  }
+
+  var TAB_BADGE = { done: '✓', run: '', locked: '🔒', open: '' };
+
+  function tabStatusClass(st) {
+    return st === 'open' ? '' : ' st-' + st;
   }
 
   function viewMatch(m) {
     var r = S.matchResult(m);
     var tab = currentTab(m);
     var locked = m.status === 'final';
+    var st = appStatus(m);
     var tabs = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
-      return '<button class="tab' + (a.key === tab ? ' active' : '') + (ar.complete ? ' complete' : '') + '" tabindex="-1" data-action="tab" data-tab="' + a.key + '">' +
+      return '<button class="tab' + (a.key === tab ? ' active' : '') + tabStatusClass(st[a.key]) + '" tabindex="-1" data-action="tab" data-tab="' + a.key + '">' +
+        '<span class="tab-badge" aria-hidden="true">' + TAB_BADGE[st[a.key]] + '</span>' +
         appIcon(a.key, 'tab-ico') + '<span class="tab-name">' + a.name + '</span><span class="tab-score" data-out="tab-' + a.key + '">' + totalPair(m, ar) + '</span></button>';
     }).join('');
 
@@ -1148,11 +1183,14 @@
     out('app', r.homeApp + ':' + r.guestApp);
     out('winner', winnerText(m, r));
     out('status', statusBadge(m, r));
+    var st = appStatus(m);
     S.APPARATUS.forEach(function (a) {
       var ar = r.apparatus[a.key];
       out('tab-' + a.key, totalPair(m, ar));
       var tabBtn = $app.querySelector('.tab[data-tab="' + a.key + '"]');
-      if (tabBtn) tabBtn.classList.toggle('complete', ar.complete);
+      if (!tabBtn) return;
+      ['done', 'run', 'locked'].forEach(function (k) { tabBtn.classList.toggle('st-' + k, st[a.key] === k); });
+      tabBtn.querySelector('.tab-badge').textContent = TAB_BADGE[st[a.key]];
     });
     var tab = currentTab(m);
     var ar = r.apparatus[tab];
@@ -2254,6 +2292,7 @@
         classic
           ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
           : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „legt vor“ markiert.',
+        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt. Solange ein Gerät läuft (ab der ersten freigegebenen Wertung), kann kein weiteres begonnen werden; abgeschlossene Geräte bleiben wählbar. Im Notfall hebt „Gerätesperre aufheben“ im Wettkampf Setup die Sperre auf.',
         'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
           ' Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
@@ -2638,6 +2677,10 @@
 
     switch (action) {
       case 'tab':
+        if (appStatus(m)[btn.getAttribute('data-tab')] === 'locked') {
+          toast('🔒 ' + apparatusName(btn.getAttribute('data-tab')) + ' kann erst begonnen werden, wenn ' + runningApparatus(m).name + ' abgeschlossen ist.', 'error');
+          return;
+        }
         state.ui.tab[m.id] = btn.getAttribute('data-tab');
         $app.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b === btn); });
         document.getElementById('apparatus-panel').innerHTML = apparatusPanel(m, currentTab(m));
