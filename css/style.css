@@ -231,18 +231,6 @@ body.board-mode:not(.board-light) .draw0 { color: #fff !important; }
 .timer-btn.fz-0 { color: #171717; } .timer-btn.fz-1 { color: #92400e; } .timer-btn.fz-2 { color: #b91c1c; }
 .fz-pulse { animation: flash-blink 1s ease-in-out infinite; }
 .timer-btn.t-running { background: #171717; border-color: #171717; color: #fff; font-weight: 700; }
-.board-timers { display: flex; justify-content: center; margin: -.5rem 0 1.25rem; }
-.board-timers .bt { min-width: 50%; }
-/* Feste Plätze: inaktive Timer sind unsichtbar, nehmen aber ihren Platz ein */
-.bt { display: flex; align-items: baseline; justify-content: center; gap: .8rem; padding: .35rem 1.2rem; border-radius: 12px;
-  font-size: clamp(1.4rem, 2.7vw, 2.3rem); background: #262626; white-space: nowrap; overflow: hidden; }
-.bt.off { visibility: hidden; }
-.bt strong { font-size: 1.6em; font-variant-numeric: tabular-nums; }
-.bt em { font-style: normal; font-weight: 800; }
-.bt em.hide { visibility: hidden; }
-.bt.warm { background: #14361f; } .bt.warm strong { color: #86efac; }
-/* Nach Ablauf: Hinweis leicht blinkend */
-.bt.ended strong { animation: flash-blink 1s ease-in-out infinite; }
 .duel-open { color: var(--muted); font-style: italic; }
 .revealed { font-size: .8rem; color: var(--ok); }
 .changed { flex-basis: 100%; text-align: right; font-size: .8rem; color: var(--warn); font-weight: 600; }
@@ -275,15 +263,15 @@ body.board-mode main { max-width: none; padding: 0; }
 .board-big { font-size: clamp(4rem, 14vw, 11rem); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
 .board-big span { color: #525252; margin: 0 .1em; }
 .board-sub { text-align: center; font-size: 1.7rem; color: #d4d4d4; margin-bottom: 1rem; }
-.board-grid { display: grid; grid-template-columns: minmax(0, .72fr) minmax(0, 2.28fr); gap: 1.5rem; }
+.board-grid { display: grid; grid-template-columns: minmax(0, .6fr) minmax(0, 2.4fr); gap: 1.5rem; }
 .board-table, .board-duels { width: 100%; border-collapse: collapse; }
 .board-table { font-size: clamp(1.1rem, 2.1vw, 1.8rem); }
-.board-duels { font-size: clamp(1.2rem, 2.4vw, 2.1rem); }
+.board-duels { font-size: clamp(1.4rem, 2.9vw, 2.55rem); }
 .board-table td, .board-table th, .board-duels td { padding: .45rem .6rem; border-bottom: 1px solid #2e2e2e; }
 .board-table td, .board-table th { padding: .5rem .35rem; }
 .board-table th { color: #737373; font-weight: 600; text-align: left; }
 .board-table tr.current { background: #2e2e2e; }
-.board-detail h3 { margin-top: 0; font-size: 2rem; color: #e5e5e5; }
+.board-detail h3 { margin-top: 0; font-size: 2.4rem; color: #e5e5e5; }
 .board-duels .bn { color: #d4d4d4; }
 .board-duels .bn.win { color: var(--team, #fff); font-weight: 800; }
 .board-duels .right { text-align: right; }
@@ -316,9 +304,9 @@ body.board-mode .update-banner { display: none; }
 /* Aktuelles Duell auf der Anzeigetafel */
 .cur-duel { background: #262626; border-radius: 12px; padding: 1.2rem 1.6rem; margin-bottom: 1.25rem; }
 .cur-duel.empty { color: #737373; text-align: center; font-size: 1.2rem; }
-.cd-head { color: #a3a3a3; font-size: 1.5rem; margin-bottom: .5rem; }
+.cd-head { color: #a3a3a3; font-size: 1.8rem; margin-bottom: .5rem; }
 .cd-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem; align-items: stretch; }
-.cd-side { border-top: 5px solid var(--team); padding-top: .5rem; font-size: clamp(1.4rem, 2.7vw, 2.4rem); display: flex; flex-direction: column; }
+.cd-side { border-top: 5px solid var(--team); padding-top: .5rem; font-size: clamp(1.7rem, 3.3vw, 2.9rem); display: flex; flex-direction: column; }
 .cd-pts { align-self: center; }
 .cd-name { font-weight: 800; color: var(--team); margin-bottom: .35rem; }
 .cd-row, .cd-final { display: flex; justify-content: space-between; gap: 1rem; font-variant-numeric: tabular-nums; }
@@ -520,8 +508,6 @@ body.board-light .cd-head, body.board-light .cd-row span, body.board-light .cd-f
 body.board-light .cd-final { border-top-color: #404040; }
 body.board-light .cd-row.nd strong { color: #b91c1c; }
 body.board-light .cd-row strong small, body.board-light .cd-row span small.sb { color: #15803d; }
-body.board-light .bt { background: #fff; color: #171717; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-body.board-light .bt.warm { background: #dcfce7; } body.board-light .bt.warm strong { color: #166534; }
 body.board-light #score-flash { background: #f4f4f4; }
 body.board-light #correction-overlay { background: rgba(244,244,244,.85); }
 body.board-light .corr-box { background: #fff; color: #171717; }
@@ -573,7 +559,7 @@ body.board-light .standby img { opacity: .8; }
 
 /* ---------- Landesliga: Anzeigetafel ---------- */
 .board-big.sums { font-size: clamp(3rem, 8vw, 7rem); }
-.cd-pts.single { font-size: clamp(4rem, 9vw, 8rem); text-align: center; }
+.cd-pts.single { font-size: clamp(4.8rem, 11vw, 9.6rem); text-align: center; }
 .cd-pts.none { min-width: 2rem; }
 .cd-side.ghost { visibility: hidden; }
 .struck-val { color: #a3a3a3; white-space: nowrap; }
@@ -625,7 +611,6 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 .board-table tr.current .bt-ico { opacity: 1; }
 .board-detail h3 { display: flex; align-items: center; }
 .board-detail .bd-ico { width: 1.8em; height: 1.8em; margin-right: .5em; }
-.bt .tm-ico { width: 1.4em; height: 1.4em; margin-right: .45em; vertical-align: -.35em; }
 /* 4: Protokoll */
 .pa-head .pa-ico { width: 6mm; height: 6mm; margin-right: 2mm; vertical-align: middle; }
 /* 5: Startseite */
@@ -681,3 +666,13 @@ body.board-light .fall-win.phase2 .fw-note, body.board-light .fall-win.ended .pw
 .pw-score .s { font-size: clamp(2.6rem, 6vw, 5.2rem); font-weight: 900; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .pw-score .s .sp-sep { color: #a3a3a3; margin: 0 .1em; }
 .pw-sub { font-size: clamp(1rem, 1.8vw, 1.5rem); margin-bottom: .8rem; opacity: .85; }
+
+/* Große Zeitanzeigen: feste Breite je Ziffer, nichts verspringt */
+.pw-clock .dg { display: inline-block; width: .62em; text-align: center; }
+.pw-clock .dg-sep { display: inline-block; width: .32em; text-align: center; }
+/* Einturnzeit als Fenster über der Tafel (grün wie bisher) */
+.warm-overlay { z-index: 184; }
+.warm-win { background: #14361f; border-color: #86efac; }
+.warm-win .pw-clock { color: #86efac; }
+body.board-light .warm-win { background: #dcfce7; border-color: #16a34a; }
+body.board-light .warm-win .pw-clock { color: #166534; }
