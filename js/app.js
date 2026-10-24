@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '56';
+  var APP_BUILD = '57';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -2004,10 +2004,112 @@
       ' · <strong>Beginn:</strong> ' + esc(teamName(m.startTeam === 'guest' ? m.guestTeamId : m.homeTeamId)) + '</div></div>';
   }
 
+  /** Installierte App auf dem iPhone (dort kann eine Web-App den Druckdialog nicht öffnen). */
+  function iphoneApp() {
+    return /iPhone|iPod/.test(navigator.userAgent) &&
+      (navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches));
+  }
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+      var el = document.createElement('script');
+      el.src = src; el.onload = resolve; el.onerror = function () { reject(new Error('Laden fehlgeschlagen: ' + src)); };
+      document.head.appendChild(el);
+    });
+  }
+
+  /**
+   * Protokoll als A4-PDF (Bild der Seite). Die Bibliotheken werden erst hier geladen,
+   * damit der Start der App nicht langsamer wird; offline liegen sie im Cache.
+   */
+  function protocolPdf(m) {
+    var sheet = document.getElementById('print-sheet');
+    return loadScript('js/vendor/html2canvas.min.js').then(function () { return loadScript('js/vendor/jspdf.umd.min.js'); }).then(function () {
+      // Ohne Einpassung per zoom rendern; auf A4 verkleinert wird im PDF.
+      var zoom = sheet.style.zoom, width = sheet.style.width;
+      sheet.style.zoom = ''; sheet.style.width = '';
+      sheet.classList.add('pdf-render');
+      var shot = function (o) { return window.html2canvas(sheet, o).then(function (c) { return c.toDataURL('image/jpeg', 0.95); }); };
+      // Bilder (Logo, Gerätesymbole) vorab als Daten übergeben: html2canvas lädt sie sonst in einer Kopie
+      // der Seite neu, die offline keinen Zugriff auf die gespeicherten App-Dateien hat.
+      return inlineImages(sheet).then(function (urls) {
+        var opts = { scale: 2.5, backgroundColor: '#ffffff', windowWidth: 1100, logging: false,
+          onclone: function (doc) {
+            doc.querySelectorAll('#print-sheet img').forEach(function (el) { var u = urls[el.getAttribute('src')]; if (u) el.setAttribute('src', u); });
+          } };
+        return shot(opts).catch(function () {
+          // Falls die Gerätesymbole (SVG) das Bild sperren: ohne Symbole erneut.
+          return shot(Object.assign({}, opts, { ignoreElements: function (el) { return el.tagName === 'IMG' && /\.svg$|^data:image\/svg/.test(el.getAttribute('src') || ''); } }));
+        });
+      }).then(function (data) {
+        var img = new Image();
+        return new Promise(function (res) { img.onload = function () { res(img); }; img.src = data; }).then(function () {
+          var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+          var w = 190, h = w * img.height / img.width;
+          if (h > 277) { h = 277; w = h * img.width / img.height; }
+          doc.addImage(data, 'JPEG', (210 - w) / 2, 10, w, h);
+          return doc.output('blob');
+        });
+      }).finally(function () {
+        sheet.classList.remove('pdf-render');
+        sheet.style.zoom = zoom; sheet.style.width = width;
+      });
+    });
+  }
+
+  /** Alle Bilder des Blatts als data:-Adressen (über den Service Worker, also auch offline). */
+  function inlineImages(root) {
+    var urls = {};
+    var srcs = Array.from(new Set(Array.prototype.map.call(root.querySelectorAll('img'), function (el) { return el.getAttribute('src'); })));
+    return Promise.all(srcs.map(function (src) {
+      return fetch(src).then(function (r) { return r.blob(); }).then(function (blob) {
+        return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { urls[src] = fr.result; res(); }; fr.onerror = function () { res(); }; fr.readAsDataURL(blob); });
+      }).catch(function () {});
+    })).then(function () { return urls; });
+  }
+
+  function protocolFileName(m) {
+    return 'WTB-' + matchLeague(m).short + '_Protokoll_' + (m.date || 'ohne-datum') + '_' + slug(teamName(m.homeTeamId)) + '_' + slug(teamName(m.guestTeamId)) + '.pdf';
+  }
+
+  var pdfReady = null; // fertiges PDF, falls das Teilen einen zweiten Tipp braucht
+
+  function sharePdf(btn, m) {
+    var share = function (file) {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file], title: 'Wettkampfprotokoll' }).then(function () { pdfReady = null; btn.textContent = 'Als PDF teilen / drucken'; }, function (err) {
+          if (err && err.name === 'AbortError') { btn.textContent = 'Als PDF teilen / drucken'; pdfReady = null; return; }
+          // iOS erlaubt das Teilen nur direkt nach einem Tipp – nach dem Erstellen ein zweites Mal antippen.
+          pdfReady = { id: m.id, file: file };
+          btn.textContent = 'PDF fertig – jetzt teilen';
+        });
+      }
+      // Ohne Teilen-Funktion: Datei herunterladen.
+      btn.textContent = 'Als PDF teilen / drucken';
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(file); a.download = file.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 60000);
+      return Promise.resolve();
+    };
+    if (pdfReady && pdfReady.id === m.id) { share(pdfReady.file); return; }
+    btn.disabled = true; btn.textContent = 'PDF wird erstellt …';
+    protocolPdf(m).then(function (blob) {
+      btn.disabled = false;
+      return share(new File([blob], protocolFileName(m), { type: 'application/pdf' }));
+    }).catch(function (err) {
+      btn.disabled = false; btn.textContent = 'Als PDF teilen / drucken';
+      toast('PDF konnte nicht erstellt werden: ' + (err && err.message || err), 'error');
+    });
+  }
+
   /** Knöpfe, Blattanfang und Kopf mit Logo, Liga, Begegnung und Datum (beide Ligen). */
   function printHead(m) {
     return '<div class="print-actions no-print"><a class="btn ghost" href="#/match/' + m.id + '">← zurück</a>' +
-      '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>' +
+      // iPhone-App vom Home-Bildschirm: iOS ignoriert dort den Druckbefehl – stattdessen PDF erzeugen und teilen (darin „Drucken“).
+      (iphoneApp() ? '<button class="btn primary" data-action="share-pdf" data-match="' + m.id + '">Als PDF teilen / drucken</button></div>'
+        : '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>') +
       '<div class="print-page"><section class="print-sheet" id="print-sheet">' +
       '<div class="ps-head"><div class="ps-title">' + PRINT_LOGO +
       '<div class="ps-titletext"><div class="ps-league">' + esc(matchLeague(m).short) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
@@ -2832,6 +2934,9 @@
       case 'fullscreen':
         if (document.fullscreenElement) document.exitFullscreen();
         else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+        break;
+      case 'share-pdf':
+        sharePdf(btn, match(btn.getAttribute('data-match')));
         break;
       case 'print':
         window.print();
