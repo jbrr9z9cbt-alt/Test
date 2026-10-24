@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '48';
+  var APP_BUILD = '49';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1505,8 +1505,13 @@
     var name = esc(gymnastLabel(d.number, d.name) || teamName(t.side === 'home' ? m.homeTeamId : m.guestTeamId));
     return '<div class="pause-overlay fall-overlay"><div class="pause-win fall-win ' + (fall ? 'phase' + fall.phase : 'ended') + '">' +
       '<div class="fw-name">' + appIcon(t.appKey, 'tm-ico') + (fall ? 'Sturz · ' : '') + name + '</div>' +
-      (fall ? '<div class="pw-clock">' + secs(fall.remaining) + '</div>' : '<div class="pw-clock pw-end">Übung beendet</div>') +
+      (fall ? '<div class="pw-clock ' + fallTone(fall) + '">' + secs(fall.remaining) + '</div>' : '<div class="pw-clock pw-end">Übung beendet</div>') +
       '<div class="fw-note' + (fall && fall.phase === 2 ? '' : ' hide') + '">Abzug 0,3</div></div></div>';
+  }
+
+  /** Farbe der Sekunden: 0–10 s schwarz (dunkle Tafel weiß), 10–20 s ocker, ab 20 s rot, 50–60 s zusätzlich leicht blinkend. */
+  function fallTone(fall) {
+    return ['fz-0', 'fz-1', 'fz-2', 'fz-2', 'fz-2', 'fz-2 fz-pulse'][Math.min(5, fall.step)];
   }
 
   /** Pause-Fenster über der Tafel: Restzeit groß, nach Ablauf kurz „Zeit abgelaufen“. */
@@ -1693,7 +1698,8 @@
     var el = Date.now() - t.start;
     if (el < 0 || el >= 2 * FALL_PHASE_MS) return null;
     var phase = el < FALL_PHASE_MS ? 1 : 2;
-    return { t: t, phase: phase, remaining: phase * FALL_PHASE_MS - el };
+    // Abschnitt 0–5 je 10 Sekunden: Farbe der Zahl (schwarz/weiß, ocker, rot), im letzten Abschnitt leicht blinkend.
+    return { t: t, phase: phase, step: Math.floor(el / 10000), remaining: phase * FALL_PHASE_MS - el };
   }
 
   function warmupState(m) {
@@ -1749,8 +1755,9 @@
       var on = !!fall && fall.t.appKey === btn.getAttribute('data-app') && String(fall.t.idx) === btn.getAttribute('data-duel') && fall.t.side === btn.getAttribute('data-side');
       var label = on ? '⏱ ' + secs(fall.remaining) + (fall.phase === 2 ? ' · Abzug 0,3' : '') + ' – Stopp' : 'Sturz-Timer';
       if (btn.textContent !== label) btn.textContent = label;
-      btn.classList.toggle('t-yellow', on && fall.phase === 1);
-      btn.classList.toggle('t-red', on && fall.phase === 2);
+      btn.classList.toggle('t-fall1', on && fall.phase === 1);
+      btn.classList.toggle('t-fall2', on && fall.phase === 2);
+      ['fz-0', 'fz-1', 'fz-2', 'fz-pulse'].forEach(function (c) { btn.classList.toggle(c, on && fallTone(fall).split(' ').indexOf(c) >= 0); });
     });
     var wb = $app.querySelector('[data-action="warmup-timer"]');
     if (wb) {
@@ -2252,7 +2259,7 @@
 
       sec('4. Timer', [
         '<b>Einturnzeit (4:00)</b> über dem jeweiligen Gerät starten. Nach Ablauf ertönt 5 Sekunden lang eine Schelle.',
-        '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: nach 30 Sekunden ein kurzer Doppelton, nach weiteren 30 Sekunden ein Fehlerton und „Abzug 0,3“.',
+        '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: Die Sekunden erscheinen zuerst schwarz, ab 10 Sekunden ocker, ab 20 Sekunden rot. Nach 30 Sekunden ertönt ein kurzer Doppelton, die Anzeige wird rot und zeigt „Abzug 0,3“; in den letzten 10 Sekunden blinkt die Zahl leicht. Nach weiteren 30 Sekunden ertönt ein Fehlerton und „Übung beendet“ erscheint.',
         'Ein erneuter Klick auf den laufenden Timer stoppt ihn. Die Lautstärke wird am Gerät eingestellt.'
       ]) +
 
