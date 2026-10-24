@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '54';
+  var APP_BUILD = '55';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;

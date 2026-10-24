@@ -164,7 +164,7 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .side { padding: .5rem; border-radius: 8px; }
 .side.home { background: #f5f5f5; border: 1px solid #e5e5e5; }
 .side.guest { background: #ebebeb; border: 1px solid #dcdcdc; }
-.side { border-left: 5px solid var(--team, #737373) !important; }
+.side { border-left: 5px solid var(--team, #737373) !important; box-shadow: 0 0 0 2px var(--team, #737373) inset; }
 .side.dns { opacity: .75; }
 .side-head { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; }
 .side-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; width: 2.6rem; }
@@ -188,7 +188,7 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .result-row .final strong { font-size: 1.3rem; }
 .duel-result { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; text-align: center; gap: .2rem; grid-column: 2; grid-row: 1; }
 /* Vorlegender Turner links, nachlegender rechts; Knöpfe unter der zweiten Übung */
-.duel .side.first { grid-column: 1; grid-row: 1; box-shadow: 0 0 0 2px var(--team) inset; }
+.duel .side.first { grid-column: 1; grid-row: 1; }
 .duel .side.second { grid-column: 3; grid-row: 1; }
 .duel-actions { grid-row: 2; grid-column: 3; display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; justify-content: flex-end; }
 .duel-actions:empty { display: none; }
@@ -539,7 +539,9 @@ body.board-light .standby img { opacity: .8; }
 .cl-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
 .cl-head { margin-bottom: .4rem; font-weight: 600; }
 .cl-cell { display: flex; flex-direction: column; gap: .4rem; }
-.cl-cell.pending .side { box-shadow: 0 0 0 2px var(--warn); }
+/* Nachträgliche Änderung: wie in der Oberliga ein gelber Rahmen um die ganze Übung, unabhängig von der Mannschaftsfarbe */
+.cl-cell { padding: .35rem; border: 1px solid transparent; border-radius: 10px; }
+.cl-cell.pending { border-color: var(--warn); box-shadow: 0 0 0 2px #fde68a; }
 .cl-cell.blocked { opacity: .55; }
 .cl-cell .duel-actions { grid-row: auto; grid-column: auto; }
 .cl-sums { font-size: .95rem; }
