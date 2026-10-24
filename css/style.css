@@ -760,3 +760,12 @@ body.board-light .warm-win .pw-clock { color: #166534; }
   .board:not(.board-standby) .board-duels td { padding: calc(var(--u) * .8) calc(var(--u) * .6); }
   .board:not(.board-standby) .board-duels .bn { white-space: normal; }
 }
+
+/* Große Einblendung nach der Freigabe: oben Turner und Mannschaft, darunter groß Scorepunkte bzw. Endnote */
+#score-flash.show { flex-direction: column; }
+#score-flash .sf-who { text-align: center; line-height: 1.1; color: #fafafa; }
+#score-flash .sf-name { font-size: min(8vh, 6vw); font-weight: 800; }
+#score-flash .sf-team { font-size: min(4.2vh, 3.2vw); font-weight: 600; opacity: .7; margin-top: .25em; }
+#score-flash span.sf-num { font-size: min(62vh, 60vw); }
+#score-flash.wide span.sf-num { font-size: min(44vh, 24vw); margin-top: 3vh; }
+body.board-light #score-flash .sf-who { color: #171717; }

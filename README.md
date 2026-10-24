@@ -20,7 +20,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 - Je Gerät bis zu 4 Turner pro Mannschaft, **abwechselnd** (A1, B1, A2, B2 …); die beginnende Mannschaft
   wird ausgelost und wechselt an jedem Gerät.
 - Eingabe: links die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen, mit Startposition 1–8.
-- Jede Übung wird **einzeln freigegeben** und auf der Tafel gezeigt (Endnote 5 s groß in Mannschaftsfarbe).
+- Jede Übung wird **einzeln freigegeben** und auf der Tafel gezeigt (Endnote 10 s groß in Mannschaftsfarbe, darüber Startnummer, Name und Mannschaft des Turners).
 - Je Mannschaft und Gerät zählen die **3 höchsten Wertungen**; die niedrigste ist die **Streichwertung**
   (bei Gleichstand die später geturnte) und wird in Eingabe, Tafel und Protokoll durchgestrichen gekennzeichnet.
 - Gerätepunkte 2/1/0 nach Gerätesumme, Sieger nach Gesamtpunktzahl (2/1/0 Punkte).
@@ -92,8 +92,9 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.
     Der Knopf ist erst aktiv, wenn beide Turner gewählt und vollständig gewertet sind
     (bei „nicht angetreten“ ohne Turner und Wertung)
-  - Dann werden die neuen Scorepunkte **5 Sekunden bildschirmfüllend** als Zahl in der Farbe der
-    siegreichen Mannschaft eingeblendet, leicht blinkend (bei Gleichstand eine graue 0)
+  - Dann werden die neuen Scorepunkte **10 Sekunden bildschirmfüllend** als Zahl in der Farbe der
+    siegreichen Mannschaft eingeblendet, darüber Startnummer, Name und Mannschaft des Siegers, leicht blinkend
+    (bei Gleichstand eine 0 in Schwarz bzw. Weiß mit „Unentschieden“ darüber)
   - Das zuletzt angezeigte Duell steht mit **D-Note, E-Note, neutralem Abzug (falls vorhanden) und Endnote** auf der Tafel
 - **Nachträgliche Änderungen**: Wird eine bereits angezeigte Wertung geändert, zeigt die Tafel weiter den alten Stand.
   Alle anderen Duelle sind gesperrt, bis die Korrektur mit **„Korrektur freigeben“** auf die Tafel gebracht

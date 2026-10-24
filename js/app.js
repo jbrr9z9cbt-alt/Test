@@ -7,10 +7,10 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '55';
+  var APP_BUILD = '56';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
-  var FLASH_MS = 5000;
+  var FLASH_MS = 10000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
   var WARMUP_MS = 4 * 60 * 1000;   // Einturnzeit je Gerät
@@ -1671,10 +1671,17 @@
     if (!res.complete) return;
     if (raw.revealKind === 'correction') { showCorrection(m, latest.appKey, latest.idx, duel, raw.prevShown); return; }
     var points = res.winner === 'home' ? res.homePoints : res.winner === 'guest' ? res.guestPoints : 0;
-    showFlash(points, res.winner === 'draw' ? '' : boardTone(m, res.winner), false, res.winner === 'draw');
+    var w = res.winner === 'draw' ? null : res.winner;
+    showFlash(points, w ? boardTone(m, w) : '', false, !w, w ? flashWho(m, duel[w], w) : null);
   }
 
-  /** Landesliga: neue Endnote 5 Sekunden groß in Mannschaftsfarbe, Korrekturen 10 Sekunden. */
+  /** Kopf der großen Einblendung: Startnummer und Name des Turners, darunter kleiner seine Mannschaft. */
+  function flashWho(m, side, k) {
+    return { name: gymnastLabel(side.number, side.name) || teamName(k === 'home' ? m.homeTeamId : m.guestTeamId),
+      team: gymnastLabel(side.number, side.name) ? teamName(k === 'home' ? m.homeTeamId : m.guestTeamId) : '' };
+  }
+
+  /** Landesliga: neue Endnote 10 Sekunden groß in Mannschaftsfarbe mit Turner darüber, Korrekturen 10 Sekunden. */
   function classicBoardFlash(m, latest) {
     var k = latest.side;
     var rev = S.revOf(m.apparatus[latest.appKey].duels[latest.idx], k);
@@ -1690,7 +1697,7 @@
       return;
     }
     if (s.dns) return; // „nicht angetreten“: keine große Einblendung
-    showFlash(fmt(v), boardTone(m, k), true);
+    showFlash(fmt(v), boardTone(m, k), true, false, flashWho(m, s, k));
   }
 
   var correctionTimer = null;
@@ -1730,21 +1737,21 @@
   var flashTimer = null;
 
   /** Neue Scorepunkte (bzw. Endnote, wide) 5 Sekunden bildschirmfüllend in der Mannschaftsfarbe zeigen. */
-  function showFlash(points, color, wide, draw) {
+  function showFlash(points, color, wide, draw, who) {
     var el = document.getElementById('score-flash');
     if (!el) {
       el = document.createElement('div');
       el.id = 'score-flash';
       el.setAttribute('aria-live', 'assertive');
-      el.innerHTML = '<span></span>';
       document.body.appendChild(el);
     }
-    var num = el.firstChild;
     el.classList.toggle('wide', !!wide);
-    num.textContent = points;
-    num.style.color = color;
-    // Unentschieden: 0 in Kontrastfarbe (schwarz bzw. weiß), damit sie sich von jeder Mannschaftsfarbe (auch Hellgrau) abhebt.
-    num.classList.toggle('draw0', !!draw);
+    // Darüber der Turner (Startnummer, Name, Mannschaft); bei Unentschieden nur „Unentschieden“.
+    // Unentschieden: 0 und Text in Kontrastfarbe (schwarz bzw. weiß), damit sie sich von jeder Mannschaftsfarbe (auch Hellgrau) abhebt.
+    var head = draw ? '<div class="sf-who"><div class="sf-name draw0">Unentschieden</div></div>'
+      : who ? '<div class="sf-who"><div class="sf-name" style="color:' + color + '">' + esc(who.name) + '</div>' +
+        (who.team ? '<div class="sf-team">' + esc(who.team) + '</div>' : '') + '</div>' : '';
+    el.innerHTML = head + '<span class="sf-num' + (draw ? ' draw0' : '') + '"' + (draw ? '' : ' style="color:' + color + '"') + '>' + esc(String(points)) + '</span>';
     el.classList.remove('show');
     void el.offsetWidth; // Animation neu starten
     el.classList.add('show');
@@ -2326,7 +2333,7 @@
         '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
         '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet.',
         '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
-        (classic ? 'Nach jeder Freigabe erscheint 5 Sekunden groß auf der Tafel die Endnote der Übung' : 'Nach jeder Freigabe erscheinen 5 Sekunden groß auf der Tafel die Scorepunkte des Duells') +
+        (classic ? 'Nach jeder Freigabe erscheint 10 Sekunden groß auf der Tafel die Endnote der Übung mit dem Turner darüber' : 'Nach jeder Freigabe erscheinen 10 Sekunden groß auf der Tafel die Scorepunkte des Duells mit dem Sieger darüber') +
           ', Korrekturen 10 Sekunden. Einturnzeit und Sturz-Timer erscheinen groß als Fenster über der Tafel.'
       ]) +
 
