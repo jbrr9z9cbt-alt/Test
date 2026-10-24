@@ -687,3 +687,33 @@ body.board-light .warm-win .pw-clock { color: #166534; }
 .tab.st-run .tab-badge::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
 .tab.st-locked { opacity: .45; cursor: not-allowed; }
 .tab.st-locked .tab-badge { background: #a3a3a3; font-size: 12px; }
+
+/* ---------- Anzeigetafel: feste Aufteilung des Bildschirms ----------
+   Alle Größen hängen nur von der Fenstergröße ab (Einheit --u = 1 % der Höhe bei 16:9), nicht vom Inhalt.
+   Die Tafel füllt immer das ganze Fenster; --k verkleinert nur im Notfall, falls etwas nicht passt. */
+@media (min-width: 821px) {
+  .board:not(.board-standby) { --u: calc(min(1vh, 100vw / 177.78) * .8 * var(--k, 1)); height: 100vh; box-sizing: border-box; display: flex; flex-direction: column;
+    padding: calc(var(--u) * 1.2) calc(var(--u) * 2.2); overflow: hidden; }
+  .board-bar { flex: 0 0 auto; }
+  .board-title { font-size: calc(var(--u) * 2.4); }
+  .board-score { margin: calc(var(--u) * .4) 0; gap: calc(var(--u) * 3); }
+  .board-team { font-size: calc(var(--u) * 4.6); }
+  .board-big { font-size: calc(var(--u) * 14); }
+  .board-big.sums { font-size: calc(var(--u) * 10); }
+  .board-sub { font-size: calc(var(--u) * 2.5); margin-bottom: calc(var(--u) * 1.8); }
+  .board-grid { flex: 1 1 auto; min-height: 0; gap: calc(var(--u) * 2.2); }
+  .board-grid > * { min-height: 0; }
+  .board-grid > div { display: flex; flex-direction: column; }
+  .board-table { height: 100%; font-size: calc(var(--u) * 2.8); }
+  .board-table td:first-child { white-space: nowrap; }
+  .cur-duel { flex: 0 0 auto; padding: calc(var(--u) * 1.6) calc(var(--u) * 2.2); margin-bottom: calc(var(--u) * 1.6); }
+  .cd-head { font-size: calc(var(--u) * 2.4); }
+  .cd-side { font-size: calc(var(--u) * 4.1); }
+  .cd-name { white-space: nowrap; overflow: hidden; }
+  .cd-pts { font-size: calc(var(--u) * 7); }
+  .cd-pts.single { font-size: calc(var(--u) * 13); }
+  .board-detail { flex: 1 1 auto; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+  .board-detail h3 { font-size: calc(var(--u) * 3.3); margin: 0 0 calc(var(--u) * .6); }
+  .board-duels { height: 100%; font-size: calc(var(--u) * 3.6); }
+  .board-duels .bn { white-space: nowrap; }
+}

@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '52';
+  var APP_BUILD = '53';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1491,7 +1491,8 @@
     }
     var view = S.revealedView(m);
     var r = S.matchResult(view);
-    var current = boardApparatus(m);
+    // Vor der ersten Wertung steht schon das erste Gerät da, damit die Aufteilung immer gleich bleibt.
+    var current = boardApparatus(m) || S.APPARATUS[0];
     var homeColor = boardTone(m, 'home'), guestColor = boardTone(m, 'guest');
     var rows = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
@@ -1615,25 +1616,30 @@
   function fitBoard() {
     var b = document.querySelector('.board');
     if (!b || b.classList.contains('board-standby')) return;
-    b.style.zoom = '';
-    var z = 1;
-    for (var i = 0; i < 10; i++) {
-      var rect = b.getBoundingClientRect();
-      var over = Math.max(rect.height / window.innerHeight, b.scrollWidth / b.clientWidth);
-      if (over <= 1.001 && over >= 0.97) break;
-      if (over < 0.97 && z >= 2) break;
-      z = Math.min(2, z / over * 0.99);
-      b.style.zoom = z;
-    }
-    // Sicherheitshalber: nie größer als das Fenster
-    for (var j = 0; j < 4; j++) {
-      var r2 = b.getBoundingClientRect();
-      var o2 = Math.max(r2.height / window.innerHeight, b.scrollWidth / b.clientWidth);
-      if (o2 <= 1.001) break;
-      z = z / o2 * 0.99;
-      b.style.zoom = z;
+    // Feste Aufteilung per CSS; hier nur lange Namen einpassen und im Notfall alles etwas verkleinern.
+    var k = 1;
+    for (var i = 0; i < 12; i++) {
+      b.style.setProperty('--k', k);
+      fitNames(b);
+      if (!boardOverflows(b) || k <= 0.6) break;
+      k = Math.round((k - 0.04) * 100) / 100;
     }
     fitResultBox();
+  }
+
+  /** Zu lange Namen in der Karte werden nur in ihrem eigenen Feld kleiner (höchstens auf 60 %). */
+  function fitNames(b) {
+    b.querySelectorAll('.cd-name').forEach(function (el) {
+      el.style.fontSize = '';
+      if (el.scrollWidth <= el.clientWidth + 1) return;
+      var base = parseFloat(getComputedStyle(el).fontSize);
+      el.style.fontSize = Math.max(base * 0.6, base * el.clientWidth / el.scrollWidth * 0.98) + 'px';
+    });
+  }
+
+  function boardOverflows(b) {
+    if (b.scrollHeight > b.clientHeight + 1 || b.scrollWidth > b.clientWidth + 1) return true;
+    return [].some.call(b.querySelectorAll('.board-grid > *, .board-detail'), function (el) { return el.scrollHeight > el.clientHeight + 1; });
   }
 
   /** Das Ergebnis-Fenster liegt über der Tafel (nicht mitverkleinert) und schrumpft nur, wenn es sonst nicht passt. */
