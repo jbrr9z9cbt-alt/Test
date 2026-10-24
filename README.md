@@ -88,7 +88,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
     (Überschrift „Zwischenstand“, solange der Wettkampf läuft); beim Öffnen der Tafel ist es immer ausgeblendet
   - Knopf „Wettkampfpause“: im aufklappenden Menü 10, 15 oder 20 Minuten wählen, die Pause startet sofort – Restzeit groß als Fenster über der Tafel,
     am Ende Signalton und 5 Sekunden „Zeit abgelaufen“; ein Klick auf den laufenden Knopf beendet die Pause
-  - feste Aufteilung: füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit, Sturz-Timer und Wettkampfpause erscheinen groß als Fenster über der Tafel (Ziffern auf festen Plätzen)
+  - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit, Sturz-Timer und Wettkampfpause erscheinen groß als Fenster über der Tafel (Ziffern auf festen Plätzen)
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.
     Der Knopf ist erst aktiv, wenn beide Turner gewählt und vollständig gewertet sind
     (bei „nicht angetreten“ ohne Turner und Wertung)
