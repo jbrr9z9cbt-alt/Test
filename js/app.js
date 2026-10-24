@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '56';
+  var APP_BUILD = '57';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -42,7 +42,7 @@
     settings: { key: 'settings', rules: S.clone(S.DEFAULT_RULES) },
     legacyTeamNames: {},
     persistent: false,
-    ui: { tab: {} },
+    ui: { tab: {}, editDone: {}, openedDone: {} },
     board: { matchId: null, lastReveal: '' }
   };
 
@@ -192,7 +192,7 @@
       wrap.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">' +
         '<h3 id="modal-title">' + esc(title) + '</h3><p>' + esc(text) + '</p>' + (hint ? '<p class="muted small">' + esc(hint) + '</p>' : '') +
         '<div class="actions wrap">' + buttons.map(function (b, n) {
-          return '<button type="button" class="btn' + (b.primary ? ' primary' : '') + '" data-answer="' + n + '">' + esc(b.label) + '</button>';
+          return '<button type="button" class="' + (b.link ? 'linkish' : 'btn' + (b.primary ? ' primary' : '')) + '" data-answer="' + n + '">' + esc(b.label) + '</button>';
         }).join('') + '</div></div>';
       document.body.appendChild(wrap);
       function close(n) {
@@ -200,13 +200,16 @@
         wrap.remove();
         resolve(buttons[n].value);
       }
-      function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(buttons.length - 1); } }
+      // Escape = Knopf mit cancel (sonst der letzte); Fokus auf dem Knopf mit focus (sonst dem ersten).
+      var esc0 = buttons.findIndex(function (b) { return b.cancel; });
+      function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(esc0 >= 0 ? esc0 : buttons.length - 1); } }
       wrap.addEventListener('click', function (e) {
         var b = e.target.closest('[data-answer]');
         if (b) close(parseInt(b.getAttribute('data-answer'), 10));
       });
       document.addEventListener('keydown', onKey, true);
-      wrap.querySelector('[data-answer="0"]').focus();
+      var f = buttons.findIndex(function (b) { return b.focus; });
+      wrap.querySelector('[data-answer="' + (f >= 0 ? f : 0) + '"]').focus();
     });
   }
 
@@ -661,8 +664,6 @@
       '<div>' + input('judgeE3Guest', 'E3 – Gast', j.e3) + sameCheck('sameE3', 'D2 (Gast)', !neutral && !!j.e3 && j.e3 === j.d2) + '</div></div>' +
       '<p class="muted small judge-hint">' + (neutral ? 'E-Note: 10 − Mittelwert der Abzüge von E1 und E2.' : 'E-Note: höchster und niedrigster Abzug werden gestrichen, der mittlere zählt.') + '</p>' +
       '</fieldset>' +
-      (isNew ? '' : '<label class="check"><input type="checkbox" name="unlockApparatus"' + (m.unlockApparatus ? ' checked' : '') + '> Gerätesperre aufheben ' +
-        '<span class="muted small">(Notfall: alle Geräte frei wählbar, auch wenn ein anderes noch nicht abgeschlossen ist)</span></label>') +
 
       '<p class="muted small req-note"><span class="req">*</span> Pflichtfeld</p>' +
       '<div class="actions"><button class="btn primary" type="submit">' + (isNew ? 'Anlegen' : 'Speichern') + '</button>' +
@@ -813,7 +814,6 @@
     m.captains = { home: text('captainHome'), guest: text('captainGuest') };
     m.startTeam = fd.get('startTeam') === 'guest' ? 'guest' : 'home';
     m.date = fd.get('date') || '';
-    if (form.unlockApparatus) m.unlockApparatus = form.unlockApparatus.checked;
     save('matches', m).then(function () { location.hash = '#/match/' + m.id; });
   }
 
@@ -846,6 +846,24 @@
     return st;
   }
 
+  /** Gesperrtes Gerät angetippt: Hinweis, im Notfall Sperre aufheben (doppelt bestätigt). */
+  function lockedDialog(m, key) {
+    askChoice('🔒 ' + apparatusName(key) + ' ist gesperrt', apparatusName(key) + ' kann erst begonnen werden, wenn ' + runningApparatus(m).name + ' abgeschlossen ist.', null,
+      [{ label: 'Gerätesperre aufheben …', value: 'unlock', link: true }, { label: 'OK', value: 'ok', primary: true, focus: true, cancel: true }]).then(function (a) {
+      if (a !== 'unlock') return null;
+      return askChoice('⚠ Gerätesperre aufheben?', 'Die Gerätesperre ist nur für den Notfall gedacht, z. B. wenn die App ein Gerät fälschlich nicht als abgeschlossen erkennt. Danach sind alle Geräte frei wählbar.', null,
+        [{ label: 'Abbrechen', value: false, cancel: true, focus: true }, { label: 'Weiter', value: true, primary: true }]);
+    }).then(function (go) {
+      if (!go) return null;
+      return askChoice('Wirklich aufheben?', 'Alle Geräte sind dann frei wählbar, bis die Sperre wieder aktiviert wird.', null,
+        [{ label: 'Nein', value: false, cancel: true, focus: true }, { label: 'Ja, Sperre aufheben', value: true, primary: true }]);
+    }).then(function (yes) {
+      if (!yes) return;
+      m.unlockApparatus = true;
+      save('matches', m).then(function () { render(); toast('Gerätesperre aufgehoben'); });
+    });
+  }
+
   function runningApparatus(m) {
     var st = appStatus(m);
     return S.APPARATUS.filter(function (a) { return st[a.key] === 'run'; })[0];
@@ -860,6 +878,7 @@
   function viewMatch(m) {
     var r = S.matchResult(m);
     var tab = currentTab(m);
+    if (!(m.id in state.ui.openedDone)) state.ui.openedDone[m.id] = appStatus(m)[tab] === 'done' ? tab : '';
     var locked = m.status === 'final';
     var st = appStatus(m);
     var tabs = S.APPARATUS.map(function (a) {
@@ -901,6 +920,8 @@
       '</div></section>' +
       (locked ? '<div class="banner info">Dieser Wettkampf ist abgeschlossen und schreibgeschützt.</div>' : '') +
       '<div data-out="pending">' + pendingBanner(m) + '</div>' +
+      (m.unlockApparatus && m.status !== 'final' ? '<div class="unlock-bar">⚠ <b>Gerätesperre aufgehoben</b> – alle Geräte sind frei wählbar. ' +
+        '<button type="button" class="btn" data-action="relock">Sperre wieder aktivieren</button></div>' : '') +
       '<nav class="tabs">' + tabs + '</nav>' +
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
       '<section class="card"><h3>Topscorer</h3><div data-out="scorers">' + scorersHtml(m) + '</div></section>';
@@ -923,8 +944,24 @@
   function scorersLabel(on) { return on ? 'Wettkampfergebnis ausblenden' : 'Wettkampfergebnis einblenden'; }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
+  /**
+   * Abgeschlossenes Gerät: nur ansehen, bis „Bearbeiten“ bestätigt wurde (gilt, bis das Gerät verlassen wird).
+   * Eine offene Korrektur an diesem Gerät bleibt immer bearbeitbar.
+   */
+  function doneLocked(m, appKey) {
+    if (m.status === 'final' || state.ui.editDone[m.id] === appKey || appStatus(m)[appKey] !== 'done') return false;
+    // Erst während der Anzeige abgeschlossen (letzte Freigabe): bis zum Verlassen weiter bearbeitbar.
+    if (appKey === currentTab(m) && state.ui.openedDone[m.id] !== appKey) return false;
+    return !S.pendingCorrections(m).some(function (p) { return p.appKey === appKey; });
+  }
+
+  function doneBar(m, appKey) {
+    return doneLocked(m, appKey) ? '<div class="done-bar">✓ <b>' + apparatusName(appKey) + ' ist abgeschlossen</b> – die Wertungen sind gesperrt. ' +
+      '<button type="button" class="btn" data-action="edit-done" data-app="' + appKey + '">Bearbeiten</button></div>' : '';
+  }
+
   function duelBlocked(m, appKey, idx, sideKey) {
-    if (m.status === 'final') return true;
+    if (m.status === 'final' || doneLocked(m, appKey)) return true;
     var pending = S.pendingCorrections(m);
     // Im klassischen Modell bleibt nur die geänderte Übung selbst bearbeitbar.
     return pending.length > 0 && !pending.some(function (p) { return p.appKey === appKey && p.idx === idx && (!p.side || p.side === sideKey); });
@@ -1072,7 +1109,7 @@
     var duels = app.duels.map(function (d, i) {
       var locked = duelBlocked(m, appKey, i);
       var order = S.startOrder(m, appKey, i);
-      var cls = 'duel' + (S.hasPendingCorrection(d) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '');
+      var cls = 'duel' + (S.hasPendingCorrection(d) ? ' pending' : '') + (locked && m.status !== 'final' && !doneLocked(m, appKey) ? ' blocked' : '');
       // DOM-Reihenfolge = Startreihenfolge, damit die Tabulatortaste der Wettkampfreihenfolge folgt.
       return '<div class="' + cls + '">' +
         '<div class="duel-no">Duell ' + (i + 1) + '</div>' +
@@ -1082,8 +1119,8 @@
         '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked) + '</div>' +
         '</div>';
     }).join('');
-    return '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
-      (m.status === 'final' ? ' disabled' : '') + '>Einturnzeit (4:00) starten</button></div>' +
+    return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
+      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (4:00) starten</button></div>' +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels +
       '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
@@ -1131,7 +1168,7 @@
     var rows = app.duels.map(function (d, i) {
       return '<div class="cl-row">' + order.map(function (k) {
         var locked = duelBlocked(m, appKey, i, k);
-        return '<div class="cl-cell' + (S.sidePending(d, k) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '') + '">' +
+        return '<div class="cl-cell' + (S.sidePending(d, k) ? ' pending' : '') + (locked && m.status !== 'final' && !doneLocked(m, appKey) ? ' blocked' : '') + '">' +
           sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0) +
           '<div class="duel-actions" data-out="sideact-' + appKey + '-' + i + '-' + k + '">' + sideActions(m, d, appKey, i, k, locked) + '</div></div>';
       }).join('') + '</div>';
@@ -1139,8 +1176,8 @@
     var sums = '<div class="cl-row cl-sums">' + order.map(function (k) {
       return '<div class="cl-sum" data-out="clsum-' + appKey + '-' + k + '">' + classicSumHtml(m, ar, k) + '</div>';
     }).join('') + '</div>';
-    return '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
-      (m.status === 'final' ? ' disabled' : '') + '>Einturnzeit (4:00) starten</button></div>' +
+    return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
+      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (4:00) starten</button></div>' +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' +
       '<div class="cl-row cl-head">' + order.map(function (k, n) {
@@ -1235,7 +1272,7 @@
     var sideKey = el.getAttribute('data-side');
     var field = el.getAttribute('data-field');
     var side = m.apparatus[appKey].duels[idx][sideKey];
-    if (duelBlocked(m, appKey, idx, sideKey)) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
+    if (duelBlocked(m, appKey, idx, sideKey)) { toast(doneLocked(m, appKey) ? 'Das Gerät ist abgeschlossen – zum Ändern „Bearbeiten“ wählen.' : 'Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
     var pendingBefore = S.pendingCorrections(m).length;
 
     if (field === 'gymnast') {
@@ -2307,7 +2344,7 @@
         classic
           ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
           : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „legt vor“ markiert.',
-        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt. Solange ein Gerät läuft (ab der ersten freigegebenen Wertung), kann kein weiteres begonnen werden; abgeschlossene Geräte bleiben wählbar. Im Notfall hebt „Gerätesperre aufheben“ im Wettkampf Setup die Sperre auf.',
+        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt. Solange ein Gerät läuft (ab der ersten freigegebenen Wertung), kann kein weiteres begonnen werden; abgeschlossene Geräte bleiben wählbar. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre beim Antippen eines gesperrten Geräts über „Gerätesperre aufheben …“ (doppelt bestätigt) aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
         'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
           ' Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
@@ -2692,10 +2729,9 @@
 
     switch (action) {
       case 'tab':
-        if (appStatus(m)[btn.getAttribute('data-tab')] === 'locked') {
-          toast('🔒 ' + apparatusName(btn.getAttribute('data-tab')) + ' kann erst begonnen werden, wenn ' + runningApparatus(m).name + ' abgeschlossen ist.', 'error');
-          return;
-        }
+        if (appStatus(m)[btn.getAttribute('data-tab')] === 'locked') { lockedDialog(m, btn.getAttribute('data-tab')); return; }
+        if (state.ui.editDone[m.id] && state.ui.editDone[m.id] !== btn.getAttribute('data-tab')) delete state.ui.editDone[m.id];
+        if (currentTab(m) !== btn.getAttribute('data-tab')) state.ui.openedDone[m.id] = appStatus(m)[btn.getAttribute('data-tab')] === 'done' ? btn.getAttribute('data-tab') : '';
         state.ui.tab[m.id] = btn.getAttribute('data-tab');
         $app.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b === btn); });
         document.getElementById('apparatus-panel').innerHTML = apparatusPanel(m, currentTab(m));
@@ -2832,6 +2868,19 @@
       case 'fullscreen':
         if (document.fullscreenElement) document.exitFullscreen();
         else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+        break;
+      case 'edit-done':
+        var eKey = btn.getAttribute('data-app');
+        askChoice(apparatusName(eKey) + ' ist bereits abgeschlossen', 'Wirklich bearbeiten? Jede Änderung muss anschließend mit „Korrektur freigeben“ bestätigt werden.', null,
+          [{ label: 'Abbrechen', value: false, cancel: true }, { label: 'Bearbeiten', value: true, primary: true, focus: true }]).then(function (ok) {
+          if (!ok) return;
+          state.ui.editDone[m.id] = eKey;
+          rerenderPanel(m);
+        });
+        break;
+      case 'relock':
+        m.unlockApparatus = false;
+        save('matches', m).then(function () { render(); toast('Gerätesperre wieder aktiv'); });
         break;
       case 'print':
         window.print();
