@@ -769,6 +769,3 @@ body.board-light .warm-win .pw-clock { color: #166534; }
 #score-flash span.sf-num { font-size: min(62vh, 60vw); }
 #score-flash.wide span.sf-num { font-size: min(44vh, 24vw); margin-top: 3vh; }
 body.board-light #score-flash .sf-who { color: #171717; }
-
-/* PDF-Erzeugung (iPhone): Blatt ohne Schatten wie im Druck */
-.print-sheet.pdf-render { box-shadow: none; margin: 0; }

@@ -129,14 +129,6 @@ Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ zusam
 - Gerät und Wettkampf gewinnt, wer mehr Scorepunkte hat; bei Gleichstand unentschieden
 - Die Ligatabelle gehört nicht zur App, sie ist für eine separate Liga-Webseite vorgesehen.
 
-## Protokoll auf dem iPhone
-
-iOS erlaubt einer vom Home-Bildschirm installierten Web-App auf dem **iPhone** keinen Druckdialog. Dort zeigt das
-Protokoll statt „Drucken“ den Knopf **„Als PDF teilen / drucken“**: Die App erzeugt das Protokoll als A4-PDF
-(`js/vendor/html2canvas.min.js` und `js/vendor/jspdf.umd.min.js`, MIT-Lizenz, erst beim Antippen geladen) und öffnet das
-Teilen-Menü (darin „Drucken“, „In Dateien sichern“, Mail …). Die Bibliotheken liegen in einem eigenen Cache des
-Service Workers, der bei App-Updates erhalten bleibt. Alle anderen Geräte drucken wie bisher.
-
 ## Offline-Betrieb und Datensicherheit
 
 - **Kein Server, keine Cloud**: alle Daten bleiben auf dem Gerät (IndexedDB im Browser).

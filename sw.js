@@ -7,12 +7,8 @@
  * die neue Version aktiv (Nachricht SKIP_WAITING). So werden alte und neue
  * Dateien nie gemischt.
  */
-const VERSION = 'v57';
+const VERSION = 'v56';
 const CACHE = 'turnwettkampf-' + VERSION;
-// Fremde Bibliotheken (PDF für das iPhone) ändern sich praktisch nie: eigener Cache, der bei
-// App-Updates erhalten bleibt und nur bei geänderter VENDOR-Nummer neu geladen wird.
-const VENDOR = 'turnwettkampf-vendor-1';
-const VENDOR_ASSETS = ['js/vendor/html2canvas.min.js', 'js/vendor/jspdf.umd.min.js'];
 const ASSETS = [
   './',
   'index.html',
@@ -37,16 +33,13 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   // HTTP-Cache umgehen, damit wirklich die neuen Dateien geladen werden.
-  event.waitUntil(Promise.all([
-    caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))),
-    caches.open(VENDOR).then((c) => Promise.all(VENDOR_ASSETS.map((u) => c.match(u).then((hit) => hit || c.add(u)))))
-  ]));
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))));
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== VENDOR).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -61,7 +54,7 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   event.respondWith(
     caches.open(CACHE).then((cache) =>
-      cache.match(req, { ignoreSearch: true }).then((cached) => cached || caches.open(VENDOR).then((v) => v.match(req, { ignoreSearch: true }))).then((cached) =>
+      cache.match(req, { ignoreSearch: true }).then((cached) =>
         cached || fetch(req).catch(() => (req.mode === 'navigate' ? cache.match('index.html') : Response.error()))
       )
     )
