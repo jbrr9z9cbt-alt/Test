@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '46';
+  var APP_BUILD = '47';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1490,11 +1490,23 @@
       '<div class="board-big' + (isClassic(m) ? ' sums' : '') + '">' + totalPair(m, r, true) + '</div>' +
       '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '<div class="board-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + winnerText(m, r) + '</div>' +
-      '<div id="board-timers" class="board-timers"><div class="bt warm off" data-slot="warm"><span>&nbsp;</span><strong>0:00</strong></div>' +
-      '<div class="bt fall off" data-slot="fall"><span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em></div></div>' +
+      '<div id="board-timers" class="board-timers"><div class="bt warm off" data-slot="warm"><span>&nbsp;</span><strong>0:00</strong></div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th><th class="num">GP</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
-      '</div>' + boardScorers(m, view) + '<div id="pause-box">' + pauseBoxHtml(m) + '</div>';
+      '</div>' + boardScorers(m, view) + '<div id="pause-box">' + pauseBoxHtml(m) + '</div><div id="fall-box">' + fallBoxHtml(m) + '</div>';
+  }
+
+  /** Sturz-Timer groß als Fenster über der Tafel (wie die Wettkampfpause): 30 s gelb, dann 30 s rot mit „Abzug 0,3“, danach kurz „Übung beendet“. */
+  function fallBoxHtml(m) {
+    var fall = fallState(m);
+    var fEnd = !fall && timerEnded(m.timers && m.timers.fall, 2 * FALL_PHASE_MS, FALL_END_MS);
+    if (!fall && !fEnd) return '';
+    var t = fall ? fall.t : m.timers.fall, d = m.apparatus[t.appKey].duels[t.idx][t.side];
+    var name = esc(gymnastLabel(d.number, d.name) || teamName(t.side === 'home' ? m.homeTeamId : m.guestTeamId));
+    return '<div class="pause-overlay fall-overlay"><div class="pause-win fall-win ' + (fall ? 'phase' + fall.phase : 'ended') + '">' +
+      '<div class="fw-name">' + appIcon(t.appKey, 'tm-ico') + (fall ? 'Sturz · ' : '') + name + '</div>' +
+      (fall ? '<div class="pw-clock">' + clock(fall.remaining) + '</div>' : '<div class="pw-clock pw-end">Übung beendet</div>') +
+      '<div class="fw-note' + (fall && fall.phase === 2 ? '' : ' hide') + '">Abzug 0,3</div></div></div>';
   }
 
   /** Pause-Fenster über der Tafel: Restzeit groß, nach Ablauf kurz „Zeit abgelaufen“. */
@@ -1748,41 +1760,20 @@
       if (pbox.innerHTML !== ph) pbox.innerHTML = ph;
     }
     var bt = document.getElementById('board-timers');
-    if (bt && bt.querySelector('[data-slot]')) {
-      // Feste Plätze: Inhalt wird nur sichtbar/unsichtbar geschaltet, die Größe bleibt gleich.
-      var ws = bt.querySelector('[data-slot="warm"]'), fs = bt.querySelector('[data-slot="fall"]');
+    if (bt) {
+      // Einturnzeit: fester Platz in der Mitte; Inhalt wird nur sichtbar/unsichtbar geschaltet.
+      var ws = bt.querySelector('[data-slot="warm"]');
       var wEnd = !warm && timerEnded(m.timers && m.timers.warmup, WARMUP_MS, WARMUP_END_MS);
       var wh = warm ? '<span>' + appIcon(warm.t.appKey, 'tm-ico') + 'Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong>'
         : wEnd ? '<span>' + appIcon(m.timers.warmup.appKey, 'tm-ico') + apparatusName(m.timers.warmup.appKey) + '</span><strong>Einturnen beendet</strong>' : '<span>&nbsp;</span><strong>0:00</strong>';
       if (ws.innerHTML !== wh) ws.innerHTML = wh;
       ws.classList.toggle('off', !warm && !wEnd);
       ws.classList.toggle('ended', wEnd);
-      var fh = '<span>&nbsp;</span><strong>0:00</strong><em>Abzug 0,3</em>';
-      if (fall) {
-        var fsd = m.apparatus[fall.t.appKey].duels[fall.t.idx][fall.t.side];
-        fh = '<span>' + appIcon(fall.t.appKey, 'tm-ico') + 'Sturz · ' + esc(gymnastLabel(fsd.number, fsd.name) || teamName(fall.t.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
-          '<strong>' + clock(fall.remaining) + '</strong><em' + (fall.phase === 2 ? '' : ' class="hide"') + '>Abzug 0,3</em>';
-      }
-      var fEnd = !fall && timerEnded(m.timers && m.timers.fall, 2 * FALL_PHASE_MS, FALL_END_MS);
-      if (fEnd) {
-        var fe = m.timers.fall, fed = m.apparatus[fe.appKey].duels[fe.idx][fe.side];
-        fh = '<span>' + appIcon(fe.appKey, 'tm-ico') + esc(gymnastLabel(fed.number, fed.name) || teamName(fe.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span><strong>Übung beendet</strong><em class="hide">Abzug 0,3</em>';
-      }
-      if (fs.innerHTML !== fh) fs.innerHTML = fh;
-      fs.classList.toggle('off', !fall && !fEnd);
-      fs.classList.toggle('ended', fEnd);
-      fs.classList.toggle('phase1', !!fall && fall.phase === 1);
-      fs.classList.toggle('phase2', !!fall && fall.phase === 2);
-    } else if (bt) {
-      var html = '';
-      if (warm) html += '<div class="bt warm"><span>' + appIcon(warm.t.appKey, 'tm-ico') + 'Einturnzeit ' + apparatusName(warm.t.appKey) + '</span><strong>' + clock(warm.remaining) + '</strong></div>';
-      if (fall) {
-        var s = m.apparatus[fall.t.appKey].duels[fall.t.idx][fall.t.side];
-        html += '<div class="bt fall phase' + fall.phase + '"><span>' + appIcon(fall.t.appKey, 'tm-ico') + 'Sturz · ' + esc(gymnastLabel(s.number, s.name) || teamName(fall.t.side === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
-          '<strong>' + clock(fall.remaining) + '</strong>' + (fall.phase === 2 ? '<em>Abzug 0,3</em>' : '') + '</div>';
-      }
-      if (bt.innerHTML !== html) bt.innerHTML = html;
-      bt.hidden = !html;
+    }
+    var fbox = document.getElementById('fall-box');
+    if (fbox) {
+      var fbh = fallBoxHtml(m);
+      if (fbox.innerHTML !== fbh) fbox.innerHTML = fbh;
     }
   }
 
@@ -2258,7 +2249,7 @@
         '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet.',
         '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         (classic ? 'Nach jeder Freigabe erscheint 5 Sekunden groß auf der Tafel die Endnote der Übung' : 'Nach jeder Freigabe erscheinen 5 Sekunden groß auf der Tafel die Scorepunkte des Duells') +
-          ', Korrekturen 10 Sekunden. Die Timer laufen auf der Tafel mit.'
+          ', Korrekturen 10 Sekunden. Die Einturnzeit läuft mittig auf der Tafel mit, der Sturz-Timer erscheint groß als Fenster (gelb, dann rot).'
       ]) +
 
       sec('6. Abschluss', [
