@@ -427,8 +427,6 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
   .duel-result { padding: .25rem 0; }
   .match-row { grid-template-columns: 1fr auto; }
   .match-row .match-teams { grid-column: 1; }
-  .board-grid { grid-template-columns: 1fr; }
-  .board { padding: 1rem; }
 }
 @media (max-width: 560px) {
   .row2 { grid-template-columns: 1fr; }
@@ -691,29 +689,72 @@ body.board-light .warm-win .pw-clock { color: #166534; }
 /* ---------- Anzeigetafel: feste Aufteilung des Bildschirms ----------
    Alle Größen hängen nur von der Fenstergröße ab (Einheit --u = 1 % der Höhe bei 16:9), nicht vom Inhalt.
    Die Tafel füllt immer das ganze Fenster; --k verkleinert nur im Notfall, falls etwas nicht passt. */
-@media (min-width: 821px) {
-  .board:not(.board-standby) { --u: calc(min(1vh, 100vw / 177.78) * .8 * var(--k, 1)); height: 100vh; box-sizing: border-box; display: flex; flex-direction: column;
-    padding: calc(var(--u) * 1.2) calc(var(--u) * 2.2); overflow: hidden; }
-  .board-bar { flex: 0 0 auto; }
-  .board-title { font-size: calc(var(--u) * 2.4); }
-  .board-score { margin: calc(var(--u) * .4) 0; gap: calc(var(--u) * 3); }
-  .board-team { font-size: calc(var(--u) * 4.6); }
-  .board-big { font-size: calc(var(--u) * 14); }
-  .board-big.sums { font-size: calc(var(--u) * 10); }
-  .board-sub { font-size: calc(var(--u) * 2.5); margin-bottom: calc(var(--u) * 1.8); }
-  .board-grid { flex: 1 1 auto; min-height: 0; gap: calc(var(--u) * 2.2); }
-  .board-grid > * { min-height: 0; }
-  .board-grid > div { display: flex; flex-direction: column; }
-  .board-table { height: 100%; font-size: calc(var(--u) * 2.8); }
-  .board-table td:first-child { white-space: nowrap; }
-  .cur-duel { flex: 0 0 auto; padding: calc(var(--u) * 1.6) calc(var(--u) * 2.2); margin-bottom: calc(var(--u) * 1.6); }
-  .cd-head { font-size: calc(var(--u) * 2.4); }
-  .cd-side { font-size: calc(var(--u) * 4.1); }
-  .cd-name { white-space: nowrap; overflow: hidden; }
-  .cd-pts { font-size: calc(var(--u) * 7); }
-  .cd-pts.single { font-size: calc(var(--u) * 13); }
-  .board-detail { flex: 1 1 auto; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
-  .board-detail h3 { font-size: calc(var(--u) * 3.3); margin: 0 0 calc(var(--u) * .6); }
-  .board-duels { height: 100%; font-size: calc(var(--u) * 3.6); }
-  .board-duels .bn { white-space: nowrap; }
+/* Gemeinsam für Quer- und Hochformat: alle Größen in der Einheit --u, nichts hat eine feste Größe. */
+.board:not(.board-standby) { height: 100vh; height: 100dvh; box-sizing: border-box; display: flex; flex-direction: column;
+  padding: calc(var(--u) * 1.2) calc(var(--u) * 2.2); overflow: hidden; }
+.board:not(.board-standby) .board-bar { flex: 0 0 auto; }
+.board:not(.board-standby) .board-bar .btn { font-size: max(11px, calc(var(--u) * 1.6)); padding: calc(var(--u) * .2) calc(var(--u) * .6); }
+.board-duels .pts { white-space: nowrap; }
+.board:not(.board-standby) .board-title { font-size: calc(var(--u) * 2.4); }
+.board:not(.board-standby) .board-score { margin: calc(var(--u) * .4) 0; gap: calc(var(--u) * 3); }
+.board:not(.board-standby) .board-team { font-size: calc(var(--u) * 4.6); }
+.board:not(.board-standby) .board-big { font-size: calc(var(--u) * 14); }
+.board:not(.board-standby) .board-big.sums { font-size: calc(var(--u) * 10); }
+.board:not(.board-standby) .board-sub { font-size: calc(var(--u) * 2.5); margin-bottom: calc(var(--u) * 1.8); }
+.board:not(.board-standby) .board-grid { flex: 1 1 auto; min-height: 0; gap: calc(var(--u) * 2.2); grid-template-columns: minmax(min-content, .6fr) minmax(0, 2.4fr); }
+.board-grid > * { min-height: 0; }
+.board:not(.board-standby) .board-grid > div { display: flex; flex-direction: column; }
+.board:not(.board-standby) .board-table { height: 100%; font-size: calc(var(--u) * 2.8); }
+.board:not(.board-standby) .board-table td, .board:not(.board-standby) .board-table th { padding: calc(var(--u) * .5) calc(var(--u) * .4); }
+.board:not(.board-standby) .board-table td:first-child { white-space: nowrap; }
+.board:not(.board-standby) .cur-duel { flex: 0 0 auto; padding: calc(var(--u) * 1.6) calc(var(--u) * 2.2); margin-bottom: calc(var(--u) * 1.6); border-radius: calc(var(--u) * 1.2); }
+.board:not(.board-standby) .cd-grid { gap: calc(var(--u) * 1.5); }
+.board:not(.board-standby) .cd-head { font-size: calc(var(--u) * 2.4); margin-bottom: calc(var(--u) * .5); }
+.board:not(.board-standby) .cd-side { font-size: calc(var(--u) * 4.1); border-top-width: calc(var(--u) * .5); }
+.board:not(.board-standby) .cd-name { white-space: nowrap; overflow: hidden; }
+.board:not(.board-standby) .cd-pts { font-size: calc(var(--u) * 7); }
+.board:not(.board-standby) .cd-pts.single { font-size: calc(var(--u) * 13); }
+.board:not(.board-standby) .cd-empty { font-size: calc(var(--u) * 2.4); }
+.board:not(.board-standby) .board-detail { flex: 1 1 auto; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.board:not(.board-standby) .board-detail h3 { font-size: calc(var(--u) * 3.3); margin: 0 0 calc(var(--u) * .6); }
+.board:not(.board-standby) .board-duels { height: 100%; font-size: calc(var(--u) * 3.6); }
+.board:not(.board-standby) .board-duels td { padding: calc(var(--u) * .6) calc(var(--u) * .8); }
+.board:not(.board-standby) .board-duels .bn { white-space: nowrap; }
+
+/* A: Querformat (Laptop, Beamer, Fernseher, Fenster, Handy quer) – Einheit nach Höhe bzw. Breite (16:9) */
+@media (min-aspect-ratio: 1/1) {
+  .board:not(.board-standby) { --u: calc(min(1vh, 100vw / 177.78) * .8 * var(--k, 1)); }
+}
+
+/* B: Hochformat (Handy, Tablet hochkant) – eigene schmale Aufteilung, Einheit nach der Breite */
+@media (max-aspect-ratio: 1/1) {
+  .board:not(.board-standby) { --u: calc(min(1vw, 100vh / 177.78) * var(--k, 1)); padding: calc(var(--u) * 2) calc(var(--u) * 3); }
+  .board:not(.board-standby) .board-title { font-size: calc(var(--u) * 3.2); }
+  /* Mannschaften nebeneinander, darunter groß der Stand */
+  .board:not(.board-standby) .board-score { grid-template-columns: 1fr 1fr; grid-template-areas: "home guest" "big big"; gap: calc(var(--u) * 1) calc(var(--u) * 3); }
+  .board:not(.board-standby) .board-team { font-size: calc(var(--u) * 4.6); }
+  .board-score .board-team:first-child { grid-area: home; text-align: left; }
+  .board-score .board-big { grid-area: big; text-align: center; }
+  .board-score .board-team:last-child { grid-area: guest; text-align: right; }
+  .board:not(.board-standby) .board-big { font-size: calc(var(--u) * 20); }
+  .board:not(.board-standby) .board-big.sums { font-size: calc(var(--u) * 14); }
+  .board:not(.board-standby) .board-sub { font-size: calc(var(--u) * 3.4); margin-bottom: calc(var(--u) * 2.5); }
+  .board:not(.board-standby) .board-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: calc(var(--u) * 2.5); }
+  /* Geräte als kompakte Zeile: Symbol, darunter Heim und Gast */
+  .board:not(.board-standby) .board-table { height: auto; font-size: calc(var(--u) * 3); display: block; }
+  .board:not(.board-standby) .board-table thead { display: none; }
+  .board:not(.board-standby) .board-table tbody { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: calc(var(--u) * 1); }
+  .board:not(.board-standby) .board-table tr { display: flex; flex-direction: column; align-items: center; border-radius: calc(var(--u) * 1.2); padding: calc(var(--u) * .8) 0; }
+  .board:not(.board-standby) .board-table td { border: 0; padding: 0; text-align: center; }
+  .board:not(.board-standby) .board-table td:first-child { font-size: 0; }
+  .board-table td:first-child .bt-ico { width: calc(var(--u) * 7); height: calc(var(--u) * 7); margin: 0 0 calc(var(--u) * .5); }
+  .board:not(.board-standby) .cur-duel { padding: calc(var(--u) * 2) calc(var(--u) * 2.5); }
+  .board:not(.board-standby) .cd-head { font-size: calc(var(--u) * 3); }
+  .board:not(.board-standby) .cd-side { font-size: calc(var(--u) * 4.2); }
+  .board:not(.board-standby) .cd-pts { font-size: calc(var(--u) * 9); }
+  .board:not(.board-standby) .cd-pts.single { font-size: calc(var(--u) * 12); }
+  .board:not(.board-standby) .board-detail h3 { font-size: calc(var(--u) * 4.2); }
+  .board:not(.board-standby) .board-duels { font-size: calc(var(--u) * 3.6); }
+  .board:not(.board-standby) .board-duels td { padding: calc(var(--u) * .8) calc(var(--u) * .6); }
+  .board:not(.board-standby) .board-duels .bn { white-space: normal; }
 }

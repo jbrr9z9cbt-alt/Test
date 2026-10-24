@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '53';
+  var APP_BUILD = '54';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 5000;
@@ -1624,6 +1624,8 @@
       if (!boardOverflows(b) || k <= 0.6) break;
       k = Math.round((k - 0.04) * 100) / 100;
     }
+    // Notfall bei sehr kleinem Fenster: lieber scrollen als abschneiden.
+    b.style.overflowY = boardOverflows(b) ? 'auto' : '';
     fitResultBox();
   }
 
