@@ -781,3 +781,7 @@ body.board-light #score-flash .sf-who { color: #171717; }
 .board-duels td.num.mirror { text-align: left !important; }
 /* Anzeigetafel Landesliga: zählende Wertungen in Mannschaftsfarbe */
 .board-duels .team-val { font-weight: 600; }
+
+/* Anzeigetafel: kräftige Linie über der Summenzeile (Scorepunkte bzw. Summe der besten 3) */
+.board-duels tr.bsum td { border-top: calc(var(--u, 10px) * .45) solid #a3a3a3; padding-top: calc(var(--u, 10px) * 1.2) !important; }
+body.board-light .board-duels tr.bsum td { border-top-color: #525252; }
