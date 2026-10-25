@@ -93,14 +93,14 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
     dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
   - Knopf „Wettkampfergebnis einblenden/ausblenden“ zeigt Stand, Gerätepunkte und Topscorer als Fenster über der Tafel
     (Überschrift „Zwischenstand“, solange der Wettkampf läuft); beim Öffnen der Tafel ist es immer ausgeblendet
-  - Knopf „Wettkampfpause“: im aufklappenden Menü 10, 15 oder 20 Minuten wählen, die Pause startet sofort – Restzeit groß als Fenster über der Tafel,
+  - Knopf „Wettkampfpause“: im aufklappenden Menü 10, 15 oder 20 Minuten wählen, die Pause startet sofort – Restzeit groß in der Detailkarte der Tafel (Liste bleibt sichtbar),
     am Ende Signalton und 5 Sekunden „Zeit abgelaufen“; ein Klick auf den laufenden Knopf beendet die Pause
   - Landesliga: Links „Mannschaftsabzug Heim/Gast“ unten im Gerätebereich (ein Abzug je Mannschaft für den ganzen Wettkampf); mindert nur die Gesamtpunktzahl,
     Hinweis im Kopf, auf der Tafel („inkl. Abzug“) und im Protokoll (* in der Übersicht, Erklärung in der Ergebniszeile). Oberliga: Mannschaftsabzüge als neutraler Abzug beim betroffenen Turner
   - Knopf „Turnervorstellung“: Titelseite und anwesende Turner (nach Startnummer) erst der Gast-, dann der Heimmannschaft, zum Schluss das Kampfgericht
     (E1/OK, neutraler E2, Vereinskampfrichter als D, E bzw. D/E nach Verein); Steuerung mit Zurück/Weiter/Beenden, Pfeiltasten, Leertaste, Bild auf/ab (Presenter) und Esc;
     währenddessen keine anderen Fenster auf der Tafel
-  - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit, Sturz-Timer und Wettkampfpause erscheinen groß als Fenster über der Tafel (Ziffern auf festen Plätzen)
+  - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.
     Der Knopf ist erst aktiv, wenn beide Turner gewählt und vollständig gewertet sind
     (bei „nicht angetreten“ ohne Turner und Wertung)

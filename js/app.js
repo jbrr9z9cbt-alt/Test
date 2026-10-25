@@ -7,14 +7,14 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '69';
+  var APP_BUILD = '70';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
   var WARMUP_MS = 8 * 50 * 1000;   // Einturnzeit je Gerät: 8 Turner × 50 Sekunden = 6:40
-  var PAUSE_MINUTES = [10, 15, 20]; // Pause-Timer, groß als Fenster auf der Tafel
+  var PAUSE_MINUTES = [10, 15, 20]; // Pause-Timer, groß in der Detailkarte der Tafel
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
   // Ligen aus js/config.js; die aktuelle Liga ergibt sich aus der Adresse (#/oberliga/…, #/landesliga/…).
   var LEAGUES = CFG.leagues;
@@ -526,7 +526,7 @@
     else state.board = { matchId: null, lastReveal: '' };
     if (!keepScroll) window.scrollTo(0, 0);
     tickTimers();
-    if (isBoard) { fitBoard(); fitIntro(); }
+    if (isBoard) { fitBoard(); fitIntro(); fitScorers(); }
     keepScroll = false;
   }
 
@@ -1180,7 +1180,7 @@
       return canUnstart(m, appKey) ? '<button type="button" class="btn ghost start-btn" tabindex="-1" data-action="app-unstart" data-app="' + appKey + '">Start zurücknehmen</button>'
         : '<span class="start-on">● Gerät läuft</span>';
     }
-    return '<button type="button" class="btn primary start-btn' + (st === 'locked' ? ' is-locked' : '') + '" tabindex="-1" data-action="app-start" data-app="' + appKey + '">Gerät starten</button>';
+    return '<button type="button" class="btn start-btn' + (st === 'locked' ? ' is-locked' : '') + '" tabindex="-1" data-action="app-start" data-app="' + appKey + '">Gerät starten</button>';
   }
 
   function apparatusPanel(m, appKey) {
@@ -1202,7 +1202,7 @@
         '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked || noScores) + '</div>' +
         '</div>';
     }).join('');
-    return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
+    return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn primary timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
       (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button>' + startButton(m, appKey) + '</div>' +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels +
@@ -1260,7 +1260,7 @@
     var sums = '<div class="cl-row cl-sums">' + order.map(function (k) {
       return '<div class="cl-sum" data-out="clsum-' + appKey + '-' + k + '">' + classicSumHtml(m, ar, k) + '</div>';
     }).join('') + '</div>';
-    return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
+    return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn primary timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
       (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button>' + startButton(m, appKey) + '</div>' +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' +
@@ -1730,19 +1730,23 @@
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody>' +
       '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num"><span class="sp-num">' + r.homeApp + '</span></td><td class="num"><span class="sp-num">' + r.guestApp + '</span></td></tr></tfoot></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
-      '</div>' + boardScorers(m, view) + '<div id="warm-box">' + warmBoxHtml(m) + '</div><div id="pause-box">' + pauseBoxHtml(m) + '</div><div id="fall-box">' + fallBoxHtml(m) + '</div>' +
+      '</div>' + boardScorers(m, view) + '<div id="fall-box">' + fallBoxHtml(m) + '</div>' +
       '<div id="intro-box">' + introBoxHtml(m) + '</div>';
   }
 
-  /** Einturnzeit groß als Fenster über der Tafel (wie die Wettkampfpause); nach Ablauf 10 Sekunden „Einturnen beendet“. */
-  function warmBoxHtml(m) {
-    var warm = warmupState(m);
-    var wEnd = !warm && timerEnded(m.timers && m.timers.warmup, WARMUP_MS, WARMUP_END_MS);
-    if (!warm && !wEnd) return '';
-    var key = warm ? warm.t.appKey : m.timers.warmup.appKey;
-    return '<div class="pause-overlay warm-overlay"><div class="pause-win warm-win">' + scoreHeadHtml(m) +
-      '<div class="fw-name">' + appIcon(key, 'tm-ico') + 'Einturnzeit ' + apparatusName(key) + '</div>' +
-      (warm ? '<div class="pw-clock">' + fixedDigits(clock(warm.remaining)) + '</div>' : '<div class="pw-clock pw-end">Einturnen beendet</div>') + '</div></div>';
+  /**
+   * Einturnzeit und Pause erscheinen in der Detailkarte der Tafel (Liste und Tabelle bleiben sichtbar);
+   * nach Ablauf kurz „Einturnen beendet“ bzw. „Zeit abgelaufen“. Liefert den Inhalt der Karte oder ''.
+   */
+  function timerCardInner(m) {
+    var warm = warmupState(m), p = pauseState(m), t = m.timers || {};
+    function card(title, body) { return '<div class="tm-title">' + title + '</div>' + body; }
+    function warmTitle(key) { return appIcon(key, 'tm-ico') + 'Einturnzeit ' + apparatusName(key); }
+    if (warm) return card(warmTitle(warm.t.appKey), '<div class="tm-clock">' + fixedDigits(clock(warm.remaining)) + '</div>');
+    if (p) return card('Pause', '<div class="tm-clock">' + fixedDigits(clock(p.remaining)) + '</div>');
+    if (timerEnded(t.warmup, WARMUP_MS, WARMUP_END_MS)) return card(warmTitle(t.warmup.appKey), '<div class="tm-clock tm-end">Einturnen beendet</div>');
+    if (t.pause && timerEnded(t.pause, t.pause.ms, PAUSE_END_MS)) return card('Pause', '<div class="tm-clock tm-end">Zeit abgelaufen</div>');
+    return '';
   }
 
   /** Große Zeitanzeige: jede Ziffer auf festem Platz, damit die Zahl beim Herunterzählen nicht hin und her springt. */
@@ -1768,24 +1772,6 @@
   /** Farbe der Sekunden: 0–10 s schwarz (dunkle Tafel weiß), 10–20 s ocker, ab 20 s rot, 50–60 s zusätzlich leicht blinkend. */
   function fallTone(fall) {
     return ['fz-0', 'fz-1', 'fz-2', 'fz-2', 'fz-2', 'fz-2 fz-pulse'][Math.min(5, fall.step)];
-  }
-
-  /** Kopf der Pause- und Einturn-Fenster: aktueller Zwischenstand (nur freigegebene Wertungen, wie auf der Tafel). */
-  function scoreHeadHtml(m) {
-    var r = S.matchResult(S.revealedView(m));
-    return '<div class="pw-score"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
-      '<div class="s">' + totalPair(m, r, true) + '</div>' +
-      '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
-      '<div class="pw-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + (deductionsText(m) ? ' · ' + esc(deductionsText(m)) : '') + '</div>';
-  }
-
-  /** Pause-Fenster über der Tafel: Restzeit groß, nach Ablauf kurz „Zeit abgelaufen“. */
-  function pauseBoxHtml(m) {
-    var p = pauseState(m);
-    var end = !p && m.timers && m.timers.pause && timerEnded(m.timers.pause, m.timers.pause.ms, PAUSE_END_MS);
-    if (!p && !end) return '';
-    return '<div class="pause-overlay"><div class="pause-win">' + scoreHeadHtml(m) + '<div class="pw-title">Pause</div>' +
-      (p ? '<div class="pw-clock">' + fixedDigits(clock(p.remaining)) + '</div>' : '<div class="pw-clock pw-end">Zeit abgelaufen</div>') + '</div></div>';
   }
 
   // ---------- Turnervorstellung ----------
@@ -2031,7 +2017,17 @@
     var over = Math.max(box.getBoundingClientRect().height / (window.innerHeight * 0.96), box.getBoundingClientRect().width / (window.innerWidth * 0.98));
     if (over > 1) box.style.zoom = 1 / over;
   }
-  window.addEventListener('resize', fitBoard);
+  /** Wettkampfergebnis-Fenster: bei vielen Topscorern oder kleinen Bildschirmen als Ganzes verkleinern statt abschneiden. */
+  function fitScorers() {
+    var box = document.querySelector('.so-box');
+    if (!box) return;
+    box.style.transform = '';
+    var rc = box.getBoundingClientRect();
+    var k = Math.min(1, innerHeight * 0.96 / rc.height, innerWidth * 0.98 / rc.width);
+    if (k < 1) box.style.transform = 'scale(' + k.toFixed(3) + ')';
+  }
+
+  window.addEventListener('resize', function () { fitBoard(); fitIntro(); fitScorers(); });
 
   /** Nach jedem Aufbau der Anzeigetafel prüfen, ob eine neue Wertung freigegeben wurde. */
   function checkBoardFlash(m) {
@@ -2224,15 +2220,12 @@
       if (pb.textContent !== pl) pb.textContent = pl;
       pb.classList.toggle('t-running', !!pause);
     }
-    var pbox = document.getElementById('pause-box');
-    if (pbox) {
-      var ph = pauseBoxHtml(m);
-      if (pbox.innerHTML !== ph) pbox.innerHTML = ph;
-    }
-    var wbox = document.getElementById('warm-box');
-    if (wbox) {
-      var wbh = warmBoxHtml(m);
-      if (wbox.innerHTML !== wbh) wbox.innerHTML = wbh;
+    var cd = document.querySelector('.board .cur-duel');
+    if (cd) {
+      var tc = cd.querySelector('.tm-card'), tin = timerCardInner(m);
+      if (!tin) { if (tc) tc.remove(); }
+      else if (!tc) cd.insertAdjacentHTML('beforeend', '<div class="tm-card">' + tin + '</div>');
+      else if (tc.innerHTML !== tin) tc.innerHTML = tin;
     }
     var fbox = document.getElementById('fall-box');
     if (fbox) {
@@ -2718,7 +2711,7 @@
         '<b>Turnervorstellung</b> zeigt nacheinander die Gastmannschaft (Titelseite, dann die anwesenden Turner nach Startnummer), die Heimmannschaft und zum Schluss das Kampfgericht. Weiterschalten mit den Knöpfen oder per Tastatur – Pfeil rechts, Leertaste oder Bild ab (auch mit einem Presenter), zurück mit Pfeil links oder Bild auf, Esc beendet. Während der Vorstellung sind keine anderen Fenster auf der Tafel möglich.',
         '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         (classic ? 'Nach jeder Freigabe erscheint 10 Sekunden groß auf der Tafel die Endnote der Übung mit dem Turner darüber' : 'Nach jeder Freigabe erscheinen 10 Sekunden groß auf der Tafel die Scorepunkte des Duells mit dem Sieger darüber') +
-          ', Korrekturen 10 Sekunden. Einturnzeit und Sturz-Timer erscheinen groß als Fenster über der Tafel.'
+          ', Korrekturen 10 Sekunden. Der Sturz-Timer erscheint groß als Fenster über der Tafel; Einturnzeit und Wettkampfpause laufen groß in der Karte oben rechts, Liste und Wertungen bleiben dabei sichtbar.'
       ]) +
 
       sec('6. Abschluss', [
