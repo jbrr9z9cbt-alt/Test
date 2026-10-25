@@ -36,7 +36,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   Vorzeitig gestoppte Einturnzeit → Rückfrage „Gerät jetzt starten?“; ohne Einturnzeit „Gerät direkt starten“ mit Rückfrage.
   „Start zurücknehmen“, solange keine Wertung eingetragen ist. Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
 - **Gerätereiter mit Abzeichen** (beide Ligen): ✓ abgeschlossen, ● läuft (ab „Gerät starten“), 🔒 gesperrt.
-  Solange ein Gerät läuft, lassen sich an keinem anderen Gerät Einturnzeit oder Start beginnen (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
+  Solange ein Gerät läuft oder irgendwo die Einturnzeit läuft, lassen sich an keinem anderen Gerät Einturnzeit oder Start beginnen (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
   Abgeschlossene Geräte öffnen sich gesperrt (nur ansehen); „Bearbeiten“ mit Bestätigung gibt sie frei, bis das Gerät verlassen wird.
   Notausgang: „Gerät starten“ an einem gesperrten Gerät → „Gerätesperre aufheben …“ (doppelt bestätigt); solange steht über den
   Geräten ein Hinweis mit „Sperre wieder aktivieren“.

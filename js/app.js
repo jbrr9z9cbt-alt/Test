@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '71';
+  var APP_BUILD = '72';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -904,16 +904,28 @@
       var ar = r.apparatus[a.key];
       st[a.key] = ar.complete ? 'done' : (ar.started || appStarted(m, a.key)) ? 'run' : 'open';
     });
-    var running = S.APPARATUS.some(function (a) { return st[a.key] === 'run'; });
+    // Gesperrt wird auch, solange an einem Gerät die Einturnzeit läuft (bis zu dessen automatischem Start).
+    var warming = warmingApparatus(m);
+    var running = S.APPARATUS.some(function (a) { return st[a.key] === 'run'; }) || !!warming;
     if (running && !m.unlockApparatus && m.status !== 'final') {
-      S.APPARATUS.forEach(function (a) { if (st[a.key] === 'open') st[a.key] = 'locked'; });
+      S.APPARATUS.forEach(function (a) { if (st[a.key] === 'open' && a.key !== warming) st[a.key] = 'locked'; });
     }
     return st;
   }
 
+  /** Gerät, an dem gerade die Einturnzeit läuft oder das gleich danach startet (noch nicht gestartet). */
+  function warmingApparatus(m) {
+    var w = m.timers && m.timers.warmup;
+    if (!w || w.autoStarted || appStarted(m, w.appKey)) return null;
+    return Date.now() - w.start < WARMUP_MS + WARMUP_END_MS ? w.appKey : null;
+  }
+
   /** Gesperrtes Gerät angetippt: Hinweis, im Notfall Sperre aufheben (doppelt bestätigt). */
   function lockedDialog(m, key) {
-    askChoice('🔒 ' + apparatusName(key) + ' ist gesperrt', apparatusName(key) + ' kann erst gestartet werden, wenn ' + runningApparatus(m).name + ' abgeschlossen ist. Turner lassen sich trotzdem schon ändern.', null,
+    var run = runningApparatus(m);
+    var why = run ? 'kann erst begonnen werden, wenn ' + run.name + ' abgeschlossen ist.'
+      : 'kann erst begonnen werden, wenn die Einturnzeit an ' + apparatusName(warmingApparatus(m)) + ' beendet bzw. gestoppt ist.';
+    askChoice('🔒 ' + apparatusName(key) + ' ist gesperrt', apparatusName(key) + ' ' + why + ' Turner lassen sich trotzdem schon ändern.', null,
       [{ label: 'Gerätesperre aufheben …', value: 'unlock', link: true }, { label: 'OK', value: 'ok', primary: true, focus: true, cancel: true }]).then(function (a) {
       if (a !== 'unlock') return null;
       return askChoice('⚠ Gerätesperre aufheben?', 'Die Gerätesperre ist nur für den Notfall gedacht, z. B. wenn die App ein Gerät fälschlich nicht als abgeschlossen erkennt. Danach sind alle Geräte frei wählbar.', null,
@@ -2725,7 +2737,7 @@
           ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
           : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „legt vor“ markiert.',
         '<b>Einturnzeit und Gerätestart</b>: Turner lassen sich an jedem Gerät jederzeit auswählen (auch vorab). Mit „Einturnzeit (6:40) starten“ beginnt das Einturnen; nach Ablauf und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch – erst dann sind Wertungen, „nicht angetreten“ und „Wertung 0,00“ möglich, und die Anzeigetafel wechselt auf dieses Gerät. Bis dahin bleibt dort das vorige Gerät mit allen Werten stehen. Wird die Einturnzeit vorzeitig gestoppt, fragt die App, ob das Gerät jetzt starten soll. Ohne Einturnzeit: „Gerät direkt starten“ (mit Rückfrage). Ein versehentlicher Start lässt sich zurücknehmen, solange noch keine Wertung eingetragen ist.',
-        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt. Solange ein Gerät läuft, kann an keinem anderen Gerät die Einturnzeit oder der Start begonnen werden; gesperrte Geräte lassen sich trotzdem öffnen, um Turner zu ändern. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre über „Gerät starten“ an einem gesperrten Gerät und „Gerätesperre aufheben …“ (doppelt bestätigt) aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
+        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt. Solange ein Gerät läuft oder an einem Gerät die Einturnzeit läuft, kann an keinem anderen Gerät die Einturnzeit oder der Start begonnen werden; gesperrte Geräte lassen sich trotzdem öffnen, um Turner zu ändern. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre über „Gerät starten“ an einem gesperrten Gerät und „Gerätesperre aufheben …“ (doppelt bestätigt) aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
 
         'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
