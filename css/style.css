@@ -685,7 +685,7 @@ body.board-light .warm-win .pw-clock { color: #166534; }
 .tab.st-done .tab-badge { background: #16a34a; }
 .tab.st-run .tab-badge { background: #f59e0b; }
 .tab.st-run .tab-badge::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
-.tab.st-locked { opacity: .45; cursor: not-allowed; }
+.tab.st-locked { opacity: .6; }
 .tab.st-locked .tab-badge { background: #a3a3a3; font-size: 12px; }
 
 /* ---------- Anzeigetafel: feste Aufteilung des Bildschirms ----------
@@ -865,3 +865,9 @@ body.board-light .board-table tfoot td { border-top-color: #525252; }
 .board-team { position: relative; }
 .board-ded { position: absolute; left: 0; right: 0; top: 100%; font-size: .42em; font-weight: 700; color: #f59e0b; white-space: nowrap; }
 body.board-light .board-ded { color: #c2410c; }
+
+/* Gerät starten: neben der Einturnzeit; gesperrt (anderes Gerät läuft) blass, ein Klick erklärt warum */
+.warmup-row .start-btn { margin-left: .6rem; }
+.start-btn.is-locked { opacity: .45; }
+.start-on { margin-left: .9rem; font-weight: 700; color: #b45309; }
+.warmup-row { align-items: center; }

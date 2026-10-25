@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '68';
+  var APP_BUILD = '69';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -863,20 +863,46 @@
   // ---------- Ansicht: Wettkampf (Erfassung) ----------
 
   function currentTab(m) {
-    var tab = state.ui.tab[m.id] || S.APPARATUS[0].key;
-    // Ein gesperrtes Gerät nie anzeigen, sondern das laufende.
-    return appStatus(m)[tab] === 'locked' ? runningApparatus(m).key : tab;
+    // Ohne Auswahl das laufende Gerät, sonst das erste. Gesperrte Geräte lassen sich öffnen (nur Turner änderbar).
+    var run = runningApparatus(m);
+    return state.ui.tab[m.id] || (run ? run.key : S.APPARATUS[0].key);
   }
 
   /**
    * Status je Gerät nach freigegebenen Wertungen: done (abgeschlossen), run (läuft), open (offen)
    * bzw. locked, solange ein anderes Gerät läuft – außer bei aufgehobener Gerätesperre.
    */
+  /**
+   * Gerät gestartet? Über „Gerät starten“ (m.started) – bei älteren Wettkämpfen ohne diesen Knopf
+   * gilt ein Gerät mit eingetragener oder freigegebener Wertung als gestartet.
+   */
+  function appStarted(m, key) {
+    if (m.started && m.started[key]) return true;
+    return m.apparatus[key].duels.some(function (d) {
+      return rowAnyRevealed(m, d) || ['home', 'guest'].some(function (k) {
+        var x = d[k];
+        return x.d !== null || x.e1 !== null || x.e2 !== null || x.e3 !== null || x.nd || x.bonus || x.dns || x.zero;
+      });
+    });
+  }
+
+  /** Wertungen dürfen erst nach „Gerät starten“ eingetragen werden (Turner jederzeit). */
+  function scoresAllowed(m, key) {
+    return appStarted(m, key) || appStatus(m)[key] === 'done';
+  }
+
+  /** Start zurücknehmen geht, solange am Gerät noch keine Wertung eingetragen ist. */
+  function canUnstart(m, key) {
+    if (!(m.started && m.started[key])) return false;
+    var copy = Object.assign({}, m, { started: {} });
+    return !appStarted(copy, key);
+  }
+
   function appStatus(m) {
     var r = S.matchResult(S.revealedView(m)), st = {};
     S.APPARATUS.forEach(function (a) {
       var ar = r.apparatus[a.key];
-      st[a.key] = ar.complete ? 'done' : ar.started ? 'run' : 'open';
+      st[a.key] = ar.complete ? 'done' : (ar.started || appStarted(m, a.key)) ? 'run' : 'open';
     });
     var running = S.APPARATUS.some(function (a) { return st[a.key] === 'run'; });
     if (running && !m.unlockApparatus && m.status !== 'final') {
@@ -887,7 +913,7 @@
 
   /** Gesperrtes Gerät angetippt: Hinweis, im Notfall Sperre aufheben (doppelt bestätigt). */
   function lockedDialog(m, key) {
-    askChoice('🔒 ' + apparatusName(key) + ' ist gesperrt', apparatusName(key) + ' kann erst begonnen werden, wenn ' + runningApparatus(m).name + ' abgeschlossen ist.', null,
+    askChoice('🔒 ' + apparatusName(key) + ' ist gesperrt', apparatusName(key) + ' kann erst gestartet werden, wenn ' + runningApparatus(m).name + ' abgeschlossen ist. Turner lassen sich trotzdem schon ändern.', null,
       [{ label: 'Gerätesperre aufheben …', value: 'unlock', link: true }, { label: 'OK', value: 'ok', primary: true, focus: true, cancel: true }]).then(function (a) {
       if (a !== 'unlock') return null;
       return askChoice('⚠ Gerätesperre aufheben?', 'Die Gerätesperre ist nur für den Notfall gedacht, z. B. wenn die App ein Gerät fälschlich nicht als abgeschlossen erkennt. Danach sind alle Geräte frei wählbar.', null,
@@ -1070,9 +1096,10 @@
       ' value="' + esc(v) + '" placeholder="' + (field === 'nd' ? '0,0' : '') + '"' + (locked ? ' disabled' : '') + '></label>';
   }
 
-  function sideHtml(m, appKey, idx, sideKey, side, locked, position, struck) {
+  function sideHtml(m, appKey, idx, sideKey, side, locked, position, struck, noScores) {
     var classic = isClassic(m);
-    var dis = locked || side.dns || side.zero;
+    // Vor „Gerät starten“ ist nur die Turnerauswahl aktiv.
+    var dis = locked || noScores || side.dns || side.zero;
     var color = sideColor(m, sideKey);
     var key = appKey + '-' + idx + '-' + sideKey;
     var three = S.eJudgeCount(m.rules) === 3;
@@ -1102,10 +1129,10 @@
       '<span class="final" style="flex:' + dCols + '">' + 
       'Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
-      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked ? ' disabled' : '') + '> nicht angetreten</label>' +
-      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') + (locked || side.dns || !side.gymnastId ? ' disabled' : '') +
+      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked || noScores ? ' disabled' : '') + '> nicht angetreten</label>' +
+      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') + (locked || noScores || side.dns || !side.gymnastId ? ' disabled' : '') +
         (side.gymnastId ? '' : ' title="Erst einen Turner wählen"') + '> Wertung 0,00 (angetreten)</label>' +
-      (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer"' + attrs + (locked ? ' disabled' : '') + '>Sturz-Timer</button>' : '') +
+      (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer"' + attrs + (locked || noScores ? ' disabled' : '') + '>Sturz-Timer</button>' : '') +
       '</div></div>';
   }
 
@@ -1144,11 +1171,24 @@
     return '<button class="btn primary reveal-btn"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Wertung freigeben</button>';
   }
 
+  /** „Gerät starten“ schaltet die Anzeigetafel auf das Gerät und gibt die Wertungseingabe frei. */
+  function startButton(m, appKey) {
+    if (m.status === 'final') return '';
+    var st = appStatus(m)[appKey];
+    if (st === 'done') return '';
+    if (st === 'run') {
+      return canUnstart(m, appKey) ? '<button type="button" class="btn ghost start-btn" tabindex="-1" data-action="app-unstart" data-app="' + appKey + '">Start zurücknehmen</button>'
+        : '<span class="start-on">● Gerät läuft</span>';
+    }
+    return '<button type="button" class="btn primary start-btn' + (st === 'locked' ? ' is-locked' : '') + '" tabindex="-1" data-action="app-start" data-app="' + appKey + '">Gerät starten</button>';
+  }
+
   function apparatusPanel(m, appKey) {
     if (isClassic(m)) return classicPanel(m, appKey);
     var a = S.APPARATUS.filter(function (x) { return x.key === appKey; })[0];
     var app = m.apparatus[appKey];
     var ar = S.apparatusResult(app, m.rules);
+    var noScores = !scoresAllowed(m, appKey);
     var duels = app.duels.map(function (d, i) {
       var locked = duelBlocked(m, appKey, i);
       var order = S.startOrder(m, appKey, i);
@@ -1156,14 +1196,14 @@
       // DOM-Reihenfolge = Startreihenfolge, damit die Tabulatortaste der Wettkampfreihenfolge folgt.
       return '<div class="' + cls + '">' +
         '<div class="duel-no">Duell ' + (i + 1) + '</div>' +
-        sideHtml(m, appKey, i, order[0], d[order[0]], locked, 1) +
-        sideHtml(m, appKey, i, order[1], d[order[1]], locked, 2) +
+        sideHtml(m, appKey, i, order[0], d[order[0]], locked, 1, false, noScores) +
+        sideHtml(m, appKey, i, order[1], d[order[1]], locked, 2, false, noScores) +
         '<div class="duel-result" data-out="duel-' + appKey + '-' + i + '">' + duelPoints(m, ar.duels[i]) + '</div>' +
-        '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked) + '</div>' +
+        '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked || noScores) + '</div>' +
         '</div>';
     }).join('');
     return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
-      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button></div>' +
+      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button>' + startButton(m, appKey) + '</div>' +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels +
       '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
@@ -1208,19 +1248,20 @@
     var app = m.apparatus[appKey];
     var ar = S.apparatusResult(app, m.rules);
     var order = S.classicOrder(m, appKey);
+    var noScores = !scoresAllowed(m, appKey);
     var rows = app.duels.map(function (d, i) {
       return '<div class="cl-row">' + order.map(function (k) {
         var locked = duelBlocked(m, appKey, i, k);
         return '<div class="cl-cell' + (S.sidePending(d, k) ? ' pending' : '') + (locked && m.status !== 'final' && !doneLocked(m, appKey) ? ' blocked' : '') + '">' +
-          sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0) +
-          '<div class="duel-actions" data-out="sideact-' + appKey + '-' + i + '-' + k + '">' + sideActions(m, d, appKey, i, k, locked) + '</div></div>';
+          sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0, noScores) +
+          '<div class="duel-actions" data-out="sideact-' + appKey + '-' + i + '-' + k + '">' + sideActions(m, d, appKey, i, k, locked || noScores) + '</div></div>';
       }).join('') + '</div>';
     }).join('');
     var sums = '<div class="cl-row cl-sums">' + order.map(function (k) {
       return '<div class="cl-sum" data-out="clsum-' + appKey + '-' + k + '">' + classicSumHtml(m, ar, k) + '</div>';
     }).join('') + '</div>';
     return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
-      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button></div>' +
+      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button>' + startButton(m, appKey) + '</div>' +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' +
       '<div class="cl-row cl-head">' + order.map(function (k, n) {
@@ -1302,12 +1343,20 @@
     var ar = r.apparatus[tab];
     out('app-sum', appSumHtml(m, ar));
     out('pending', pendingBanner(m));
+    // Start-Knopf nachziehen (z. B. „Start zurücknehmen“ entfällt mit der ersten Wertung).
+    var wr = $app.querySelector('.warmup-row');
+    if (wr) {
+      var old = wr.querySelector('.start-btn, .start-on');
+      var html = startButton(m, tab);
+      if (old) old.remove();
+      if (html) wr.insertAdjacentHTML('beforeend', html);
+    }
     if (isClassic(m)) {
       m.apparatus[tab].duels.forEach(function (d, i) {
         ['home', 'guest'].forEach(function (k) {
           var key = tab + '-' + i + '-' + k;
           var act = $app.querySelector('[data-out="sideact-' + key + '"]');
-          var html = sideActions(m, d, tab, i, k, duelBlocked(m, tab, i, k));
+          var html = sideActions(m, d, tab, i, k, duelBlocked(m, tab, i, k) || !scoresAllowed(m, tab));
           if (act && act.innerHTML !== html) act.innerHTML = html;
           out('enote-' + key, fmt(S.eScore(d[k], m.rules)));
           out('final-' + key, fmt(S.sideFinal(d[k], m.rules)));
@@ -1323,7 +1372,7 @@
       out('duel-' + tab + '-' + i, duelPoints(m, ar.duels[i]));
       // Knöpfe nur neu aufbauen, wenn sich etwas ändert – sonst ginge ein Fokus darauf verloren.
       var act = $app.querySelector('[data-out="duelact-' + tab + '-' + i + '"]');
-      var html = duelActions(ar.duels[i], d, tab, i, duelBlocked(m, tab, i));
+      var html = duelActions(ar.duels[i], d, tab, i, duelBlocked(m, tab, i) || !scoresAllowed(m, tab));
       if (act && act.innerHTML !== html) act.innerHTML = html;
       ['home', 'guest'].forEach(function (k) {
         out('enote-' + tab + '-' + i + '-' + k, fmt(S.eScore(d[k], m.rules)));
@@ -1342,6 +1391,7 @@
     var field = el.getAttribute('data-field');
     var side = m.apparatus[appKey].duels[idx][sideKey];
     if (duelBlocked(m, appKey, idx, sideKey)) { toast(doneLocked(m, appKey) ? 'Das Gerät ist abgeschlossen – zum Ändern „Bearbeiten“ wählen.' : 'Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
+    if (field !== 'gymnast' && !scoresAllowed(m, appKey)) { toast('Erst „Gerät starten“ drücken.', 'error'); render(); return; }
     var pendingBefore = S.pendingCorrections(m).length;
 
     if (field === 'gymnast') {
@@ -1490,8 +1540,20 @@
     return isClassic(m) ? !!(S.revOf(d, 'home').revealedAt || S.revOf(d, 'guest').revealedAt) : !!d.revealedAt;
   }
 
-  /** Gerät, das gerade läuft: das erste mit Eintragungen, aber noch nicht vollständig freigegeben. */
+  /**
+   * Gerät der Anzeigetafel: das zuletzt mit „Gerät starten“ gestartete – es bleibt nach dem Abschluss stehen,
+   * bis das nächste gestartet wird. Ältere Wettkämpfe ohne Start: das erste mit Eintragungen, das noch nicht fertig ist.
+   */
   function boardApparatus(m) {
+    var last = null, lastTs = 0;
+    S.APPARATUS.forEach(function (a) {
+      var ts = m.started && m.started[a.key];
+      if (ts && ts > lastTs) { last = a; lastTs = ts; }
+    });
+    return last || legacyBoardApparatus(m);
+  }
+
+  function legacyBoardApparatus(m) {
     var current = null;
     var lastRevealed = null;
     S.APPARATUS.forEach(function (a) {
@@ -3030,7 +3092,6 @@
 
     switch (action) {
       case 'tab':
-        if (appStatus(m)[btn.getAttribute('data-tab')] === 'locked') { lockedDialog(m, btn.getAttribute('data-tab')); return; }
         if (state.ui.editDone[m.id] && state.ui.editDone[m.id] !== btn.getAttribute('data-tab')) delete state.ui.editDone[m.id];
         if (currentTab(m) !== btn.getAttribute('data-tab')) state.ui.openedDone[m.id] = appStatus(m)[btn.getAttribute('data-tab')] === 'done' ? btn.getAttribute('data-tab') : '';
         state.ui.tab[m.id] = btn.getAttribute('data-tab');
@@ -3113,6 +3174,19 @@
           save('matches', m);
           refreshDisplayButtons(m);
         }
+        break;
+      case 'app-start':
+        var sKey = btn.getAttribute('data-app');
+        if (appStatus(m)[sKey] === 'locked') { lockedDialog(m, sKey); return; }
+        m.started = m.started || {};
+        m.started[sKey] = Date.now();
+        save('matches', m).then(function () { keepScroll = true; render(); });
+        break;
+      case 'app-unstart':
+        var uKey = btn.getAttribute('data-app');
+        if (!canUnstart(m, uKey)) { toast('Am Gerät sind bereits Wertungen eingetragen.', 'error'); keepScroll = true; render(); return; }
+        delete m.started[uKey];
+        save('matches', m).then(function () { keepScroll = true; render(); });
         break;
       case 'deduction':
         var dSide = btn.getAttribute('data-side');
