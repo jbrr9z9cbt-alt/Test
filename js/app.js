@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '66';
+  var APP_BUILD = '67';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -926,9 +926,10 @@
       '<span class="bs-theme" role="group" aria-label="Design der Anzeigetafel">' +
       '<button class="toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
       '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span></span>' +
+      // Reihenfolge wie im Ablauf: Turnervorstellung, Wettkampfpause, Wettkampfergebnis
+      '<span data-out="intro">' + introControls(m) + '</span>' + pauseControls() +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
-      scorersLabel(m.display && m.display.scorers) + '</button>' + pauseControls() +
-      '<span data-out="intro">' + introControls(m) + '</span></div>' +
+      scorersLabel(m.display && m.display.scorers) + '</button></div>' +
       // Knöpfe zum Wettkampf selbst als zweite Gruppe; „Löschen“ steht für sich.
       '<div class="board-group" role="group" aria-label="Wettkampf">' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
