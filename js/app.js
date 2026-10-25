@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '61';
+  var APP_BUILD = '62';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -1667,12 +1667,24 @@
     for (var i = 0; i < 12; i++) {
       b.style.setProperty('--k', k);
       fitNames(b);
+      evenRows(b);
       if (!boardOverflows(b) || k <= 0.6) break;
       k = Math.round((k - 0.04) * 100) / 100;
     }
     // Notfall bei sehr kleinem Fenster: lieber scrollen als abschneiden.
     b.style.overflowY = boardOverflows(b) ? 'auto' : '';
     fitResultBox();
+  }
+
+  /** Alle Zeilen der Duell- bzw. Übungsliste gleich hoch – egal ob schon Turner oder Wertungen darin stehen. */
+  function evenRows(b) {
+    var t = b.querySelector('.board-duels');
+    if (!t) return;
+    var rows = t.querySelectorAll('tr');
+    rows.forEach(function (tr) { tr.style.height = ''; });
+    // Passt der Inhalt nicht in gleich hohe Zeilen, wird die Tafel insgesamt verkleinert (fitBoard).
+    var each = t.getBoundingClientRect().height / rows.length;
+    rows.forEach(function (tr) { tr.style.height = each + 'px'; });
   }
 
   /** Zu lange Namen in der Karte werden nur in ihrem eigenen Feld kleiner (höchstens auf 60 %). */
