@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '65';
+  var APP_BUILD = '66';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -506,7 +506,7 @@
     else state.board = { matchId: null, lastReveal: '' };
     if (!keepScroll) window.scrollTo(0, 0);
     tickTimers();
-    if (isBoard) fitBoard();
+    if (isBoard) { fitBoard(); fitIntro(); }
     keepScroll = false;
   }
 
@@ -927,7 +927,8 @@
       '<button class="toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
       '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span></span>' +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
-      scorersLabel(m.display && m.display.scorers) + '</button>' + pauseControls() + '</div>' +
+      scorersLabel(m.display && m.display.scorers) + '</button>' + pauseControls() +
+      '<span data-out="intro">' + introControls(m) + '</span></div>' +
       // Knöpfe zum Wettkampf selbst als zweite Gruppe; „Löschen“ steht für sich.
       '<div class="board-group" role="group" aria-label="Wettkampf">' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
@@ -1613,7 +1614,8 @@
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody>' +
       '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num"><span class="sp-num">' + r.homeApp + '</span></td><td class="num"><span class="sp-num">' + r.guestApp + '</span></td></tr></tfoot></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
-      '</div>' + boardScorers(m, view) + '<div id="warm-box">' + warmBoxHtml(m) + '</div><div id="pause-box">' + pauseBoxHtml(m) + '</div><div id="fall-box">' + fallBoxHtml(m) + '</div>';
+      '</div>' + boardScorers(m, view) + '<div id="warm-box">' + warmBoxHtml(m) + '</div><div id="pause-box">' + pauseBoxHtml(m) + '</div><div id="fall-box">' + fallBoxHtml(m) + '</div>' +
+      '<div id="intro-box">' + introBoxHtml(m) + '</div>';
   }
 
   /** Einturnzeit groß als Fenster über der Tafel (wie die Wettkampfpause); nach Ablauf 10 Sekunden „Einturnen beendet“. */
@@ -1668,6 +1670,135 @@
     if (!p && !end) return '';
     return '<div class="pause-overlay"><div class="pause-win">' + scoreHeadHtml(m) + '<div class="pw-title">Pause</div>' +
       (p ? '<div class="pw-clock">' + fixedDigits(clock(p.remaining)) + '</div>' : '<div class="pw-clock pw-end">Zeit abgelaufen</div>') + '</div></div>';
+  }
+
+  // ---------- Turnervorstellung ----------
+  // Seiten: Titel Gast, Gastturner (nach Startnummer), Titel Heim, Heimturner, Kampfgericht.
+  // Der Stand (Seitennummer oder null) steht in m.display.intro und wird wie alles andere synchronisiert.
+
+  function introPages(m) {
+    var pages = [];
+    ['guest', 'home'].forEach(function (side) {
+      var t = team(side === 'home' ? m.homeTeamId : m.guestTeamId);
+      var lineup = m.lineup && m.lineup[side];
+      var gyms = (t ? t.gymnasts : []).filter(function (g) { return g.name && (!lineup || lineup.indexOf(g.id) >= 0); })
+        .sort(function (a, b) { return a.number - b.number; });
+      pages.push({ side: side, count: gyms.length });
+      gyms.forEach(function (g, i) { pages.push({ side: side, gym: g, pos: i + 1, count: gyms.length }); });
+    });
+    pages.push({ judges: true });
+    return pages;
+  }
+
+  function introStep(m) {
+    var s = m && m.display && m.display.intro;
+    return typeof s === 'number' ? s : -1;
+  }
+
+  function introOn(m) {
+    return introStep(m) >= 0;
+  }
+
+  /** Während der Turnervorstellung sind keine anderen Fenster auf der Tafel möglich. */
+  function introBlocks(m) {
+    if (!introOn(m)) return false;
+    toast('Erst die Turnervorstellung beenden.', 'error');
+    return true;
+  }
+
+  /**
+   * Kampfgericht für die Tafel: E1 ist Oberkampfrichter, ein neutraler E2 ohne Verein.
+   * Vereinskampfrichter ohne Nummer, nach Verein geordnet; wer für seinen Verein D und E wertet, steht einmal als „D/E“.
+   */
+  function introJudgeRows(m) {
+    var j = m.judges || {}, three = S.eJudgeCount(m.rules) === 3;
+    var rows = [];
+    function add(role, name, side, gap) {
+      if (name) rows.push('<tr' + (gap ? ' class="gap"' : '') + '><td>' + role + '</td><td>' + esc(name) + '</td><td class="r">' +
+        (side ? esc(teamName(side === 'home' ? m.homeTeamId : m.guestTeamId)) : '') + '</td></tr>');
+    }
+    add('E1/OK', j.e1);
+    if (!three) add('E2', j.e2);
+    ['home', 'guest'].forEach(function (side) {
+      var e = three ? (side === 'home' ? j.e2 : j.e3) : '', d = side === 'home' ? j.d1 : j.d2;
+      var n = rows.length;
+      if (e && d && e.trim().toLowerCase() === d.trim().toLowerCase()) add('D/E', d, side, true);
+      else { add('E', e, side, true); add('D', d, side, rows.length === n); }
+    });
+    return rows;
+  }
+
+  function introBoxHtml(m) {
+    var step = introStep(m);
+    if (step < 0) return '';
+    var pages = introPages(m), p = pages[Math.min(step, pages.length - 1)];
+    var body;
+    if (p.judges) {
+      var rows = introJudgeRows(m);
+      body = '<div class="tv-big-team tv-fit tv-kg">Kampfgericht</div>' +
+        (rows.length ? '<table class="tv-judges' + (rows.length > 4 ? ' many' : '') + '">' + rows.join('') + '</table>' : '');
+    } else {
+      var color = boardTone(m, p.side), name = esc(teamName(p.side === 'home' ? m.homeTeamId : m.guestTeamId));
+      if (p.gym) {
+        body = '<div class="tv-team tv-fit" style="color:' + color + '">' + name + '</div>' +
+          '<div class="tv-num" style="color:' + color + '">' + p.gym.number + '</div><div class="tv-name tv-fit">' + esc(p.gym.name) + '</div>';
+      } else {
+        var cap = m.captains && m.captains[p.side];
+        body = '<div class="tv-label">' + (p.side === 'home' ? 'Heimmannschaft' : 'Gastmannschaft') + '</div>' +
+          '<div class="tv-big-team tv-fit" style="color:' + color + '">' + name + '</div>' +
+          (cap ? '<div class="tv-cap">Mannschaftsführer: <b>' + esc(cap) + '</b></div>' : '') +
+          '<div class="tv-count">' + p.count + ' Turner</div>';
+      }
+    }
+    return '<div class="pause-overlay tv-overlay"><div class="pause-win tv-win"><div class="tv-top"><span>Turnervorstellung</span><span>' +
+      (Math.min(step, pages.length - 1) + 1) + ' / ' + pages.length + '</span></div><div class="tv-body">' + body + '</div></div></div>';
+  }
+
+  /** Lange Mannschafts- und Turnernamen so weit verkleinern, dass sie in einer Zeile ins Fenster passen. */
+  function fitIntro() {
+    document.querySelectorAll('.tv-win .tv-fit').forEach(function (el) {
+      el.style.fontSize = '';
+      for (var n = 0; n < 30 && el.scrollWidth > el.clientWidth + 1; n++) {
+        el.style.fontSize = (parseFloat(getComputedStyle(el).fontSize) * 0.94) + 'px';
+      }
+    });
+  }
+
+  /** Steuerung im Eingabefenster: Knopf zum Starten bzw. Zurück / Stand / Weiter / Beenden. */
+  function introControls(m) {
+    var step = introStep(m);
+    if (step < 0) return '<button class="btn" data-action="intro-start">Turnervorstellung</button>';
+    var pages = introPages(m), p = pages[Math.min(step, pages.length - 1)];
+    var pos = p.judges ? 'Kampfgericht' : (p.side === 'home' ? 'Heim' : 'Gast') + (p.gym ? ' · Turner ' + p.pos + ' / ' + p.count : ' · Mannschaft');
+    return '<span class="tv-ctl" role="group" aria-label="Turnervorstellung">' +
+      '<button class="btn" data-action="intro-step" data-dir="-1"' + (step === 0 ? ' disabled' : '') + '>◀ Zurück</button>' +
+      '<span class="pos">' + pos + '</span>' +
+      '<button class="btn primary" data-action="intro-step" data-dir="1">Weiter ▶</button>' +
+      '<button class="btn tv-end" data-action="intro-end">Beenden</button></span>';
+  }
+
+  function refreshIntro(m) {
+    var el = $app.querySelector('[data-out="intro"]');
+    if (el) el.innerHTML = introControls(m);
+  }
+
+  /** Seite setzen (null = beenden), speichern und die eigene Ansicht nachziehen – die andere folgt über die Synchronisation. */
+  function introSet(m, step) {
+    m.display = m.display || {};
+    m.display.intro = step;
+    if (step !== null) m.display.scorers = false;
+    save('matches', m).then(function () {
+      if (document.body.classList.contains('board-mode')) { keepScroll = true; render(); }
+      else { refreshIntro(m); refreshDisplayButtons(m); }
+    });
+  }
+
+  /** Eine Seite vor oder zurück; hinter der letzten Seite (Kampfgericht) endet die Vorstellung. */
+  function introGo(m, dir) {
+    var step = introStep(m);
+    if (step < 0) return;
+    var next = Math.max(0, step + dir);
+    introSet(m, next >= introPages(m).length ? null : next);
   }
 
   /**
@@ -2462,7 +2593,8 @@
 
       sec('5. Anzeigetafel', [
         '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort doppelt auf die Tafel klicken – das schaltet das Vollbild ein und aus.',
-        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet.',
+        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet. ' +
+        '<b>Turnervorstellung</b> zeigt nacheinander die Gastmannschaft (Titelseite, dann die anwesenden Turner nach Startnummer), die Heimmannschaft und zum Schluss das Kampfgericht. Weiterschalten mit den Knöpfen oder per Tastatur – Pfeil rechts, Leertaste oder Bild ab (auch mit einem Presenter), zurück mit Pfeil links oder Bild auf, Esc beendet. Während der Vorstellung sind keine anderen Fenster auf der Tafel möglich.',
         '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         (classic ? 'Nach jeder Freigabe erscheint 10 Sekunden groß auf der Tafel die Endnote der Übung mit dem Turner darüber' : 'Nach jeder Freigabe erscheinen 10 Sekunden groß auf der Tafel die Scorepunkte des Duells mit dem Sieger darüber') +
           ', Korrekturen 10 Sekunden. Einturnzeit und Sturz-Timer erscheinen groß als Fenster über der Tafel.'
@@ -2815,6 +2947,23 @@
     if (ev.key === 'Escape') closePauseMenu();
   });
 
+  // Turnervorstellung per Tastatur – im Eingabefenster und auf der Tafel: weiter mit Pfeil rechts, Leertaste oder Bild ab
+  // (so auch mit einem Presenter), zurück mit Pfeil links oder Bild auf; Esc beendet (nur im Eingabefenster, auf der Tafel beendet Esc das Vollbild).
+  document.addEventListener('keydown', function (ev) {
+    var r = route();
+    var m = r.name === 'match' && (!r.sub || r.sub === 'board') ? match(r.id) : null;
+    if (!m || !introOn(m) || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    var t = ev.target;
+    if (t && /INPUT|SELECT|TEXTAREA/.test(t.tagName)) return;
+    if (document.querySelector('.modal-backdrop')) return;
+    if (ev.key === ' ' && t && t.tagName === 'BUTTON') return;
+    if (ev.key === 'Escape' && r.sub !== 'board') { ev.preventDefault(); introSet(m, null); return; }
+    var dir = { ArrowRight: 1, PageDown: 1, ' ': 1, ArrowLeft: -1, PageUp: -1 }[ev.key];
+    if (!dir) return;
+    ev.preventDefault();
+    introGo(m, dir);
+  });
+
   $app.addEventListener('click', function (ev) {
     var btn = ev.target.closest('[data-action]');
     if (!btn) return;
@@ -2898,15 +3047,28 @@
         if (state.boardWin && !state.boardWin.closed) { state.boardWin.focus(); break; }
         state.boardWin = window.open(location.href.split('#')[0] + '#/match/' + m.id + '/board', 'anzeigetafel-' + m.id);
         // Die Tafel öffnet immer ohne das Fenster „Wettkampfergebnis“.
-        if (!boardOn(m) || (m.display && m.display.scorers)) {
+        if (!boardOn(m) || (m.display && m.display.scorers) || introOn(m)) {
           m.display = m.display || {};
           m.display.board = true;
           m.display.scorers = false;
+          m.display.intro = null;
+          refreshIntro(m);
           save('matches', m);
           refreshDisplayButtons(m);
         }
         break;
+      case 'intro-start':
+        if (pauseState(m) || warmupState(m) || fallState(m)) { toast('Erst Pause, Einturnzeit bzw. Sturz-Timer beenden.', 'error'); return; }
+        introSet(m, 0);
+        break;
+      case 'intro-step':
+        introGo(m, parseInt(btn.getAttribute('data-dir'), 10));
+        break;
+      case 'intro-end':
+        introSet(m, null);
+        break;
       case 'pause-timer':
+        if (!pauseState(m) && introBlocks(m)) return;
         // Läuft eine Pause, beendet der Knopf sie; sonst öffnet bzw. schließt er die Auswahl der Dauer.
         if (pauseState(m)) {
           m.timers.pause = null;
@@ -2932,6 +3094,7 @@
         refreshDisplayButtons(m);
         break;
       case 'toggle-scorers':
+        if (!(m.display && m.display.scorers) && introBlocks(m)) return;
         m.display = m.display || {};
         m.display.scorers = !m.display.scorers;
         save('matches', m).then(function () { refreshDisplayButtons(m); });
@@ -2939,6 +3102,7 @@
         break;
       case 'fall-timer':
         if (!m || m.status === 'final') return;
+        if (!fallState(m) && introBlocks(m)) return;
         var cur = fallState(m);
         var tgt = { appKey: btn.getAttribute('data-app'), idx: parseInt(btn.getAttribute('data-duel'), 10), side: btn.getAttribute('data-side') };
         var same = cur && cur.t.appKey === tgt.appKey && cur.t.idx === tgt.idx && cur.t.side === tgt.side;
@@ -2949,6 +3113,7 @@
         break;
       case 'warmup-timer':
         if (!m || m.status === 'final') return;
+        if (!warmupState(m) && introBlocks(m)) return;
         var wcur = warmupState(m);
         var wapp = btn.getAttribute('data-app');
         m.timers = m.timers || {};

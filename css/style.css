@@ -827,3 +827,30 @@ body.board-light .board-table tfoot td { border-top-color: #525252; }
   .board:not(.board-standby) .board-table tfoot tr { flex-direction: row; align-items: baseline; padding: 0; }
   .board:not(.board-standby) .board-table tfoot td:first-child { font-size: calc(var(--u) * 3.4); }
 }
+
+/* Turnervorstellung: Fenster so groß wie das Pausenfenster, für alle Seiten gleich groß */
+.tv-win { width: min(1135px, 88vw); height: min(702px, 88vh); min-width: 0; box-sizing: border-box; padding: 2rem 3.5rem 2.2rem; display: flex; flex-direction: column; overflow: hidden; }
+.tv-top { display: flex; justify-content: space-between; align-items: baseline; font-size: min(1.25vw, 2.2vh); opacity: .75; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding-bottom: .8rem; margin-bottom: 1rem; border-bottom: 2px solid rgba(163,163,163,.5); }
+.tv-body { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0; }
+.tv-fit { align-self: stretch; white-space: nowrap; }
+.tv-label { font-size: min(2vw, 3.6vh); font-weight: 800; text-transform: uppercase; letter-spacing: .12em; opacity: .8; }
+.tv-big-team { font-size: min(7vw, 10vh); font-weight: 900; line-height: 1.15; margin: .2em 0 .3em; }
+.tv-big-team.tv-kg { font-size: min(5vw, 8.5vh); margin: 0 0 .1em; }
+.tv-cap { font-size: min(2.2vw, 4vh); }
+.tv-cap b { font-weight: 800; }
+.tv-count { font-size: min(1.6vw, 2.8vh); opacity: .75; margin-top: .6rem; }
+.tv-team { font-size: min(3vw, 5.4vh); font-weight: 900; line-height: 1.15; }
+.tv-num { font-size: min(14vw, 26vh); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; margin-top: .15em; }
+.tv-name { font-size: min(4.4vw, 8vh); font-weight: 900; line-height: 1.15; margin: .15em 0 .3em; }
+.tv-judges { margin: .6rem auto 0; border-collapse: collapse; font-size: min(2.6vw, 4.6vh); }
+.tv-judges.many { font-size: min(2.1vw, 3.7vh); }
+.tv-judges td { padding: .28em .8em; text-align: left; border-bottom: 2px solid rgba(163,163,163,.35); }
+.tv-judges tr:last-child td { border-bottom: 0; }
+.tv-judges td:first-child { font-weight: 900; }
+.tv-judges td.r { font-size: .6em; opacity: .8; font-weight: 700; }
+.tv-judges tr.gap td { padding-top: .9em; }
+/* Steuerleiste im Eingabefenster */
+.tv-ctl { display: inline-flex; align-items: center; border: 2px solid #2563eb; border-radius: 10px; overflow: hidden; }
+.tv-ctl .btn { border: 0; border-radius: 0; }
+.tv-ctl .pos { padding: 0 .9rem; font-weight: 700; white-space: nowrap; }
+.tv-ctl .tv-end { border-left: 1px solid #d4d4d4; }
