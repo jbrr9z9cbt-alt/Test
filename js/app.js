@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '64';
+  var APP_BUILD = '65';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -1080,7 +1080,8 @@
       'Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
       '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked ? ' disabled' : '') + '> nicht angetreten</label>' +
-      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') + (locked || side.dns ? ' disabled' : '') + '> Wertung 0,00 (angetreten)</label>' +
+      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') + (locked || side.dns || !side.gymnastId ? ' disabled' : '') +
+        (side.gymnastId ? '' : ' title="Erst einen Turner wählen"') + '> Wertung 0,00 (angetreten)</label>' +
       (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer"' + attrs + (locked ? ' disabled' : '') + '>Sturz-Timer</button>' : '') +
       '</div></div>';
   }
@@ -1300,6 +1301,8 @@
       side.gymnastId = el.value || null;
       side.number = gy ? gy.number : null;
       side.name = gy ? gy.name : '';
+      // Ohne Turner gibt es keine Wertung 0,00.
+      if (!side.gymnastId) side.zero = false;
       var keepFocus = lastPointerType !== 'touch' && lastPointerType !== 'pen';
       el.blur();
       save('matches', m).then(function () {
@@ -1333,8 +1336,22 @@
     }
 
     if (field === 'zero') {
-      side.zero = el.checked;
-      save('matches', m).then(function () { rerenderPanel(m); });
+      if (!el.checked) {
+        side.zero = false;
+        save('matches', m).then(function () { rerenderPanel(m); });
+        return;
+      }
+      if (!side.gymnastId) { el.checked = false; toast('Erst einen Turner wählen.', 'error'); return; }
+      // Wertung 0,00: bereits eingegebene Werte werden gelöscht, der Turner bleibt.
+      var setZero = function () {
+        Object.assign(side, { d: null, e1: null, e2: null, e3: null, nd: 0, bonus: false, zero: true });
+        save('matches', m).then(function () { rerenderPanel(m); });
+      };
+      var hasScores = side.d !== null || side.e1 !== null || side.e2 !== null || side.e3 !== null || side.nd || side.bonus;
+      if (!hasScores) { setZero(); return; }
+      askConfirm('Wertung 0,00: Die bereits eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?').then(function (yes) {
+        if (yes) setZero(); else el.checked = false;
+      });
       return;
     }
 
@@ -2425,7 +2442,7 @@
         'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
           ' Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
-        '<b>nicht angetreten</b>: Die Übung zählt 0 Punkte, Turner und Wertung werden geleert. <b>Wertung 0,00 (angetreten)</b>: Der Turner ist angetreten, erhält aber die Endnote 0.'
+        '<b>nicht angetreten</b>: Die Übung zählt 0 Punkte, Turner und Wertung werden geleert. <b>Wertung 0,00 (angetreten)</b>: Der Turner ist angetreten, erhält aber die Endnote 0 – erst nach Auswahl des Turners möglich; bereits eingegebene Werte werden dabei gelöscht.'
       ]) +
 
       sec('3. Wertung freigeben', classic ? [
