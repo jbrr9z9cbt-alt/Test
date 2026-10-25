@@ -804,7 +804,8 @@ body.board-light .cd-final.struck strong { color: #8a8a8a !important; }
 body.board-light .board:not(.board-standby) .board-title { color: #262626; }
 .board:not(.board-standby) .board-score { margin-bottom: calc(var(--u) * 2); }
 /* Gerätepunkte als letzte Zeile der Gerätetabelle, Linie auf Höhe der Linie über der Summe */
-.board-table tfoot td { border-top: calc(var(--u, 10px) * .45) solid #a3a3a3; border-bottom: 0; font-weight: 800; }
+.board-table tfoot td { border-top: calc(var(--u, 10px) * .45) solid #a3a3a3; border-bottom: 0; }
+.board-duels tr.bsum td.sum-lbl { font-weight: 400; }
 body.board-light .board-table tfoot td { border-top-color: #525252; }
 /* Scorepunkte der einzelnen Duelle nicht fett (wie die Wertungen der Landesliga); nur die Summe bleibt fett */
 .board-duels tr:not(.bsum) .pts { font-weight: 600; }

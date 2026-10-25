@@ -1504,8 +1504,8 @@
         return '<tr>' + name('home', d, false) + '<td class="num">' + val('home', i) + '</td><td></td>' +
           '<td class="num">' + val('guest', i) + '</td>' + name('guest', d, true) + '</tr>';
       }).join('') +
-      '<tr class="bsum"><td></td><td class="num">' + teamValue(m, ar, 'home', true) + '</td><td></td>' +
-      '<td class="num">' + teamValue(m, ar, 'guest', true) + '</td><td></td></tr>' +
+      '<tr class="bsum"><td class="sum-lbl">Summe (beste ' + m.rules.counting + ')</td><td class="num">' + teamValue(m, ar, 'home', true) + '</td><td></td>' +
+      '<td class="num">' + teamValue(m, ar, 'guest', true) + '</td><td class="sum-lbl right">Summe (beste ' + m.rules.counting + ')</td></tr>' +
       '</table></div>';
   }
 
@@ -1560,8 +1560,8 @@
             '<td class="num mirror">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
             '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + boardName(d.guest) + '</td></tr>';
         }).join('') +
-        '<tr class="bsum"><td></td><td></td><td class="num pts">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ' : ') + '</td>' +
-        '<td></td><td></td></tr>' +
+        '<tr class="bsum"><td class="sum-lbl">Summe Scorepunkte</td><td></td><td class="num pts">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ' : ') + '</td>' +
+        '<td></td><td class="sum-lbl right">Summe Scorepunkte</td></tr>' +
         '</table></div>';
     }
 
@@ -1572,7 +1572,7 @@
       '<div class="board-big' + (isClassic(m) ? ' sums' : '') + '">' + totalPair(m, r, true) + '</div>' +
       '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody>' +
-      '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num" style="color:' + homeColor + '">' + r.homeApp + '</td><td class="num" style="color:' + guestColor + '">' + r.guestApp + '</td></tr></tfoot></table>' +
+      '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num">' + r.homeApp + '</td><td class="num">' + r.guestApp + '</td></tr></tfoot></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
       '</div>' + boardScorers(m, view) + '<div id="warm-box">' + warmBoxHtml(m) + '</div><div id="pause-box">' + pauseBoxHtml(m) + '</div><div id="fall-box">' + fallBoxHtml(m) + '</div>';
   }
