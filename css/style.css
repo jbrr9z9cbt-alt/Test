@@ -854,3 +854,14 @@ body.board-light .board-table tfoot td { border-top-color: #525252; }
 .tv-ctl .btn { border: 0; border-radius: 0; }
 .tv-ctl .pos { padding: 0 .9rem; font-weight: 700; white-space: nowrap; }
 .tv-ctl .tv-end { border-left: 1px solid #d4d4d4; }
+
+/* Mannschaftsabzug (Landesliga): dezente Links unten im Gerätebereich, Hinweise im Kopf und auf der Tafel */
+.deduct-row { display: flex; justify-content: flex-end; gap: 1.2rem; margin-top: .4rem; }
+.deduct-row .linkish { background: none; border: 0; padding: 0; font: inherit; font-size: .8rem; color: #a3a3a3; text-decoration: underline; cursor: pointer; }
+.deduct-row .linkish:hover { color: #525252; }
+.deduct-row .linkish.set { color: #c2410c; font-weight: 600; }
+.deduct-row .linkish:disabled { cursor: default; text-decoration: none; }
+.deduct-note { text-align: center; color: #c2410c; font-size: .85rem; font-weight: 600; margin-top: .2rem; }
+.board-team { position: relative; }
+.board-ded { position: absolute; left: 0; right: 0; top: 100%; font-size: .42em; font-weight: 700; color: #f59e0b; white-space: nowrap; }
+body.board-light .board-ded { color: #c2410c; }

@@ -387,6 +387,12 @@
       res.guestSum += r.guestSum;
       if (!r.complete) res.complete = false;
     });
+    // Mannschaftsabzug (nur Landesliga): mindert nur die Gesamtpunktzahl, nicht die Geräteergebnisse.
+    var ded = match.deduction || {};
+    res.homeDeduction = ded.home || 0;
+    res.guestDeduction = ded.guest || 0;
+    res.homeSum -= res.homeDeduction;
+    res.guestSum -= res.guestDeduction;
     if (res.complete) {
       res.winner = res.homeSum > res.guestSum ? 'home' : res.homeSum < res.guestSum ? 'guest' : 'draw';
       var mp = rules.matchPoints;

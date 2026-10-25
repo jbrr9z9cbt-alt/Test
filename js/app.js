@@ -213,6 +213,26 @@
     });
   }
 
+  /** Abfrage eines Werts (Text) mit „Speichern“ und „Abbrechen“; liefert den Text oder null. */
+  function askValue(title, text, value, hint) {
+    return new Promise(function (resolve) {
+      var wrap = document.createElement('div');
+      wrap.className = 'modal-backdrop';
+      wrap.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><h3 id="modal-title">' + esc(title) + '</h3>' +
+        '<form class="stack"><label>' + esc(text) + '<input type="text" inputmode="decimal" autocomplete="off" value="' + esc(value) + '"></label>' +
+        (hint ? '<p class="muted small">' + esc(hint) + '</p>' : '') +
+        '<div class="actions wrap"><button type="button" class="btn" data-answer="cancel">Abbrechen</button><button type="submit" class="btn primary">Speichern</button></div></form></div>';
+      document.body.appendChild(wrap);
+      var inp = wrap.querySelector('input');
+      function close(v) { document.removeEventListener('keydown', onKey, true); wrap.remove(); resolve(v); }
+      function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(null); } }
+      wrap.querySelector('form').addEventListener('submit', function (e) { e.preventDefault(); close(inp.value); });
+      wrap.querySelector('[data-answer="cancel"]').addEventListener('click', function () { close(null); });
+      document.addEventListener('keydown', onKey, true);
+      inp.focus(); inp.select();
+    });
+  }
+
   /** Abfrage mit den Antworten „Ja“ und „Nein“ (Escape = Nein). */
   function askYesNo(title, text, hint) {
     return askChoice(title, text, hint, [{ value: true, label: 'Ja', primary: true }, { value: false, label: 'Nein' }]);
@@ -918,6 +938,7 @@
       '</div>' +
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong>' +
       '<span data-out="winner">' + winnerText(m, r) + '</span></div>' +
+      (deductionsText(m) ? '<div class="deduct-note">' + esc(deductionsText(m)) + '</div>' : '') +
       '<div class="actions wrap">' +
       // Alles, was die Anzeigetafel betrifft, als eine Gruppe
       '<div class="board-group" role="group" aria-label="Anzeigetafel">' +
@@ -1207,7 +1228,33 @@
       }).join('') + '</div>' + rows + sums +
       '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
       'Geturnt wird abwechselnd in der Reihenfolge der Startpositionen (1., 2., 3. …). Je Mannschaft zählen die ' + m.rules.counting +
-      ' höchsten Wertungen, die niedrigste ist die Streichwertung. Jede Übung wird einzeln mit „Wertung freigeben“ gezählt und auf der Anzeigetafel gezeigt. Jede Eingabe wird sofort gespeichert.</p>';
+      ' höchsten Wertungen, die niedrigste ist die Streichwertung. Jede Übung wird einzeln mit „Wertung freigeben“ gezählt und auf der Anzeigetafel gezeigt. Jede Eingabe wird sofort gespeichert.</p>' +
+      deductionLinks(m);
+  }
+
+  // ---------- Mannschaftsabzug (nur Landesliga) ----------
+  // m.deduction = { home, guest } in Tausendsteln; zieht nur von der Gesamtpunktzahl ab (siehe Wertung).
+
+  function deductionOf(m, side) {
+    return (m.deduction && m.deduction[side]) || 0;
+  }
+
+  function deductionText(m, side) {
+    return 'Mannschaftsabzug ' + teamName(side === 'home' ? m.homeTeamId : m.guestTeamId) + ': −' + fmt(deductionOf(m, side));
+  }
+
+  /** Alle eingetragenen Abzüge als Text (leer, wenn keiner eingetragen ist). */
+  function deductionsText(m) {
+    return ['home', 'guest'].filter(function (k) { return deductionOf(m, k); }).map(function (k) { return deductionText(m, k); }).join(' · ');
+  }
+
+  function deductionLinks(m) {
+    var off = m.status === 'final' ? ' disabled' : '';
+    return '<div class="deduct-row">' + ['home', 'guest'].map(function (k) {
+      var v = deductionOf(m, k);
+      return '<button type="button" class="linkish' + (v ? ' set' : '') + '" tabindex="-1" data-action="deduction" data-side="' + k + '"' + off + '>' +
+        'Mannschaftsabzug ' + (k === 'home' ? 'Heim' : 'Gast') + (v ? ': −' + fmt(v) : '') + '</button>';
+    }).join('') + '</div>';
   }
 
   function appSumHtml(m, ar) {
@@ -1571,6 +1618,12 @@
     return !(m.display && m.display.board === false);
   }
 
+  /** Kleiner Hinweis unter dem Mannschaftsnamen; schwebt im freien Platz neben dem Stand und verändert die Aufteilung nicht. */
+  function boardDeduction(m, side) {
+    var v = deductionOf(m, side);
+    return v ? '<span class="board-ded">inkl. Abzug −' + fmt(v) + '</span>' : '';
+  }
+
   function viewBoard(m) {
     if (!boardOn(m)) {
       return '<div class="board board-standby">' +
@@ -1609,9 +1662,9 @@
     return '<div class="board">' +
       '<div class="board-title">' + esc([matchLeague(m).name, fmtDate(m.date)].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="board-score">' +
-      '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
+      '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + boardDeduction(m, 'home') + '</div>' +
       '<div class="board-big' + (isClassic(m) ? ' sums' : '') + '">' + totalPair(m, r, true) + '</div>' +
-      '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + boardDeduction(m, 'guest') + '</div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody>' +
       '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num"><span class="sp-num">' + r.homeApp + '</span></td><td class="num"><span class="sp-num">' + r.guestApp + '</span></td></tr></tfoot></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
@@ -1661,7 +1714,7 @@
     return '<div class="pw-score"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
       '<div class="s">' + totalPair(m, r, true) + '</div>' +
       '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
-      '<div class="pw-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + '</div>';
+      '<div class="pw-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + (deductionsText(m) ? ' · ' + esc(deductionsText(m)) : '') + '</div>';
   }
 
   /** Pause-Fenster über der Tafel: Restzeit groß, nach Ablauf kurz „Zeit abgelaufen“. */
@@ -1815,7 +1868,7 @@
       '<div class="so-result"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
       '<div class="big">' + totalPair(m, r, true) + '</div>' +
       '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
-      '<div class="so-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + (r.complete ? ' · Wettkampfpunkte ' + r.homeMatch + ':' + r.guestMatch : '') + '</div>' +
+      '<div class="so-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + (r.complete ? ' · Wettkampfpunkte ' + r.homeMatch + ':' + r.guestMatch : '') + (deductionsText(m) ? ' · ' + esc(deductionsText(m)) : '') + '</div>' +
       '<div class="so-title so-h">Topscorer</div>' +
       (list.length ? '<table class="so-table">' + list.map(function (x) {
         return '<tr><td class="so-rank">' + x.rank + '.</td><td class="so-name">' + esc(gymnastLabel(x.number, x.name) || '–') +
@@ -2308,8 +2361,8 @@
       }).join('') + '</tbody></table>' : '<p class="muted">–</p>';
   }
 
-  function printResultLine(m, r) {
-    return '<p class="ps-result">' + (r.complete ? 'Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong>' : 'Wettkampf noch nicht vollständig gewertet.') + '</p>';
+  function printResultLine(m, r, extra) {
+    return '<p class="ps-result">' + (r.complete ? 'Ergebnis: <strong>' + (r.winner === 'draw' ? 'Unentschieden' : 'Sieg ' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId))) + '</strong>' : 'Wettkampf noch nicht vollständig gewertet.') + (extra || '') + '</p>';
   }
 
   /**
@@ -2349,9 +2402,9 @@
 
     return printHead(m) +
       '<table class="print-summary"><thead><tr><th></th><th>Mannschaft</th><th class="num">Punkte</th><th class="num">Wettkampfpunkte</th><th class="num">Gerätepunkte</th></tr></thead><tbody>' +
-      '<tr><td>Heim</td><td>' + homeName + '</td><td class="num"><strong>' + teamValue(m, r, 'home') + '</strong></td><td class="num">' + matchPts(r, 'home') + '</td><td class="num">' + r.homeApp + '</td></tr>' +
-      '<tr><td>Gast</td><td>' + guestName + '</td><td class="num"><strong>' + teamValue(m, r, 'guest') + '</strong></td><td class="num">' + matchPts(r, 'guest') + '</td><td class="num">' + r.guestApp + '</td></tr>' +
-      '</tbody></table>' + printResultLine(m, r) + apps +
+      '<tr><td>Heim</td><td>' + homeName + '</td><td class="num"><strong>' + teamValue(m, r, 'home') + (deductionOf(m, 'home') ? '*' : '') + '</strong></td><td class="num">' + matchPts(r, 'home') + '</td><td class="num">' + r.homeApp + '</td></tr>' +
+      '<tr><td>Gast</td><td>' + guestName + '</td><td class="num"><strong>' + teamValue(m, r, 'guest') + (deductionOf(m, 'guest') ? '*' : '') + '</strong></td><td class="num">' + matchPts(r, 'guest') + '</td><td class="num">' + r.guestApp + '</td></tr>' +
+      '</tbody></table>' + printResultLine(m, r, deductionsText(m) ? ' · * ' + esc(deductionsText(m)) : '') + apps +
       '<div class="pa-head"><strong>Topscorer</strong> <span>(Summe aller geturnten Wertungen)</span></div>' + printScorers(m) +
       '<p class="ps-note">1.–8. = Startposition am Gerät, durchgestrichene Endnote = Streichwertung (zählt nicht; je Mannschaft zählen die ' + m.rules.counting + ' höchsten Wertungen), ' +
       'n.a. = nicht angetreten, W0 = Wertung 0,00, D = D-Note, SB = Standbonus, E1–E' + (three ? '3' : '2') + ' = Abzüge der E-Kampfrichter, E = ' +
@@ -3057,6 +3110,19 @@
           save('matches', m);
           refreshDisplayButtons(m);
         }
+        break;
+      case 'deduction':
+        var dSide = btn.getAttribute('data-side');
+        var dCur = deductionOf(m, dSide);
+        askValue('Mannschaftsabzug ' + (dSide === 'home' ? 'Heim' : 'Gast'), 'Abzug für ' + teamName(dSide === 'home' ? m.homeTeamId : m.guestTeamId) + ' in Punkten',
+          dCur ? fmt(dCur) : '', 'Wird nur von der Gesamtpunktzahl abgezogen, die Geräteergebnisse bleiben unverändert. 0 oder leer entfernt den Abzug.').then(function (txt) {
+          if (txt === null) return;
+          var v = String(txt).trim() === '' ? 0 : S.parseScore(txt);
+          if (v === null || Number.isNaN(v)) { toast('Bitte eine Zahl eingeben, z. B. 1,00.', 'error'); return; }
+          m.deduction = m.deduction || {};
+          m.deduction[dSide] = v;
+          save('matches', m).then(function () { keepScroll = true; render(); toast(v ? 'Mannschaftsabzug gespeichert' : 'Mannschaftsabzug entfernt'); });
+        });
         break;
       case 'intro-start':
         if (pauseState(m) || warmupState(m) || fallState(m)) { toast('Erst Pause, Einturnzeit bzw. Sturz-Timer beenden.', 'error'); return; }
