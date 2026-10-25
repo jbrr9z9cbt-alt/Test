@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '58';
+  var APP_BUILD = '59';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -1057,7 +1057,7 @@
       '</div></div>' +
       '<div class="result-row">' +
       '<span style="flex:' + eCols + '">E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</strong></span>' +
-      '<span class="final" style="flex:' + dCols + '">' + (classic ? '<span class="struck-tag">Streichwertung</span> ' : '') +
+      '<span class="final" style="flex:' + dCols + '">' + 
       'Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
       '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked ? ' disabled' : '') + '> nicht angetreten</label>' +
@@ -1471,20 +1471,21 @@
     var k = latest.side;
     var s = view.apparatus[latest.appKey].duels[latest.idx][k];
     var struck = r.apparatus[latest.appKey][k].struck.indexOf(latest.idx) >= 0;
-    var card = duelSideHtml(m, s, k, true).replace('</div><div class="cd-row">', (struck ? ' <span class="cd-tag">Streichwertung</span>' : '') + '</div><div class="cd-row">');
+    var card = duelSideHtml(m, s, k, true);
+    if (struck) card = card.replace('<div class="cd-final', '<div class="cd-final struck');
     return '<div class="cur-duel"><div class="cd-head">' + apparatusName(latest.appKey) + ' · ' + S.classicPosition(m, latest.appKey, latest.idx, k) + '. Übung</div>' +
       '<div class="cd-grid">' + (k === 'home' ? card : ghostSideHtml(m, 'home')) + classicCardMiddle() +
       (k === 'guest' ? card : ghostSideHtml(m, 'guest')) + '</div></div>';
   }
 
-  /** Landesliga: Wertungen des laufenden Geräts je Startpaar, Streichwertung gekennzeichnet. */
+  /** Landesliga: Wertungen des laufenden Geräts je Startpaar, Streichwertung blass und durchgestrichen. */
   function classicBoardDetail(m, view, r, current) {
     var app = view.apparatus[current.key];
     var ar = r.apparatus[current.key];
     function val(k, i) {
       var v = ar[k].values[i];
       if (v === null) return '';
-      return ar[k].struck.indexOf(i) >= 0 ? '<span class="struck-val"><s>' + fmt(v) + '</s><small>Streichwertung</small></span>'
+      return ar[k].struck.indexOf(i) >= 0 ? '<span class="struck-val"><s>' + fmt(v) + '</s></span>'
         : '<span class="team-val" style="color:' + boardTone(m, k) + '">' + fmt(v) + '</span>';
     }
     function name(k, d, right) {
@@ -2101,21 +2102,19 @@
       running.home += ar.homeSum;
       running.guest += ar.guestSum;
       function nameCell(d, i, k, right) {
-        var struck = ar[k].struck.indexOf(i) >= 0;
         var label = esc(gymnastLabel(d[k].number, d[k].name) || '–');
         var pos = S.classicPosition(m, a.key, i, k) + '.';
-        return '<td class="pn' + (right ? ' right' : '') + '">' + (right ? (struck ? '<em class="ps-struck">(Streichw.)</em> ' : '') + label + ' ' + pos
-          : pos + ' ' + label + (struck ? ' <em class="ps-struck">(Streichw.)</em>' : '')) + '</td>';
+        return '<td class="pn' + (right ? ' right' : '') + '">' + (right ? label + ' ' + pos : pos + ' ' + label) + '</td>';
       }
       return '<div class="print-app"><div class="pa-head"><strong>' + appIcon(a.key, 'pa-ico') + a.name + '</strong> <span>Gerätesumme ' + totalPair(m, ar) +
         (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
         '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + printHeadCells(a.key, head) +
         printHeadCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +
         app.duels.map(function (d, i) {
-          // Notenspalten einer Streichwertung werden durchgestrichen.
+          // Bei einer Streichwertung wird nur die Endnote durchgestrichen.
           function cells(k, reverse) {
             var html = printCells(m, d[k], head, reverse);
-            return ar[k].struck.indexOf(i) >= 0 ? html.replace(/<td class="num">/g, '<td class="num ps-s">') : html;
+            return ar[k].struck.indexOf(i) >= 0 ? html.replace('<td class="num"><strong>', '<td class="num ps-s"><strong>') : html;
           }
           return '<tr>' + nameCell(d, i, 'home', false) + cells('home', false) + cells('guest', true) + nameCell(d, i, 'guest', true) + '</tr>';
         }).join('') + '</tbody></table>' +
@@ -2128,7 +2127,7 @@
       '<tr><td>Gast</td><td>' + guestName + '</td><td class="num"><strong>' + teamValue(m, r, 'guest') + '</strong></td><td class="num">' + matchPts(r, 'guest') + '</td><td class="num">' + r.guestApp + '</td></tr>' +
       '</tbody></table>' + printResultLine(m, r) + apps +
       '<div class="pa-head"><strong>Topscorer</strong> <span>(Summe aller geturnten Wertungen)</span></div>' + printScorers(m) +
-      '<p class="ps-note">1.–8. = Startposition am Gerät, Streichw. = Streichwertung (zählt nicht; je Mannschaft zählen die ' + m.rules.counting + ' höchsten Wertungen), ' +
+      '<p class="ps-note">1.–8. = Startposition am Gerät, durchgestrichene Endnote = Streichwertung (zählt nicht; je Mannschaft zählen die ' + m.rules.counting + ' höchsten Wertungen), ' +
       'n.a. = nicht angetreten, W0 = Wertung 0,00, D = D-Note, SB = Standbonus, E1–E' + (three ? '3' : '2') + ' = Abzüge der E-Kampfrichter, E = ' +
       (three ? '10 − mittlerer Abzug' : '10 − Mittelwert') + ', NA = neutraler Abzug; Gerätepunkte Sieg/Unentschieden ' +
       m.rules.apparatusPoints.win + '/' + m.rules.apparatusPoints.draw + '. Status: ' + (m.status === 'final' ? 'abgeschlossen' : 'offen') +
