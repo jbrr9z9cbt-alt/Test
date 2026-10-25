@@ -31,7 +31,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 ## Funktionen (Oberliga)
 
 - **Einturnzeit und Gerätestart** (beide Ligen): Turner sind an jedem Gerät jederzeit wählbar (auch Vorauswahl). Nach Ablauf der
-  Einturnzeit (6:40) und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch: erst dann Wertungen, „nicht angetreten“ und
+  Einturnzeit (6:40) und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch: erst dann Wertungen und
   „Wertung 0,00“, und die Anzeigetafel wechselt auf das Gerät (bis dahin bleibt das vorige Gerät mit allen Werten stehen).
   Vorzeitig gestoppte Einturnzeit → Rückfrage „Gerät jetzt starten?“; ohne Einturnzeit „Gerät direkt starten“ mit Rückfrage.
   „Start zurücknehmen“, solange keine Wertung eingetragen ist. Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
@@ -63,7 +63,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 - **Eingabeboxen** zeigen den Mannschaftsnamen; die Scorepunkte des Duells erscheinen als einzelne Zahl in der
   Farbe der Mannschaft, die das Duell gewonnen hat (unentschieden: graue 0).
 - **Nicht angetreten** löscht Turner und bereits eingegebene Wertungen dieser Übung (nach Rückfrage).
-- **Wertung 0,00 (angetreten)** gibt einem angetretenen Turner die Endnote 0; eine D-Note 0 wird dagegen ganz normal
+- **Wertung 0,00** (nur mit ausgewähltem Turner) gibt einem angetretenen Turner die Endnote 0; eine D-Note 0 wird dagegen ganz normal
   mit den Abzügen berechnet.
 - **Sturz-Timer** an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“.
   **Einturn-Timer** je Gerät: 6:40 (8 Turner × 50 Sekunden, grün). Beide laufen im Knopf und in der Anzeigetafel und lassen sich mit
@@ -73,7 +73,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   30 s = kurzer Doppelton, nach 60 s = kurzer Fehlerton. Nach manuellem Stopp ertönt nichts.
 - **Scorepunkte** werden überall in der Farbe der jeweiligen Mannschaft angezeigt; eine Notensumme gibt es nicht.
 - **Topscorer** (App und Protokoll): die ersten drei Plätze, bei Gleichstand entsprechend mehr (z. B. 1., 1., 3.).
-- **Duell-Erfassung** je Gerät: D-Note, E-Abzüge, neutraler Abzug, Standbonus → Endnote; „nicht angetreten“ zählt 0,000
+- **Duell-Erfassung** je Gerät: D-Note, E-Abzüge, neutraler Abzug, Standbonus → Endnote; „kein Turner“ (ganz oben in der Turnerauswahl, auch vorab) = nicht angetreten, zählt 0,000; „Wertung 0,00“ nur mit ausgewähltem Turner
   - **E-Note mit neutralem E2: 10 − Mittelwert von E1 und E2**
   - **E-Note mit drei E-Kampfrichtern: höchster und niedrigster Abzug gestrichen, 10 − mittlerer Abzug**
   - Abzüge mit höchstens 2 Nachkommastellen
