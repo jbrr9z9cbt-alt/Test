@@ -165,7 +165,9 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .side.home { background: #f5f5f5; border: 1px solid #e5e5e5; }
 .side.guest { background: #ebebeb; border: 1px solid #dcdcdc; }
 .side { border-left: 5px solid var(--team, #737373) !important; box-shadow: 0 0 0 2px var(--team, #737373) inset; }
-.side.dns { opacity: .75; }
+/* „nicht angetreten“: alles blass außer dem Häkchen selbst – so sieht man, wo man es wieder lösen kann */
+.side.dns .side-head, .side.dns .score-row, .side.dns .result-row, .side.dns .side-foot label:not(:first-child), .side.dns .side-foot .timer-btn { opacity: .45; }
+.side.dns .side-foot label:first-child { font-weight: 700; }
 .side-head { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; }
 .side-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; width: 2.6rem; }
 .side .side-label {
@@ -288,8 +290,6 @@ body.board-mode main { max-width: none; padding: 0; }
 .match-form.split-e .judge-split { display: grid; }
 .match-form.split-e .judge-neutral { display: none; }
 .judge-hint { margin: 0; }
-.same-judge { margin-top: .35rem; font-size: .88rem; }
-.match-form input.locked { background: #f0f0f0; color: #525252; }
 
 /* Hinweis auf neue Version */
 .update-banner {
@@ -789,3 +789,8 @@ body.board-light .board-duels tr.bsum td { border-top-color: #525252; }
 /* Landesliga-Tafel: Streichwertung auf der Karte – Endnote blass und durchgestrichen */
 .cd-final.struck strong { text-decoration: line-through; color: #a3a3a3 !important; }
 body.board-light .cd-final.struck strong { color: #8a8a8a !important; }
+
+/* Wettkampf Setup: Umschalter „Neutraler Kampfrichter E2“ (gleicher Stil wie Hell/Dunkel) */
+.e2-toggle { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.e2-label { font-weight: 600; }
+.bs-theme button:disabled { cursor: not-allowed; opacity: .6; }

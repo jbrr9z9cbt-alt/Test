@@ -61,7 +61,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 - **Wertung 0,00 (angetreten)** gibt einem angetretenen Turner die Endnote 0; eine D-Note 0 wird dagegen ganz normal
   mit den Abzügen berechnet.
 - **Sturz-Timer** an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“.
-  **Einturn-Timer** je Gerät: 4:00 (hellgrün). Beide laufen im Knopf und in der Anzeigetafel und lassen sich mit
+  **Einturn-Timer** je Gerät: 6:40 (8 Turner × 50 Sekunden, grün). Beide laufen im Knopf und in der Anzeigetafel und lassen sich mit
   erneutem Druck jederzeit beenden. Nach Ablauf zeigt die Tafel „Einturnen beendet“ (10 s) bzw.
   „Übung beendet“ (5 s), leicht blinkend.
 - **Akustische Signale** (im Eingabefenster): Ende der Einturnzeit = Schelle 5 Sekunden; Sturz-Timer nach

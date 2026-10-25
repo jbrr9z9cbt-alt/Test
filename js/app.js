@@ -7,13 +7,13 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '59';
+  var APP_BUILD = '60';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
   var CORRECTION_MS = 10000;
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
-  var WARMUP_MS = 4 * 60 * 1000;   // Einturnzeit je Gerät
+  var WARMUP_MS = 8 * 50 * 1000;   // Einturnzeit je Gerät: 8 Turner × 50 Sekunden = 6:40
   var PAUSE_MINUTES = [10, 15, 20]; // Pause-Timer, groß als Fenster auf der Tafel
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
   // Ligen aus js/config.js; die aktuelle Liga ergibt sich aus der Adresse (#/oberliga/…, #/landesliga/…).
@@ -633,11 +633,9 @@
     var cap = (m && m.captains) || {};
     var neutral = S.eJudgeCount(rules) === 2;
     var start = (m && m.startTeam) || 'home';
-    function input(name, label, value) {
-      return '<label><span>' + label + ' <span class="req" aria-hidden="true">*</span></span><input type="text" name="' + name + '" value="' + esc(value || '') + '" autocomplete="off" required></label>';
-    }
-    function sameCheck(name, who, on) {
-      return '<label class="check same-judge"><input type="checkbox" name="' + name + '"' + (on ? ' checked' : '') + '> ist gleich ' + who + '</label>';
+    // optional: kein Pflichtfeld (ohne Sternchen)
+    function input(name, label, value, optional) {
+      return '<label><span>' + label + (optional ? '' : ' <span class="req" aria-hidden="true">*</span>') + '</span><input type="text" name="' + name + '" value="' + esc(value || '') + '" autocomplete="off"' + (optional ? '' : ' required') + '></label>';
     }
     function teamCol(side, label) {
       var teamId = m ? (side === 'home' ? m.homeTeamId : m.guestTeamId) : null;
@@ -654,15 +652,18 @@
       '<label class="check"><input type="radio" name="startTeam" value="guest"' + (start === 'guest' ? ' checked' : '') + '> Gast</label></fieldset></div>' +
       '<div class="row2 teams-row">' + teamCol('home', 'Heimmannschaft') + teamCol('guest', 'Gastmannschaft') + '</div>' +
       '<fieldset class="judges"><legend>Kampfgericht</legend>' +
-      '<div class="row2">' + input('judgeD1', 'D1 – Vereinskampfrichter Heim', j.d1) + input('judgeD2', 'D2 – Vereinskampfrichter Gast', j.d2) + '</div>' +
+      '<div class="row2">' + input('judgeD1', 'D1 – Vereinskampfrichter Heim', j.d1, true) + input('judgeD2', 'D2 – Vereinskampfrichter Gast', j.d2, true) + '</div>' +
       input('judgeE1', 'E1 – Oberkampfrichter', j.e1) +
-      '<label class="check"><input type="checkbox" name="neutralE2"' + (neutral ? ' checked' : '') + (hasScores ? ' disabled' : '') + '> Neutraler Kampfrichter E2' +
-      (hasScores ? ' <span class="muted small">(nach Beginn der Wertung nicht mehr änderbar)</span>' : '') + '</label>' +
+      // Umschalter Ja/Nein; das (versteckte) Häkchen trägt den Wert für das Formular.
+      '<div class="e2-toggle"><span class="e2-label">Neutraler Kampfrichter E2</span>' +
+      '<span class="bs-theme" role="group" aria-label="Neutraler Kampfrichter E2">' +
+      '<button type="button" class="toggle' + (neutral ? ' on' : '') + '" data-action="neutral-e2" data-value="yes"' + (hasScores ? ' disabled' : '') + '>Ja</button>' +
+      '<button type="button" class="toggle' + (neutral ? '' : ' on') + '" data-action="neutral-e2" data-value="no"' + (hasScores ? ' disabled' : '') + '>Nein</button></span>' +
+      (hasScores ? ' <span class="muted small">(nach Beginn der Wertung nicht mehr änderbar)</span>' : '') +
+      '<input type="checkbox" name="neutralE2" hidden' + (neutral ? ' checked' : '') + (hasScores ? ' disabled' : '') + '></div>' +
       '<div class="judge-neutral">' + input('judgeE2', 'E2 – neutral', neutral ? j.e2 : '') + '</div>' +
-      // Ohne neutralen E2: E2 (Heim) bzw. E3 (Gast) kann dieselbe Person wie der D-Kampfrichter des Vereins sein.
-      '<div class="judge-split row2"><div>' + input('judgeE2Home', 'E2 – Heim', neutral ? '' : j.e2) + sameCheck('sameE2', 'D1 (Heim)', !neutral && !!j.e2 && j.e2 === j.d1) + '</div>' +
-      '<div>' + input('judgeE3Guest', 'E3 – Gast', j.e3) + sameCheck('sameE3', 'D2 (Gast)', !neutral && !!j.e3 && j.e3 === j.d2) + '</div></div>' +
-      '<p class="muted small judge-hint">' + (neutral ? 'E-Note: 10 − Mittelwert der Abzüge von E1 und E2.' : 'E-Note: höchster und niedrigster Abzug werden gestrichen, der mittlere zählt.') + '</p>' +
+      // Ohne neutralen E2: E2 (Heim) und E3 (Gast) sind mit D1 bzw. D2 vorausgefüllt und frei änderbar.
+      '<div class="judge-split row2">' + input('judgeE2Home', 'E2 – Heim', neutral ? '' : j.e2, true) + input('judgeE3Guest', 'E3 – Gast', j.e3, true) + '</div>' +
       '</fieldset>' +
 
       '<p class="muted small req-note"><span class="req">*</span> Pflichtfeld</p>' +
@@ -715,21 +716,20 @@
     var neutral = form.neutralE2.checked;
     form.classList.toggle('split-e', !neutral);
     form.judgeE2.required = neutral;
-    form.judgeE2Home.required = !neutral;
-    form.judgeE3Guest.required = !neutral;
-    form.querySelector('.judge-hint').textContent = neutral ? 'E-Note: 10 − Mittelwert der Abzüge von E1 und E2.'
-      : 'E-Note: höchster und niedrigster Abzug werden gestrichen, der mittlere zählt.';
-    syncSameJudges(form);
+    form.querySelectorAll('[data-action="neutral-e2"]').forEach(function (b) { b.classList.toggle('on', (b.getAttribute('data-value') === 'yes') === neutral); });
+    linkJudges(form);
   }
 
-  /** „ist gleich D1/D2“: E2 (Heim) bzw. E3 (Gast) übernimmt den Namen und ist gesperrt. */
-  function syncSameJudges(form) {
-    [['sameE2', 'judgeE2Home', 'judgeD1'], ['sameE3', 'judgeE3Guest', 'judgeD2']].forEach(function (x) {
-      var on = !form.neutralE2.checked && form[x[0]].checked;
-      var f = form[x[1]];
-      f.readOnly = on;
-      f.classList.toggle('locked', on);
-      if (on) f.value = form[x[2]].value;
+  /**
+   * Ohne neutralen E2: E2 (Heim) bzw. E3 (Gast) übernehmen den Namen von D1 bzw. D2, solange man sie
+   * nicht selbst geändert hat (leer oder gleich dem D-Namen = noch verbunden).
+   */
+  var JUDGE_LINKS = [['judgeE2Home', 'judgeD1'], ['judgeE3Guest', 'judgeD2']];
+  function linkJudges(form) {
+    JUDGE_LINKS.forEach(function (x) {
+      var e = form[x[0]], d = form[x[1]];
+      if (!e.dataset.linked) e.dataset.linked = (!e.value || e.value === d.value) ? '1' : '';
+      if (e.dataset.linked && !form.neutralE2.checked) e.value = d.value;
     });
   }
 
@@ -1120,7 +1120,7 @@
         '</div>';
     }).join('');
     return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
-      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (4:00) starten</button></div>' +
+      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button></div>' +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels +
       '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
@@ -1177,7 +1177,7 @@
       return '<div class="cl-sum" data-out="clsum-' + appKey + '-' + k + '">' + classicSumHtml(m, ar, k) + '</div>';
     }).join('') + '</div>';
     return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
-      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (4:00) starten</button></div>' +
+      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button></div>' +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' +
       '<div class="cl-row cl-head">' + order.map(function (k, n) {
@@ -1478,6 +1478,11 @@
       (k === 'guest' ? card : ghostSideHtml(m, 'guest')) + '</div></div>';
   }
 
+  /** Name in der Liste der Tafel: „–“ nur bei „nicht angetreten“, sonst leer, solange kein Turner gewählt ist. */
+  function boardName(side) {
+    return side.dns ? '–' : esc(gymnastLabel(side.number, side.name) || '');
+  }
+
   /** Landesliga: Wertungen des laufenden Geräts je Startpaar, Streichwertung blass und durchgestrichen. */
   function classicBoardDetail(m, view, r, current) {
     var app = view.apparatus[current.key];
@@ -1489,7 +1494,7 @@
         : '<span class="team-val" style="color:' + boardTone(m, k) + '">' + fmt(v) + '</span>';
     }
     function name(k, d, right) {
-      return '<td class="bn' + (right ? ' right' : '') + '" style="--team:' + boardTone(m, k) + '">' + esc(gymnastLabel(d[k].number, d[k].name) || '–') + '</td>';
+      return '<td class="bn' + (right ? ' right' : '') + '" style="--team:' + boardTone(m, k) + '">' + boardName(d[k]) + '</td>';
     }
     return '<div class="board-detail"><h3>' + appIcon(current.key, 'bd-ico') + current.name + '</h3><table class="board-duels classic">' +
       app.duels.map(function (d, i) {
@@ -1524,7 +1529,7 @@
 
   function viewBoard(m) {
     if (!boardOn(m)) {
-      return '<div class="board board-standby"><div class="board-bar"><a href="#/match/' + m.id + '" class="btn small ghost">← zurück</a>' +
+      return '<div class="board board-standby"><div class="board-bar"><span></span>' +
         '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
         '<div class="standby"><img src="icons/icon.svg" alt="" width="120" height="120"><div>' + esc(matchLeague(m).name) + '</div></div></div>';
     }
@@ -1536,7 +1541,7 @@
     var rows = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
       return '<tr class="' + (current && current.key === a.key ? 'current' : '') + '"><td>' + appIcon(a.key, 'bt-ico') + a.name + '</td>' +
-        '<td class="num">' + (ar.started ? teamValue(m, ar, 'home', true) : '–') + '</td><td class="num">' + (ar.started ? teamValue(m, ar, 'guest', true) : '–') + '</td></tr>';
+        '<td class="num">' + (ar.started ? teamValue(m, ar, 'home', true) : '') + '</td><td class="num">' + (ar.started ? teamValue(m, ar, 'guest', true) : '') + '</td></tr>';
     }).join('');
 
     var detail = '';
@@ -1547,11 +1552,11 @@
       detail = '<div class="board-detail"><h3>' + appIcon(current.key, 'bd-ico') + current.name + '</h3><table class="board-duels">' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
-          return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + homeColor + '">' + esc(gymnastLabel(d.home.number, d.home.name) || '–') + '</td>' +
+          return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + homeColor + '">' + boardName(d.home) + '</td>' +
             '<td class="num">' + (dr.home === null ? '' : fmt(dr.home)) + '</td>' +
             '<td class="num pts">' + (dr.complete ? ptsPair(m, dr.homePoints, dr.guestPoints, true, ' : ') : '') + '</td>' +
             '<td class="num mirror">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
-            '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + esc(gymnastLabel(d.guest.number, d.guest.name) || '–') + '</td></tr>';
+            '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + boardName(d.guest) + '</td></tr>';
         }).join('') +
         '<tr class="bsum"><td>Summe Scorepunkte</td><td></td><td class="num pts">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ' : ') + '</td>' +
         '<td></td><td class="right">Summe Scorepunkte</td></tr>' +
@@ -1559,8 +1564,7 @@
     }
 
     return '<div class="board">' +
-      '<div class="board-bar"><a href="#/match/' + m.id + '" class="btn small ghost">← zurück</a>' +
-      '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
+      '<div class="board-bar"><span></span><button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
       '<div class="board-title">' + esc([matchLeague(m).name, fmtDate(m.date)].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="board-score">' +
       '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
@@ -1872,7 +1876,7 @@
     var wb = $app.querySelector('[data-action="warmup-timer"]');
     if (wb) {
       var won = !!warm && warm.t.appKey === wb.getAttribute('data-app');
-      var wl = won ? '⏱ Einturnzeit ' + clock(warm.remaining) + ' – Stopp' : 'Einturnzeit (4:00) starten';
+      var wl = won ? '⏱ Einturnzeit ' + clock(warm.remaining) + ' – Stopp' : 'Einturnzeit (6:40) starten';
       if (wb.textContent !== wl) wb.textContent = wl;
       wb.classList.toggle('t-running', won);
     }
@@ -2335,7 +2339,7 @@
         'Vorab lassen sich unter <b>Mannschaften</b> Turnernamen korrigieren und freie Startnummern belegen. Jede Änderung wird sofort gespeichert.',
         'Unter <b>Wettkämpfe</b> auf „Neuer Wettkampf“ tippen, Datum, Heim- und Gastmannschaft sowie die Farben wählen.',
         'Bei <b>Anwesende Turner</b> sind zunächst alle Turner abgehakt; fehlende Turner abwählen. Namen lassen sich dort auch korrigieren oder ergänzen.',
-        'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *). Ohne neutralen E2 werden E2 (Heim) und E3 (Gast) eingetragen; ist es dieselbe Person wie D1 bzw. D2, genügt das Häkchen „ist gleich“.',
+        'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *: Mannschaftsführer, E1 und – bei „Ja“ – der neutrale E2). Bei „Neutraler Kampfrichter E2: Nein“ werden E2 (Heim) und E3 (Gast) mit D1 bzw. D2 vorausgefüllt und lassen sich frei ändern.',
         'Die per Los bestimmte <b>beginnende Mannschaft</b> wählen. Die Startreihenfolge an allen Geräten ergibt sich daraus automatisch.',
         'Alle Angaben lassen sich später über <b>Wettkampf Setup</b> ändern.'
       ]) +
@@ -2361,7 +2365,7 @@
       ]) +
 
       sec('4. Timer', [
-        '<b>Einturnzeit (4:00)</b> über dem jeweiligen Gerät starten. Nach Ablauf ertönt 5 Sekunden lang eine Schelle.',
+        '<b>Einturnzeit (6:40)</b> – 8 Turner × 50 Sekunden – über dem jeweiligen Gerät starten. Nach Ablauf ertönt 5 Sekunden lang eine Schelle.',
         '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: Die Sekunden erscheinen zuerst schwarz, ab 10 Sekunden ocker, ab 20 Sekunden rot. Nach 30 Sekunden ertönt ein kurzer Doppelton, die Anzeige wird rot und zeigt „Abzug 0,3“; in den letzten 10 Sekunden blinkt die Zahl leicht. Nach weiteren 30 Sekunden ertönt ein Fehlerton und „Übung beendet“ erscheint.',
         'Ein erneuter Klick auf den laufenden Timer stoppt ihn. Die Lautstärke wird am Gerät eingestellt.'
       ]) +
@@ -2541,10 +2545,12 @@
 
   // ---------- Ereignisse ----------
 
-  // Namen von D1/D2 sofort in ein verbundenes E2-/E3-Feld übernehmen.
+  // Namen von D1/D2 sofort in ein noch verbundenes E2-/E3-Feld übernehmen.
   $app.addEventListener('input', function (ev) {
     var el = ev.target;
-    if ((el.name === 'judgeD1' || el.name === 'judgeD2') && el.form && el.form.getAttribute('data-form') === 'match') syncSameJudges(el.form);
+    if (!el.form || el.form.getAttribute('data-form') !== 'match') return;
+    if (el.name === 'judgeD1' || el.name === 'judgeD2') linkJudges(el.form);
+    if (el.name === 'judgeE2Home' || el.name === 'judgeE3Guest') el.dataset.linked = el.value === el.form[el.name === 'judgeE2Home' ? 'judgeD1' : 'judgeD2'].value ? '1' : '';
   });
 
   $app.addEventListener('change', function (ev) {
@@ -2552,7 +2558,6 @@
     if (el.dataset && el.dataset.picking) return; // erst mit Enter übernehmen
     if (el.hasAttribute('data-field')) { handleScoreChange(el); return; }
     if (el.name === 'neutralE2' && el.form) { syncJudgeFields(el.form); return; }
-    if ((el.name === 'sameE2' || el.name === 'sameE3') && el.form) { syncSameJudges(el.form); return; }
     if (el.classList.contains('lineup-check')) { syncLineup(el.form); return; }
     if ((el.name === 'home' || el.name === 'guest') && el.form && el.form.getAttribute('data-form') === 'match') {
       el.form.querySelector('[data-lineup="' + el.name + '"]').innerHTML = lineupHtml(el.name, el.value, null);
@@ -2881,6 +2886,12 @@
       case 'relock':
         m.unlockApparatus = false;
         save('matches', m).then(function () { render(); toast('Gerätesperre wieder aktiv'); });
+        break;
+      case 'neutral-e2':
+        var nf = btn.closest('form');
+        if (nf.neutralE2.disabled) return;
+        nf.neutralE2.checked = btn.getAttribute('data-value') === 'yes';
+        syncJudgeFields(nf);
         break;
       case 'print':
         window.print();
