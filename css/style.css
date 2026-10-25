@@ -283,7 +283,7 @@ body.board-mode main { max-width: none; padding: 0; }
 .match-form legend { font-size: .9rem; color: #404040; margin-bottom: .3rem; padding: 0; }
 .radio-row { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: center; }
 .radio-row legend { width: 100%; }
-.team-col { display: flex; flex-direction: column; gap: .6rem; padding: .75rem; border: 1px solid var(--line); border-radius: var(--radius); }
+.team-col { display: flex; flex-direction: column; gap: .6rem; }
 .judges { border: 1px solid var(--line) !important; border-radius: var(--radius); padding: .75rem !important; display: flex; flex-direction: column; gap: .6rem; }
 .judges legend { padding: 0 .3rem !important; font-weight: 600; }
 .match-form .judge-split { display: none; }
@@ -794,3 +794,7 @@ body.board-light .cd-final.struck strong { color: #8a8a8a !important; }
 .e2-toggle { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
 .e2-label { font-weight: 600; }
 .bs-theme button:disabled { cursor: not-allowed; opacity: .6; }
+
+/* Wettkampf Setup: alle Bereiche mit Rahmen, Überschrift fett im Rahmen (wie „Kampfgericht“) */
+.match-form fieldset.boxed { border: 1px solid var(--line); border-radius: var(--radius); padding: .75rem; min-width: 0; }
+.match-form fieldset.boxed > legend { padding: 0 .3rem; font-weight: 600; margin-bottom: 0; }

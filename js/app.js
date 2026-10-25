@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '60';
+  var APP_BUILD = '61';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -639,17 +639,20 @@
     }
     function teamCol(side, label) {
       var teamId = m ? (side === 'home' ? m.homeTeamId : m.guestTeamId) : null;
-      return '<div class="team-col"><label>' + label + '<select name="' + side + '" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(teamId, leagueKey) + '</select></label>' +
+      return '<fieldset class="team-col boxed"><legend>' + label + '</legend><select name="' + side + '" aria-label="' + label + '" required' + (hasScores ? ' disabled' : '') + '>' + teamOptions(teamId, leagueKey) + '</select>' +
         colorPicker(side + 'Color', 'Farbe', m ? sideColor(m, side).key : DEFAULT_COLORS[side]) +
         input(side === 'home' ? 'captainHome' : 'captainGuest', 'Mannschaftsführer', cap[side]) +
-        '<div class="lineup" data-lineup="' + side + '">' + lineupHtml(side, teamId, m && m.lineup && m.lineup[side]) + '</div></div>';
+        '<div class="lineup" data-lineup="' + side + '">' + lineupHtml(side, teamId, m && m.lineup && m.lineup[side]) + '</div></fieldset>';
     }
     return '<section class="card narrow"><h2>' + (isNew ? 'Neuer Wettkampf' : 'Wettkampf Setup') + '</h2>' +
       '<form data-form="match" data-id="' + (m ? m.id : '') + '" data-league="' + leagueKey + '" class="stack match-form' + (neutral ? '' : ' split-e') + '">' +
-      '<div class="row2"><label>Datum<input type="date" name="date" value="' + esc(m ? m.date : new Date().toISOString().slice(0, 10)) + '" required></label>' +
-      '<fieldset class="radio-row"><legend>Beginnende Mannschaft</legend>' +
-      '<label class="check"><input type="radio" name="startTeam" value="home"' + (start === 'home' ? ' checked' : '') + '> Heim</label>' +
-      '<label class="check"><input type="radio" name="startTeam" value="guest"' + (start === 'guest' ? ' checked' : '') + '> Gast</label></fieldset></div>' +
+      // Alle Bereiche einheitlich mit Rahmen und Überschrift im Rahmen (wie „Kampfgericht“).
+      '<div class="row2"><fieldset class="boxed"><legend>Datum</legend><input type="date" name="date" aria-label="Datum" value="' + esc(m ? m.date : new Date().toISOString().slice(0, 10)) + '" required></fieldset>' +
+      '<fieldset class="boxed"><legend>Beginnende Mannschaft</legend>' +
+      '<span class="bs-theme" role="group" aria-label="Beginnende Mannschaft">' +
+      '<button type="button" class="toggle' + (start === 'home' ? ' on' : '') + '" data-action="start-team" data-value="home">Heim</button>' +
+      '<button type="button" class="toggle' + (start === 'guest' ? ' on' : '') + '" data-action="start-team" data-value="guest">Gast</button></span>' +
+      '<input type="radio" name="startTeam" value="home" hidden' + (start === 'home' ? ' checked' : '') + '><input type="radio" name="startTeam" value="guest" hidden' + (start === 'guest' ? ' checked' : '') + '></fieldset></div>' +
       '<div class="row2 teams-row">' + teamCol('home', 'Heimmannschaft') + teamCol('guest', 'Gastmannschaft') + '</div>' +
       '<fieldset class="judges"><legend>Kampfgericht</legend>' +
       '<div class="row2">' + input('judgeD1', 'D1 – Vereinskampfrichter Heim', j.d1, true) + input('judgeD2', 'D2 – Vereinskampfrichter Gast', j.d2, true) + '</div>' +
@@ -2886,6 +2889,11 @@
       case 'relock':
         m.unlockApparatus = false;
         save('matches', m).then(function () { render(); toast('Gerätesperre wieder aktiv'); });
+        break;
+      case 'start-team':
+        var sf = btn.closest('form');
+        sf.querySelector('input[name="startTeam"][value="' + btn.getAttribute('data-value') + '"]').checked = true;
+        sf.querySelectorAll('[data-action="start-team"]').forEach(function (b) { b.classList.toggle('on', b === btn); });
         break;
       case 'neutral-e2':
         var nf = btn.closest('form');
