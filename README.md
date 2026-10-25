@@ -84,6 +84,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 - **Automatische Wertung**: Scorepunkte je Duell nach Notendifferenz, Gerätepunkte, Gesamtergebnis, Tabellenpunkte
 - **Anzeigetafel** für Beamer/Fernseher (zweites Fenster bzw. Tab auf demselben Gerät):
   - Knopf „Anzeigetafel“ öffnet das Tafel-Fenster (bzw. holt es nach vorn); beendet wird sie durch Schließen des Fensters
+  - Doppelklick auf die Tafel schaltet das Vollbild ein und aus (kurzer Hinweis beim Öffnen); Gerätepunkte stehen als letzte Zeile der Gerätetabelle
   - Knöpfe „Hell“ / „Dunkel“ daneben: hell ist Standard (gut lesbar mit Beamer in heller Halle),
     dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
   - Knopf „Wettkampfergebnis einblenden/ausblenden“ zeigt Stand, Gerätepunkte und Topscorer als Fenster über der Tafel

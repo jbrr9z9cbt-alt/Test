@@ -1572,7 +1572,7 @@
       '<div class="board-big' + (isClassic(m) ? ' sums' : '') + '">' + totalPair(m, r, true) + '</div>' +
       '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody>' +
-      '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num">' + r.homeApp + '</td><td class="num">' + r.guestApp + '</td></tr></tfoot></table>' +
+      '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num"><span class="sp-num">' + r.homeApp + '</span></td><td class="num"><span class="sp-num">' + r.guestApp + '</span></td></tr></tfoot></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
       '</div>' + boardScorers(m, view) + '<div id="warm-box">' + warmBoxHtml(m) + '</div><div id="pause-box">' + pauseBoxHtml(m) + '</div><div id="fall-box">' + fallBoxHtml(m) + '</div>';
   }
@@ -2422,7 +2422,7 @@
       ]) +
 
       sec('5. Anzeigetafel', [
-        '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort „Vollbild“ wählen.',
+        '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort doppelt auf die Tafel klicken – das schaltet das Vollbild ein und aus.',
         '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet.',
         '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         (classic ? 'Nach jeder Freigabe erscheint 10 Sekunden groß auf der Tafel die Endnote der Übung mit dem Turner darüber' : 'Nach jeder Freigabe erscheinen 10 Sekunden groß auf der Tafel die Scorepunkte des Duells mit dem Sieger darüber') +
