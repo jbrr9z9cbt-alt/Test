@@ -162,7 +162,7 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 }
 .duel-no { position: absolute; top: -.6rem; left: .75rem; background: #fff; padding: 0 .4rem; font-size: .75rem; color: var(--muted); }
 .side { padding: .5rem; border-radius: 8px; }
-.side.home { background: #f5f5f5; border: 1px solid #e5e5e5; }
+.side.home { background: #ebebeb; border: 1px solid #dcdcdc; }
 .side.guest { background: #ebebeb; border: 1px solid #dcdcdc; }
 .side { border-left: 5px solid var(--team, #737373) !important; box-shadow: 0 0 0 2px var(--team, #737373) inset; }
 /* „nicht angetreten“: alles blass außer dem Häkchen selbst – so sieht man, wo man es wieder lösen kann */
@@ -888,3 +888,7 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 /* Sturz-Timer hochkant: langer Turnername darf umbrechen (die Sekunden nie) */
 @media (orientation: portrait) { .fw-name { white-space: normal; } }
 .warmup-btn.is-locked { opacity: .45; }
+
+/* Wertungseingabe: gesperrte Felder im Grau des Hintergrunds, nur offene Felder sind weiß (auch das Standbonus-Kästchen) */
+.side input:disabled, .side select:disabled { background: #e2e2e2; border-color: #d0d0d0; }
+.bonus-box.off { background: #e2e2e2; border-color: #d0d0d0; color: #737373; }

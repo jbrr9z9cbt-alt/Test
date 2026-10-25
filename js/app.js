@@ -1132,7 +1132,7 @@
       (three ? scoreInput(appKey, idx, sideKey, 'e3', side.e3, dis, 'Abzüge E3') : '') + '</div>' +
       '<div class="score-grp" style="flex:' + dCols + ';grid-template-columns:repeat(' + dCols + ',minmax(0,1fr))"><div class="grp-title">D-Kampfgericht</div>' +
       scoreInput(appKey, idx, sideKey, 'd', side.d, dis, 'D-Note') +
-      (bonusAllowed ? '<label class="score-field bonus-field"><span>Standbonus</span><span class="bonus-box"><input type="checkbox" ' +
+      (bonusAllowed ? '<label class="score-field bonus-field"><span>Standbonus</span><span class="bonus-box' + (dis ? ' off' : '') + '"><input type="checkbox" ' +
         fieldAttrs(appKey, idx, sideKey, 'bonus') + (side.bonus ? ' checked' : '') + (dis ? ' disabled' : '') + '> +0,1</span></label>' : '') +
       scoreInput(appKey, idx, sideKey, 'nd', side.nd, dis, 'Neutr. Abzug') +
       '</div></div>' +
