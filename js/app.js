@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '70';
+  var APP_BUILD = '71';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -1171,16 +1171,70 @@
     return '<button class="btn primary reveal-btn"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Wertung freigeben</button>';
   }
 
-  /** „Gerät starten“ schaltet die Anzeigetafel auf das Gerät und gibt die Wertungseingabe frei. */
+  /**
+   * Einturnzeit nur vor dem Start eines Geräts; solange ein anderes Gerät läuft, ist sie wie der Start gesperrt
+   * (blass, ein Klick erklärt warum). Nach Ablauf startet das Gerät automatisch.
+   */
+  function warmupButton(m, appKey) {
+    var st = appStatus(m)[appKey];
+    if (m.status === 'final' || st === 'done' || st === 'run' || warmupEnding(m, appKey)) return '';
+    return '<button type="button" class="btn primary timer-btn warmup-btn' + (st === 'locked' ? ' is-locked' : '') + '" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '">Einturnzeit (6:40) starten</button>';
+  }
+
+  /** „Gerät direkt starten“ (ohne Einturnzeit, mit Rückfrage) schaltet die Anzeigetafel auf das Gerät und gibt die Wertungseingabe frei. */
   function startButton(m, appKey) {
     if (m.status === 'final') return '';
     var st = appStatus(m)[appKey];
     if (st === 'done') return '';
+    var w = warmupState(m);
+    if (w && w.t.appKey === appKey) return '';
+    if (warmupEnding(m, appKey)) return '<span class="start-on">Gerät startet gleich …</span>';
     if (st === 'run') {
       return canUnstart(m, appKey) ? '<button type="button" class="btn ghost start-btn" tabindex="-1" data-action="app-unstart" data-app="' + appKey + '">Start zurücknehmen</button>'
         : '<span class="start-on">● Gerät läuft</span>';
     }
-    return '<button type="button" class="btn start-btn' + (st === 'locked' ? ' is-locked' : '') + '" tabindex="-1" data-action="app-start" data-app="' + appKey + '">Gerät starten</button>';
+    return '<button type="button" class="btn start-btn' + (st === 'locked' ? ' is-locked' : '') + '" tabindex="-1" data-action="app-start" data-app="' + appKey + '">Gerät direkt starten</button>';
+  }
+
+  function st0(m, appKey) {
+    return appStatus(m)[appKey];
+  }
+
+  /** Einturnzeit dieses Geräts ist abgelaufen, der automatische Start steht noch aus („Einturnen beendet“). */
+  function warmupEnding(m, appKey) {
+    var w = m.timers && m.timers.warmup;
+    return !!(w && w.appKey === appKey && !w.autoStarted && Date.now() - w.start >= WARMUP_MS && !appStarted(m, appKey));
+  }
+
+  /** Knöpfe Einturnzeit / Gerät starten nachziehen (z. B. „Start zurücknehmen“ entfällt mit der ersten Wertung). */
+  function refreshStartRow(m) {
+    var wr = $app.querySelector('.warmup-row');
+    if (!wr) return;
+    var html = warmupButton(m, currentTab(m)) + startButton(m, currentTab(m));
+    if (wr.getAttribute('data-sig') === html) return;
+    wr.setAttribute('data-sig', html);
+    wr.innerHTML = html;
+  }
+
+  function startApparatus(m, key) {
+    m.started = m.started || {};
+    m.started[key] = Date.now();
+    save('matches', m).then(function () { keepScroll = true; render(); });
+  }
+
+  /**
+   * Nach Ablauf der Einturnzeit (und der Anzeige „Einturnen beendet“) startet das Gerät von selbst.
+   * Nur im Eingabefenster; war es im Hintergrund, wird der Start beim nächsten Takt nachgeholt.
+   */
+  function autoStartAfterWarmup() {
+    if (document.body.classList.contains('board-mode')) return;
+    state.matches.forEach(function (m) {
+      var w = m.timers && m.timers.warmup;
+      if (!w || w.autoStarted || m.status === 'final' || Date.now() - w.start < WARMUP_MS + WARMUP_END_MS) return;
+      w.autoStarted = true;
+      if (appStatus(m)[w.appKey] === 'open') { startApparatus(m, w.appKey); toast(apparatusName(w.appKey) + ' gestartet'); }
+      else save('matches', m);
+    });
   }
 
   function apparatusPanel(m, appKey) {
@@ -1202,8 +1256,7 @@
         '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked || noScores) + '</div>' +
         '</div>';
     }).join('');
-    return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn primary timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
-      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button>' + startButton(m, appKey) + '</div>' +
+    return doneBar(m, appKey) + (m.status === 'final' || st0(m, appKey) === 'done' ? '' : '<div class="warmup-row">' + warmupButton(m, appKey) + startButton(m, appKey) + '</div>') +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels +
       '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
@@ -1260,8 +1313,7 @@
     var sums = '<div class="cl-row cl-sums">' + order.map(function (k) {
       return '<div class="cl-sum" data-out="clsum-' + appKey + '-' + k + '">' + classicSumHtml(m, ar, k) + '</div>';
     }).join('') + '</div>';
-    return doneBar(m, appKey) + '<div class="warmup-row"><button type="button" class="btn primary timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '"' +
-      (m.status === 'final' || doneLocked(m, appKey) ? ' disabled' : '') + '>Einturnzeit (6:40) starten</button>' + startButton(m, appKey) + '</div>' +
+    return doneBar(m, appKey) + (m.status === 'final' || st0(m, appKey) === 'done' ? '' : '<div class="warmup-row">' + warmupButton(m, appKey) + startButton(m, appKey) + '</div>') +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' +
       '<div class="cl-row cl-head">' + order.map(function (k, n) {
@@ -1343,14 +1395,7 @@
     var ar = r.apparatus[tab];
     out('app-sum', appSumHtml(m, ar));
     out('pending', pendingBanner(m));
-    // Start-Knopf nachziehen (z. B. „Start zurücknehmen“ entfällt mit der ersten Wertung).
-    var wr = $app.querySelector('.warmup-row');
-    if (wr) {
-      var old = wr.querySelector('.start-btn, .start-on');
-      var html = startButton(m, tab);
-      if (old) old.remove();
-      if (html) wr.insertAdjacentHTML('beforeend', html);
-    }
+    refreshStartRow(m);
     if (isClassic(m)) {
       m.apparatus[tab].duels.forEach(function (d, i) {
         ['home', 'guest'].forEach(function (k) {
@@ -2206,6 +2251,7 @@
       btn.classList.toggle('t-fall2', on && fall.phase === 2);
       ['fz-0', 'fz-1', 'fz-2', 'fz-pulse'].forEach(function (c) { btn.classList.toggle(c, on && fallTone(fall).split(' ').indexOf(c) >= 0); });
     });
+    if (r.name === 'match' && !r.sub) refreshStartRow(m);
     var wb = $app.querySelector('[data-action="warmup-timer"]');
     if (wb) {
       var won = !!warm && warm.t.appKey === wb.getAttribute('data-app');
@@ -2362,7 +2408,7 @@
     setKeepAlive(active);
   }
 
-  setInterval(function () { tickTimers(); checkTimerSounds(); }, 250);
+  setInterval(function () { tickTimers(); checkTimerSounds(); autoStartAfterWarmup(); }, 250);
 
   // ---------- Ansicht: Protokoll ----------
 
@@ -3173,9 +3219,8 @@
       case 'app-start':
         var sKey = btn.getAttribute('data-app');
         if (appStatus(m)[sKey] === 'locked') { lockedDialog(m, sKey); return; }
-        m.started = m.started || {};
-        m.started[sKey] = Date.now();
-        save('matches', m).then(function () { keepScroll = true; render(); });
+        askYesNo('Gerät ohne Einturnzeit starten?', apparatusName(sKey) + ' wird gestartet: Die Anzeigetafel wechselt auf dieses Gerät, die Wertungseingabe wird freigegeben.')
+          .then(function (yes) { if (yes) startApparatus(m, sKey); });
         break;
       case 'app-unstart':
         var uKey = btn.getAttribute('data-app');
@@ -3252,12 +3297,21 @@
         break;
       case 'warmup-timer':
         if (!m || m.status === 'final') return;
-        if (!warmupState(m) && introBlocks(m)) return;
-        var wcur = warmupState(m);
         var wapp = btn.getAttribute('data-app');
+        var wcur = warmupState(m);
+        if (!(wcur && wcur.t.appKey === wapp) && appStatus(m)[wapp] === 'locked') { lockedDialog(m, wapp); return; }
+        if (!wcur && introBlocks(m)) return;
         m.timers = m.timers || {};
-        m.timers.warmup = wcur && wcur.t.appKey === wapp ? null : { appKey: wapp, start: Date.now() };
-        save('matches', m).then(tickTimers);
+        if (wcur && wcur.t.appKey === wapp) {
+          // Vorzeitig gestoppt: nachfragen, ob das Gerät jetzt starten soll.
+          m.timers.warmup = null;
+          save('matches', m).then(function () { tickTimers(); keepScroll = true; render(); });
+          askYesNo('Gerät jetzt starten?', 'Die Einturnzeit wurde vorzeitig beendet. Soll ' + apparatusName(wapp) + ' jetzt gestartet werden?')
+            .then(function (yes) { if (yes) startApparatus(m, wapp); });
+          return;
+        }
+        m.timers.warmup = { appKey: wapp, start: Date.now() };
+        save('matches', m).then(function () { tickTimers(); keepScroll = true; render(); });
         tickTimers();
         break;
       case 'discard':

@@ -887,3 +887,4 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 }
 /* Sturz-Timer hochkant: langer Turnername darf umbrechen (die Sekunden nie) */
 @media (orientation: portrait) { .fw-name { white-space: normal; } }
+.warmup-btn.is-locked { opacity: .45; }
