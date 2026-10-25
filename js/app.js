@@ -190,7 +190,7 @@
       var wrap = document.createElement('div');
       wrap.className = 'modal-backdrop';
       wrap.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">' +
-        '<h3 id="modal-title">' + esc(title) + '</h3><p>' + esc(text) + '</p>' + (hint ? '<p class="muted small">' + esc(hint) + '</p>' : '') +
+        '<h3 id="modal-title">' + esc(title) + '</h3>' + (text ? '<p>' + esc(text) + '</p>' : '') + (hint ? '<p class="muted small">' + esc(hint) + '</p>' : '') +
         '<div class="actions wrap">' + buttons.map(function (b, n) {
           return '<button type="button" class="' + (b.link ? 'linkish' : 'btn' + (b.primary ? ' primary' : '')) + '" data-answer="' + n + '">' + esc(b.label) + '</button>';
         }).join('') + '</div></div>';
@@ -2210,7 +2210,7 @@
     return { t: t, remaining: t.ms - el };
   }
 
-  var WARMUP_END_MS = 10000, FALL_END_MS = 5000, PAUSE_END_MS = 5000;
+  var WARMUP_END_MS = 5000, FALL_END_MS = 5000, PAUSE_END_MS = 5000;
 
   /** Kurz nach regulärem Ablauf (nicht nach manuellem Stopp) zeigt die Tafel einen Hinweis. */
   function timerEnded(t, duration, showMs) {
@@ -2724,8 +2724,8 @@
         classic
           ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
           : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „legt vor“ markiert.',
-        '<b>Gerät starten</b>: Turner lassen sich an jedem Gerät jederzeit auswählen (auch vorab). Wertungen, „nicht angetreten“ und „Wertung 0,00“ sind erst nach „Gerät starten“ (neben der Einturnzeit) möglich; damit wechselt auch die Anzeigetafel auf dieses Gerät. Bis dahin bleibt dort das zuletzt gestartete Gerät mit allen Werten stehen. Ein versehentlicher Start lässt sich zurücknehmen, solange noch keine Wertung eingetragen ist.',
-        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt. Solange ein Gerät läuft, kann kein weiteres gestartet werden; gesperrte Geräte lassen sich trotzdem öffnen, um Turner zu ändern. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre über „Gerät starten“ an einem gesperrten Gerät und „Gerätesperre aufheben …“ (doppelt bestätigt) aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
+        '<b>Einturnzeit und Gerätestart</b>: Turner lassen sich an jedem Gerät jederzeit auswählen (auch vorab). Mit „Einturnzeit (6:40) starten“ beginnt das Einturnen; nach Ablauf und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch – erst dann sind Wertungen, „nicht angetreten“ und „Wertung 0,00“ möglich, und die Anzeigetafel wechselt auf dieses Gerät. Bis dahin bleibt dort das vorige Gerät mit allen Werten stehen. Wird die Einturnzeit vorzeitig gestoppt, fragt die App, ob das Gerät jetzt starten soll. Ohne Einturnzeit: „Gerät direkt starten“ (mit Rückfrage). Ein versehentlicher Start lässt sich zurücknehmen, solange noch keine Wertung eingetragen ist.',
+        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt. Solange ein Gerät läuft, kann an keinem anderen Gerät die Einturnzeit oder der Start begonnen werden; gesperrte Geräte lassen sich trotzdem öffnen, um Turner zu ändern. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre über „Gerät starten“ an einem gesperrten Gerät und „Gerätesperre aufheben …“ (doppelt bestätigt) aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
 
         'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
@@ -3219,7 +3219,7 @@
       case 'app-start':
         var sKey = btn.getAttribute('data-app');
         if (appStatus(m)[sKey] === 'locked') { lockedDialog(m, sKey); return; }
-        askYesNo('Gerät ohne Einturnzeit starten?', apparatusName(sKey) + ' wird gestartet: Die Anzeigetafel wechselt auf dieses Gerät, die Wertungseingabe wird freigegeben.')
+        askYesNo('Gerät ohne Anzeige der Einturnzeit starten?', '')
           .then(function (yes) { if (yes) startApparatus(m, sKey); });
         break;
       case 'app-unstart':

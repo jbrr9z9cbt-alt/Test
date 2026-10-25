@@ -30,12 +30,13 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 
 ## Funktionen (Oberliga)
 
-- **Gerät starten** (beide Ligen): Turner sind an jedem Gerät jederzeit wählbar (auch Vorauswahl); Wertungen, „nicht angetreten“
-  und „Wertung 0,00“ erst nach „Gerät starten“ (neben der Einturnzeit). Der Start schaltet die Anzeigetafel auf das Gerät; bis zum
-  nächsten Start bleibt dort das zuletzt gestartete Gerät mit allen Werten stehen. „Start zurücknehmen“, solange keine Wertung eingetragen ist.
-  Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
+- **Einturnzeit und Gerätestart** (beide Ligen): Turner sind an jedem Gerät jederzeit wählbar (auch Vorauswahl). Nach Ablauf der
+  Einturnzeit (6:40) und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch: erst dann Wertungen, „nicht angetreten“ und
+  „Wertung 0,00“, und die Anzeigetafel wechselt auf das Gerät (bis dahin bleibt das vorige Gerät mit allen Werten stehen).
+  Vorzeitig gestoppte Einturnzeit → Rückfrage „Gerät jetzt starten?“; ohne Einturnzeit „Gerät direkt starten“ mit Rückfrage.
+  „Start zurücknehmen“, solange keine Wertung eingetragen ist. Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
 - **Gerätereiter mit Abzeichen** (beide Ligen): ✓ abgeschlossen, ● läuft (ab „Gerät starten“), 🔒 gesperrt.
-  Solange ein Gerät läuft, kann kein weiteres gestartet werden (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
+  Solange ein Gerät läuft, lassen sich an keinem anderen Gerät Einturnzeit oder Start beginnen (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
   Abgeschlossene Geräte öffnen sich gesperrt (nur ansehen); „Bearbeiten“ mit Bestätigung gibt sie frei, bis das Gerät verlassen wird.
   Notausgang: „Gerät starten“ an einem gesperrten Gerät → „Gerätesperre aufheben …“ (doppelt bestätigt); solange steht über den
   Geräten ein Hinweis mit „Sperre wieder aktivieren“.
