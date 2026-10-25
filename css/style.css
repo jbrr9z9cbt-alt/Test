@@ -166,7 +166,7 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .side.guest { background: #ebebeb; border: 1px solid #dcdcdc; }
 .side { border-left: 5px solid var(--team, #737373) !important; box-shadow: 0 0 0 2px var(--team, #737373) inset; }
 /* „nicht angetreten“: alles blass außer dem Häkchen selbst – so sieht man, wo man es wieder lösen kann */
-.side.dns .side-head, .side.dns .score-row, .side.dns .result-row, .side.dns .side-foot label:not(:first-child), .side.dns .side-foot .timer-btn { opacity: .45; }
+.side.dns .score-row, .side.dns .result-row, .side.dns .side-foot .timer-btn { opacity: .45; }
 .side.dns .side-foot label:first-child { font-weight: 700; }
 .side-head { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; }
 .side-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; width: 2.6rem; }
@@ -892,3 +892,5 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 /* Wertungseingabe: gesperrte Felder im Grau des Hintergrunds, nur offene Felder sind weiß (auch das Standbonus-Kästchen) */
 .side input:disabled, .side select:disabled { background: #e2e2e2; border-color: #d0d0d0; }
 .bonus-box.off { background: #e2e2e2; border-color: #d0d0d0; color: #737373; }
+
+.side-foot .hidden-keep { visibility: hidden; }

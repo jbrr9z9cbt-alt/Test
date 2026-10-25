@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '73';
+  var APP_BUILD = '74';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -881,7 +881,8 @@
     return m.apparatus[key].duels.some(function (d) {
       return rowAnyRevealed(m, d) || ['home', 'guest'].some(function (k) {
         var x = d[k];
-        return x.d !== null || x.e1 !== null || x.e2 !== null || x.e3 !== null || x.nd || x.bonus || x.dns || x.zero;
+        // „kein Turner“ (dns) zählt nicht: es kann vorab gewählt werden.
+        return x.d !== null || x.e1 !== null || x.e2 !== null || x.e3 !== null || x.nd || x.bonus || x.zero;
       });
     });
   }
@@ -1072,6 +1073,8 @@
     return ' · Sieger: <strong>' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId)) + '</strong>';
   }
 
+  var NO_GYMNAST = '__none';
+
   function gymnastSelect(m, appKey, idx, sideKey, side, locked) {
     var t = team(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
     var used = {};
@@ -1079,7 +1082,9 @@
       if (i !== idx && d[sideKey].gymnastId) used[d[sideKey].gymnastId] = true;
     });
     var lineup = m.lineup && m.lineup[sideKey];
-    var opts = '<option value="">– Turner –</option>';
+    // „kein Turner“ (= nicht angetreten) ganz oben, auch als Vorauswahl.
+    var opts = '<option value="">– Turner –</option><option value="' + NO_GYMNAST + '"' + (side.dns ? ' selected' : '') + '>kein Turner</option>' +
+      '<option disabled>──────────</option>';
     var found = false;
     (t ? t.gymnasts : []).forEach(function (g) {
       if (g.id === side.gymnastId) found = true;
@@ -1123,7 +1128,7 @@
       (!classic && position === 1 ? '<span class="lead-tag">legt vor</span>' : '') +
       '<div class="side-head"><span class="order-no" title="' + (classic ? 'Startposition am Gerät' : 'Startreihenfolge im Duell') + '">' + position + '.</span>' +
       '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
-      gymnastSelect(m, appKey, idx, sideKey, side, locked || side.dns) + '</div>' +
+      gymnastSelect(m, appKey, idx, sideKey, side, locked) + '</div>' +
       // Zwei Bereiche: E-Kampfgericht (Abzüge) und D-Kampfgericht (D-Note, Standbonus, neutraler Abzug).
       '<div class="score-row">' +
       '<div class="score-grp" style="flex:' + eCols + ';grid-template-columns:repeat(' + eCols + ',minmax(0,1fr))"><div class="grp-title">E-Kampfgericht</div>' +
@@ -1141,9 +1146,9 @@
       '<span class="final" style="flex:' + dCols + '">' + 
       'Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
-      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'dns') + (side.dns ? ' checked' : '') + (locked || noScores ? ' disabled' : '') + '> nicht angetreten</label>' +
-      '<label class="check"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') + (locked || noScores || side.dns || !side.gymnastId ? ' disabled' : '') +
-        (side.gymnastId ? '' : ' title="Erst einen Turner wählen"') + '> Wertung 0,00 (angetreten)</label>' +
+      // „Wertung 0,00“ nur mit ausgewähltem Turner; der Platz bleibt, damit nichts springt.
+      '<label class="check' + (side.gymnastId && !side.dns ? '' : ' hidden-keep') + '"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') +
+        (locked || noScores || side.dns || !side.gymnastId ? ' disabled' : '') + '> Wertung 0,00</label>' +
       (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer"' + attrs + (locked || noScores ? ' disabled' : '') + '>Sturz-Timer</button>' : '') +
       '</div></div>';
   }
@@ -1451,7 +1456,22 @@
     if (field !== 'gymnast' && !scoresAllowed(m, appKey)) { toast('Erst „Gerät starten“ drücken.', 'error'); render(); return; }
     var pendingBefore = S.pendingCorrections(m).length;
 
+    if (field === 'gymnast' && el.value === NO_GYMNAST) {
+      // „kein Turner“ = nicht angetreten; bereits eingegebene Wertungen werden nach Rückfrage gelöscht.
+      var hasScores = side.d !== null || side.e1 !== null || side.e2 !== null || side.e3 !== null || side.nd || side.bonus || side.zero;
+      var setNone = function () {
+        Object.assign(side, S.emptySide(), { dns: true });
+        save('matches', m).then(function () { rerenderPanel(m); });
+      };
+      if (!hasScores) { setNone(); return; }
+      askConfirm('„Kein Turner“: Die bereits eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?').then(function (yes) {
+        if (yes) setNone(); else rerenderPanel(m);
+      });
+      return;
+    }
+
     if (field === 'gymnast') {
+      side.dns = false;
       var tm = team(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
       var gy = tm && tm.gymnasts.filter(function (x) { return x.id === el.value; })[0];
       side.gymnastId = el.value || null;
