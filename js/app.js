@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '67';
+  var APP_BUILD = '68';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -2627,7 +2627,10 @@
         'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
           ' Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
-        '<b>nicht angetreten</b>: Die Übung zählt 0 Punkte, Turner und Wertung werden geleert. <b>Wertung 0,00 (angetreten)</b>: Der Turner ist angetreten, erhält aber die Endnote 0 – erst nach Auswahl des Turners möglich; bereits eingegebene Werte werden dabei gelöscht.'
+        '<b>nicht angetreten</b>: Die Übung zählt 0 Punkte, Turner und Wertung werden geleert. <b>Wertung 0,00 (angetreten)</b>: Der Turner ist angetreten, erhält aber die Endnote 0 – erst nach Auswahl des Turners möglich; bereits eingegebene Werte werden dabei gelöscht.',
+        classic
+          ? '<b>Mannschaftsabzug</b>: Die Links „Mannschaftsabzug Heim“ bzw. „Gast“ ganz unten im Gerätebereich öffnen die Eingabe des Abzugs in Punkten. Es gibt je Mannschaft nur einen Abzug für den ganzen Wettkampf – die Links unter allen Geräten sind dieselben. Der Abzug mindert nur die Gesamtpunktzahl, nicht die Geräteergebnisse; 0 oder leer entfernt ihn. Er erscheint auf der Anzeigetafel und – nur wenn eingetragen – im Protokoll.'
+          : '<b>Mannschaftsabzüge</b> werden beim Turner als <b>neutraler Abzug</b> eingetragen, der zuletzt am Gerät war bzw. bei dem der Abzug zuerst aufgefallen ist.'
       ]) +
 
       sec('3. Wertung freigeben', classic ? [
