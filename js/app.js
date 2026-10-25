@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '63';
+  var APP_BUILD = '64';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -216,6 +216,11 @@
   /** Abfrage mit den Antworten „Ja“ und „Nein“ (Escape = Nein). */
   function askYesNo(title, text, hint) {
     return askChoice(title, text, hint, [{ value: true, label: 'Ja', primary: true }, { value: false, label: 'Nein' }]);
+  }
+
+  /** Rückfrage „Ja“/„Nein“ als eigenes Fenster statt confirm(): Browser-Dialoge beenden das Vollbild der Anzeigetafel. */
+  function askConfirm(text) {
+    return askYesNo('Bitte bestätigen', text);
   }
 
   function download(filename, text) {
@@ -743,7 +748,8 @@
     }).join('') + '</fieldset>';
   }
 
-  function submitMatchForm(form) {
+  function submitMatchForm(form, ok) {
+    ok = ok || {};
     var fd = new FormData(form);
     var id = form.getAttribute('data-id');
     var duels = S.DEFAULT_RULES.duelsPerApparatus;
@@ -770,8 +776,13 @@
           });
         });
       });
-      if (scored.length && !confirm('Bereits eingesetzt, aber nicht mehr als anwesend markiert: ' + scored.join(', ') +
-        '. Ihre Wertungen bleiben erhalten. Trotzdem speichern?')) return;
+      if (scored.length && !ok.scored) {
+        askConfirm('Bereits eingesetzt, aber nicht mehr als anwesend markiert: ' + scored.join(', ') +
+          '. Ihre Wertungen bleiben erhalten. Trotzdem speichern?').then(function (yes) {
+          if (yes) submitMatchForm(form, Object.assign({}, ok, { scored: true }));
+        });
+        return;
+      }
     }
     var neutral = form.neutralE2.disabled ? S.eJudgeCount(m.rules) === 2 : form.neutralE2.checked;
     var text = function (n) { return String(fd.get(n) || '').trim(); };
@@ -799,7 +810,12 @@
         var lost = S.APPARATUS.some(function (a) {
           return m.apparatus[a.key].duels.slice(duels).some(function (d) { return sideUsed(d.home) || sideUsed(d.guest); });
         });
-        if (lost && !confirm('Beim Verringern der Duelle gehen bereits eingetragene Daten verloren. Fortfahren?')) return;
+        if (lost && !ok.lost) {
+          askConfirm('Beim Verringern der Duelle gehen bereits eingetragene Daten verloren. Fortfahren?').then(function (yes) {
+            if (yes) submitMatchForm(form, Object.assign({}, ok, { lost: true }));
+          });
+          return;
+        }
       }
       S.APPARATUS.forEach(function (a) {
         var list = m.apparatus[a.key].duels;
@@ -1301,11 +1317,17 @@
     if (field === 'dns') {
       if (el.checked) {
         var hasData = side.gymnastId || side.d !== null || side.e1 !== null || side.e2 !== null || side.e3 !== null || side.nd || side.bonus || side.zero;
-        if (hasData && !confirm('„Nicht angetreten“: Turner und bereits eingegebene Wertungen dieser Übung werden gelöscht. Fortfahren?')) { el.checked = false; return; }
-        Object.assign(side, S.emptySide(), { dns: true });
-      } else {
-        side.dns = false;
+        var setDns = function () {
+          Object.assign(side, S.emptySide(), { dns: true });
+          save('matches', m).then(function () { rerenderPanel(m); });
+        };
+        if (!hasData) { setDns(); return; }
+        askConfirm('„Nicht angetreten“: Turner und bereits eingegebene Wertungen dieser Übung werden gelöscht. Fortfahren?').then(function (yes) {
+          if (yes) setDns(); else el.checked = false;
+        });
+        return;
       }
+      side.dns = false;
       save('matches', m).then(function () { rerenderPanel(m); });
       return;
     }
@@ -2796,9 +2818,12 @@
       case 'finalize':
         if (S.pendingCorrections(m).length) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); return; }
         var res = S.matchResult(m);
-        if (!res.complete && !confirm('Es sind noch nicht alle ' + unitWord(m) + ' gewertet. Trotzdem abschließen?')) return;
-        m.status = 'final';
-        save('matches', m).then(function () {
+        (res.complete ? Promise.resolve(true) : askConfirm('Es sind noch nicht alle ' + unitWord(m) + ' gewertet. Trotzdem abschließen?')).then(function (yes) {
+          if (!yes) return;
+          m.status = 'final';
+          return save('matches', m).then(afterFinal);
+        });
+        var afterFinal = function () {
           takeSnapshot('Wettkampf abgeschlossen');
           render();
           toast('Wettkampf abgeschlossen');
@@ -2809,19 +2834,23 @@
               if (choice === 'match') exportMatch(m);
               else if (choice === 'all') exportBackup();
             });
-        });
+        };
         break;
       case 'reopen':
-        if (!confirm('Wettkampf wieder zur Bearbeitung öffnen?')) return;
-        m.status = 'open';
-        save('matches', m).then(render);
+        askConfirm('Wettkampf wieder zur Bearbeitung öffnen?').then(function (yes) {
+          if (!yes) return;
+          m.status = 'open';
+          save('matches', m).then(render);
+        });
         break;
       case 'del-match':
-        if (!confirm('Wettkampf vom ' + fmtDate(m.date) + ' (' + teamName(m.homeTeamId) + ' – ' + teamName(m.guestTeamId) + ') wirklich löschen?')) return;
-        takeSnapshot('vor Löschen eines Wettkampfs').then(function () {
+        askConfirm('Wettkampf vom ' + fmtDate(m.date) + ' (' + teamName(m.homeTeamId) + ' – ' + teamName(m.guestTeamId) + ') wirklich löschen?').then(function (yes) {
+          if (yes) delMatch();
+        });
+        var delMatch = function () { takeSnapshot('vor Löschen eines Wettkampfs').then(function () {
           state.matches = state.matches.filter(function (x) { return x.id !== m.id; });
           return remove('matches', m.id);
-        }).then(function () { location.hash = leagueHref('home', matchLeague(m).key); toast('Wettkampf gelöscht'); });
+        }).then(function () { location.hash = leagueHref('home', matchLeague(m).key); toast('Wettkampf gelöscht'); }); };
         break;
       case 'reveal':
         if (m && isClassic(m)) { revealSide(m, btn); return; }
@@ -2917,9 +2946,11 @@
         var dSides = isClassic(m) ? [btn.getAttribute('data-side')] : ['home', 'guest'];
         var dShown = function (k) { return isClassic(m) ? S.revOf(dd, k).shown : dd.shown && dd.shown[k]; };
         if (!dShown(dSides[0])) return;
-        if (!confirm('Änderung verwerfen und den angezeigten Stand wiederherstellen?')) return;
-        dSides.forEach(function (k) { restoreShownSide(m, dd, k, dShown(k)); });
-        save('matches', m).then(function () { rerenderPanel(m); toast('Änderung verworfen'); });
+        askConfirm('Änderung verwerfen und den angezeigten Stand wiederherstellen?').then(function (yes) {
+          if (!yes) return;
+          dSides.forEach(function (k) { restoreShownSide(m, dd, k, dShown(k)); });
+          save('matches', m).then(function () { rerenderPanel(m); toast('Änderung verworfen'); });
+        });
         break;
       case 'edit-done':
         var eKey = btn.getAttribute('data-app');

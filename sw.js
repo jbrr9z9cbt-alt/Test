@@ -7,7 +7,7 @@
  * die neue Version aktiv (Nachricht SKIP_WAITING). So werden alte und neue
  * Dateien nie gemischt.
  */
-const VERSION = 'v63';
+const VERSION = 'v64';
 const CACHE = 'turnwettkampf-' + VERSION;
 const ASSETS = [
   './',
