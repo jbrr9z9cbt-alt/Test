@@ -30,10 +30,14 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 
 ## Funktionen (Oberliga)
 
-- **Gerätereiter mit Abzeichen** (beide Ligen): ✓ abgeschlossen, ● läuft (ab der ersten freigegebenen Wertung), 🔒 gesperrt.
-  Solange ein Gerät läuft, kann kein weiteres begonnen werden (Reihenfolge frei); abgeschlossene Geräte bleiben wählbar.
+- **Gerät starten** (beide Ligen): Turner sind an jedem Gerät jederzeit wählbar (auch Vorauswahl); Wertungen, „nicht angetreten“
+  und „Wertung 0,00“ erst nach „Gerät starten“ (neben der Einturnzeit). Der Start schaltet die Anzeigetafel auf das Gerät; bis zum
+  nächsten Start bleibt dort das zuletzt gestartete Gerät mit allen Werten stehen. „Start zurücknehmen“, solange keine Wertung eingetragen ist.
+  Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
+- **Gerätereiter mit Abzeichen** (beide Ligen): ✓ abgeschlossen, ● läuft (ab „Gerät starten“), 🔒 gesperrt.
+  Solange ein Gerät läuft, kann kein weiteres gestartet werden (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
   Abgeschlossene Geräte öffnen sich gesperrt (nur ansehen); „Bearbeiten“ mit Bestätigung gibt sie frei, bis das Gerät verlassen wird.
-  Notausgang: Beim Antippen eines gesperrten Geräts „Gerätesperre aufheben …“ (doppelt bestätigt); solange steht über den
+  Notausgang: „Gerät starten“ an einem gesperrten Gerät → „Gerätesperre aufheben …“ (doppelt bestätigt); solange steht über den
   Geräten ein Hinweis mit „Sperre wieder aktivieren“.
 - **7 feste Mannschaften** mit vorgegebenen Turnern (Startnummern 1–20) aus `js/config.js`
 - Der Ausrichter kann Turnernamen korrigieren und freie Startnummern belegen. Wird die vorgegebene
