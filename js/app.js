@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '62';
+  var APP_BUILD = '63';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -1504,8 +1504,8 @@
         return '<tr>' + name('home', d, false) + '<td class="num">' + val('home', i) + '</td><td></td>' +
           '<td class="num">' + val('guest', i) + '</td>' + name('guest', d, true) + '</tr>';
       }).join('') +
-      '<tr class="bsum"><td>Summe (beste ' + m.rules.counting + ')</td><td class="num">' + teamValue(m, ar, 'home', true) + '</td><td></td>' +
-      '<td class="num">' + teamValue(m, ar, 'guest', true) + '</td><td class="right">Summe (beste ' + m.rules.counting + ')</td></tr>' +
+      '<tr class="bsum"><td></td><td class="num">' + teamValue(m, ar, 'home', true) + '</td><td></td>' +
+      '<td class="num">' + teamValue(m, ar, 'guest', true) + '</td><td></td></tr>' +
       '</table></div>';
   }
 
@@ -1532,8 +1532,7 @@
 
   function viewBoard(m) {
     if (!boardOn(m)) {
-      return '<div class="board board-standby"><div class="board-bar"><span></span>' +
-        '<button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
+      return '<div class="board board-standby">' +
         '<div class="standby"><img src="icons/icon.svg" alt="" width="120" height="120"><div>' + esc(matchLeague(m).name) + '</div></div></div>';
     }
     var view = S.revealedView(m);
@@ -1561,20 +1560,19 @@
             '<td class="num mirror">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
             '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + boardName(d.guest) + '</td></tr>';
         }).join('') +
-        '<tr class="bsum"><td>Summe Scorepunkte</td><td></td><td class="num pts">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ' : ') + '</td>' +
-        '<td></td><td class="right">Summe Scorepunkte</td></tr>' +
+        '<tr class="bsum"><td></td><td></td><td class="num pts">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ' : ') + '</td>' +
+        '<td></td><td></td></tr>' +
         '</table></div>';
     }
 
     return '<div class="board">' +
-      '<div class="board-bar"><span></span><button class="btn small ghost" data-action="fullscreen">Vollbild</button></div>' +
       '<div class="board-title">' + esc([matchLeague(m).name, fmtDate(m.date)].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="board-score">' +
       '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
       '<div class="board-big' + (isClassic(m) ? ' sums' : '') + '">' + totalPair(m, r, true) + '</div>' +
       '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
-      '<div class="board-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + winnerText(m, r) + '</div>' +
-      '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody>' +
+      '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num" style="color:' + homeColor + '">' + r.homeApp + '</td><td class="num" style="color:' + guestColor + '">' + r.guestApp + '</td></tr></tfoot></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
       '</div>' + boardScorers(m, view) + '<div id="warm-box">' + warmBoxHtml(m) + '</div><div id="pause-box">' + pauseBoxHtml(m) + '</div><div id="fall-box">' + fallBoxHtml(m) + '</div>';
   }
@@ -1685,7 +1683,44 @@
     // Passt der Inhalt nicht in gleich hohe Zeilen, wird die Tafel insgesamt verkleinert (fitBoard).
     var each = t.getBoundingClientRect().height / rows.length;
     rows.forEach(function (tr) { tr.style.height = each + 'px'; });
+    // Linke Tabelle: Zeile „Gerätepunkte“ so hoch wie die Summenzeile daneben, die Geräte teilen sich den Rest.
+    var lt = b.querySelector('.board-table');
+    if (!lt || getComputedStyle(lt).display !== 'table') return;
+    var gp = lt.querySelector('.gp-row'), body = lt.querySelectorAll('tbody tr');
+    body.forEach(function (tr) { tr.style.height = ''; });
+    gp.style.height = each + 'px';
+    var rest = lt.getBoundingClientRect().height - lt.querySelector('thead').getBoundingClientRect().height - each;
+    body.forEach(function (tr) { tr.style.height = (rest / body.length) + 'px'; });
   }
+
+  // Vollbild per Doppelklick irgendwo auf die Tafel; solange kein Vollbild, kurz ein Hinweis.
+  function toggleFullscreen() {
+    var d = document, el = d.documentElement;
+    if (d.fullscreenElement || d.webkitFullscreenElement) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+    else if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  }
+
+  var fsHintTimer = null;
+  function showFullscreenHint() {
+    if (!document.body.classList.contains('board-mode') || document.fullscreenElement || document.webkitFullscreenElement) return;
+    var el = document.getElementById('fs-hint');
+    if (!el) { el = document.createElement('div'); el.id = 'fs-hint'; el.textContent = 'Doppelklick für Vollbild'; document.body.appendChild(el); }
+    el.classList.add('show');
+    clearTimeout(fsHintTimer);
+    fsHintTimer = setTimeout(function () { el.classList.remove('show'); }, 4000);
+  }
+
+  document.addEventListener('dblclick', function () {
+    if (document.body.classList.contains('board-mode')) toggleFullscreen();
+  });
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) {
+    document.addEventListener(ev, function () {
+      var h = document.getElementById('fs-hint');
+      if (document.fullscreenElement || document.webkitFullscreenElement) { if (h) h.classList.remove('show'); }
+      else showFullscreenHint();
+    });
+  });
 
   /** Zu lange Namen in der Karte werden nur in ihrem eigenen Feld kleiner (höchstens auf 60 %). */
   function fitNames(b) {
@@ -1718,6 +1753,7 @@
     if (state.board.matchId !== m.id) {
       // Beim Öffnen der Tafel keine bereits gezeigten Wertungen erneut einblenden.
       state.board = { matchId: m.id, lastReveal: latest.at };
+      showFullscreenHint();
       return;
     }
     if (!latest.at || latest.at <= state.board.lastReveal) return;
@@ -2884,10 +2920,6 @@
         if (!confirm('Änderung verwerfen und den angezeigten Stand wiederherstellen?')) return;
         dSides.forEach(function (k) { restoreShownSide(m, dd, k, dShown(k)); });
         save('matches', m).then(function () { rerenderPanel(m); toast('Änderung verworfen'); });
-        break;
-      case 'fullscreen':
-        if (document.fullscreenElement) document.exitFullscreen();
-        else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
         break;
       case 'edit-done':
         var eKey = btn.getAttribute('data-app');

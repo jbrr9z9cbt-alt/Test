@@ -798,3 +798,31 @@ body.board-light .cd-final.struck strong { color: #8a8a8a !important; }
 /* Wettkampf Setup: alle Bereiche mit Rahmen, Überschrift fett im Rahmen (wie „Kampfgericht“) */
 .match-form fieldset.boxed { border: 1px solid var(--line); border-radius: var(--radius); padding: .75rem; min-width: 0; }
 .match-form fieldset.boxed > legend { padding: 0 .3rem; font-weight: 600; margin-bottom: 0; }
+
+/* Anzeigetafel: Kopf ohne Gerätepunkte, Liga und Datum größer und fett */
+.board:not(.board-standby) .board-title { font-size: calc(var(--u) * 3.4); font-weight: 700; color: #e5e5e5; margin-top: calc(var(--u) * .6); }
+body.board-light .board:not(.board-standby) .board-title { color: #262626; }
+.board:not(.board-standby) .board-score { margin-bottom: calc(var(--u) * 2); }
+/* Gerätepunkte als letzte Zeile der Gerätetabelle, Linie auf Höhe der Linie über der Summe */
+.board-table tfoot td { border-top: calc(var(--u, 10px) * .45) solid #a3a3a3; border-bottom: 0; font-weight: 800; }
+body.board-light .board-table tfoot td { border-top-color: #525252; }
+/* Scorepunkte der einzelnen Duelle nicht fett (wie die Wertungen der Landesliga); nur die Summe bleibt fett */
+.board-duels tr:not(.bsum) .pts { font-weight: 600; }
+/* Hochformat: Gerätepunkte als eigene Zeile unter den Geräten */
+@media (max-aspect-ratio: 1/1) {
+  .board:not(.board-standby) .board-table tfoot { display: block; margin-top: calc(var(--u) * 1.5); }
+  .board:not(.board-standby) .board-table tfoot tr { display: flex; justify-content: center; gap: calc(var(--u) * 2); }
+  .board:not(.board-standby) .board-table tfoot td { border-top: 0; font-size: calc(var(--u) * 3.4); padding: 0; }
+}
+/* Hinweis „Doppelklick für Vollbild“ (liegt über der Tafel, verändert die Aufteilung nicht) */
+#fs-hint { position: fixed; left: 50%; bottom: 6vh; transform: translateX(-50%); z-index: 250; pointer-events: none;
+  background: rgba(23,23,23,.85); color: #fff; font-size: min(3.2vh, 3vw); font-weight: 700; padding: .6em 1.2em; border-radius: 12px;
+  opacity: 0; transition: opacity .4s; }
+#fs-hint.show { opacity: 1; }
+@media (max-aspect-ratio: 1/1) {
+  .board:not(.board-standby) .board-table tfoot td:nth-child(2)::after { content: ' :'; color: #a3a3a3; }
+}
+@media (max-aspect-ratio: 1/1) {
+  .board:not(.board-standby) .board-table tfoot tr { flex-direction: row; align-items: baseline; padding: 0; }
+  .board:not(.board-standby) .board-table tfoot td:first-child { font-size: calc(var(--u) * 3.4); }
+}
