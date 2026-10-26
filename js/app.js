@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '75';
+  var APP_BUILD = '74';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -485,7 +485,6 @@
   function render() {
     var r = route();
     document.body.classList.toggle('board-mode', r.name === 'match' && r.sub === 'board');
-    document.body.classList.toggle('match-page', r.name === 'match' && !r.sub);
     document.body.classList.toggle('board-light', r.name === 'match' && r.sub === 'board' && boardLight(match(r.id)));
     if (r.league) currentLeague = r.league;
     var ready = !!r.league && leagueReady(r.league);
@@ -991,15 +990,13 @@
       '<span data-out="intro">' + introControls(m) + '</span>' + pauseControls() +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
       scorersLabel(m.display && m.display.scorers) + '</button></div>' +
-      // Knöpfe zum Wettkampf selbst im Menü „☰ Wettkampf“
-      '<span class="pop-ctl"><button class="btn" data-action="menu-toggle" aria-haspopup="menu">☰ Wettkampf</button>' +
-      '<div class="pop-menu" role="menu" hidden>' +
-      (locked ? '' : '<a class="btn" role="menuitem" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
-      (locked ? '<button class="btn" role="menuitem" data-action="reopen">Wieder öffnen</button>'
-        : '<button class="btn" role="menuitem" data-action="finalize">Wettkampf abschließen</button>') +
-      '<a class="btn" role="menuitem" href="#/match/' + m.id + '/print">Protokoll / Drucken</a>' +
-      '<button class="btn" role="menuitem" data-action="show-scorers">Topscorer</button>' +
-      '<button class="btn danger ghost" role="menuitem" data-action="del-match">Löschen</button></div></span>' +
+      // Knöpfe zum Wettkampf selbst als zweite Gruppe; „Löschen“ steht für sich.
+      '<div class="board-group" role="group" aria-label="Wettkampf">' +
+      (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
+      (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
+        : '<button class="btn primary" data-action="finalize">Wettkampf abschließen</button>') +
+      '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a></div>' +
+      '<button class="btn danger ghost" data-action="del-match">Löschen</button>' +
       '<span id="save-status" class="save-status"></span>' +
       '</div></section>' +
       (locked ? '<div class="banner info">Dieser Wettkampf ist abgeschlossen und schreibgeschützt.</div>' : '') +
@@ -1008,7 +1005,7 @@
         '<button type="button" class="btn" data-action="relock">Sperre wieder aktivieren</button></div>' : '') +
       '<nav class="tabs">' + tabs + '</nav>' +
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
-      '<section class="card scorers-card"><h3>Topscorer</h3><div data-out="scorers">' + scorersHtml(m) + '</div></section>';
+      '<section class="card"><h3>Topscorer</h3><div data-out="scorers">' + scorersHtml(m) + '</div></section>';
   }
 
   /** Knopfbeschriftung nennt, was beim Drücken passiert. */
@@ -1216,18 +1213,8 @@
     return '<button type="button" class="btn start-btn' + (st === 'locked' ? ' is-locked' : '') + '" tabindex="-1" data-action="app-start" data-app="' + appKey + '">Gerät direkt starten</button>';
   }
 
-  function startRow(m, appKey) {
-    return m.status === 'final' || appStatus(m)[appKey] === 'done' ? '' : '<div class="warmup-row">' + warmupButton(m, appKey) + startButton(m, appKey) + '</div>';
-  }
-
-  /** Spaltenköpfe für die einzeilige Wertungseingabe am Laptop (auf schmalen Bildschirmen ausgeblendet). */
-  function colHead(m, appKey) {
-    var three = S.eJudgeCount(m.rules) === 3;
-    var e = '<span>E1</span><span>E2</span>' + (three ? '<span>E3</span>' : '');
-    var d = '<span>D-Note</span>' + (appKey !== S.NO_BONUS_APPARATUS ? '<span>Standb.</span>' : '') + '<span>N. Abzug</span>';
-    return '<div class="col-head ' + (isClassic(m) ? 'cl' : 'ol') + '"><div class="ch-side"><span class="ch-name">Turner</span>' +
-      '<span class="ch-scores"><span class="ch-g">' + e + '</span><span class="ch-g">' + d + '</span></span>' +
-      '<span class="ch-res">E-Note · Endnote</span><span></span></div>' + (isClassic(m) ? '' : '<span>Duell</span>') + '<span></span></div>';
+  function st0(m, appKey) {
+    return appStatus(m)[appKey];
   }
 
   /** Einturnzeit dieses Geräts ist abgelaufen, der automatische Start steht noch aus („Einturnen beendet“). */
@@ -1286,8 +1273,9 @@
         '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked || noScores) + '</div>' +
         '</div>';
     }).join('');
-    return doneBar(m, appKey) + '<div class="card-head"><h3>' + a.name + '</h3>' +
-      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div>' + startRow(m, appKey) + '</div>' + colHead(m, appKey) + duels +
+    return doneBar(m, appKey) + (m.status === 'final' || st0(m, appKey) === 'done' ? '' : '<div class="warmup-row">' + warmupButton(m, appKey) + startButton(m, appKey) + '</div>') +
+      '<div class="card-head"><h3>' + a.name + '</h3>' +
+      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels +
       '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
       (S.eJudgeCount(m.rules) === 3 ? 'E-Note = 10 − mittlerer der drei E-Abzüge (höchster und niedrigster gestrichen). ' : 'E-Note = 10 − Mittelwert der Abzüge E1 und E2. ') +
       'Endnote = D-Note + Standbonus + E-Note − neutraler Abzug; „Wertung 0,00“ gibt einem angetretenen Turner die Endnote 0. Der vorlegende Turner (1.) steht links bzw. oben. ' +
@@ -1342,8 +1330,9 @@
     var sums = '<div class="cl-row cl-sums">' + order.map(function (k) {
       return '<div class="cl-sum" data-out="clsum-' + appKey + '-' + k + '">' + classicSumHtml(m, ar, k) + '</div>';
     }).join('') + '</div>';
-    return doneBar(m, appKey) + '<div class="card-head"><h3>' + a.name + '</h3>' +
-      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div>' + deductionLinks(m).replace('deduct-row', 'deduct-row deduct-head') + startRow(m, appKey) + '</div>' + colHead(m, appKey) +
+    return doneBar(m, appKey) + (m.status === 'final' || st0(m, appKey) === 'done' ? '' : '<div class="warmup-row">' + warmupButton(m, appKey) + startButton(m, appKey) + '</div>') +
+      '<div class="card-head"><h3>' + a.name + '</h3>' +
+      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' +
       '<div class="cl-row cl-head">' + order.map(function (k, n) {
         return '<div>' + teamTag(m, k) + (n === 0 ? ' <span class="muted small">beginnt</span>' : '') + '</div>';
       }).join('') + '</div>' + rows + sums +
@@ -3145,11 +3134,6 @@
   // Auswahl der Pausendauer schließt bei Klick daneben oder mit Esc.
   document.addEventListener('click', function (ev) {
     if (!ev.target.closest('.pause-ctl')) closePauseMenu();
-    // Menü „☰ Wettkampf“: schließt bei Klick daneben oder nach Auswahl eines Eintrags
-    var pc = ev.target.closest('.pop-ctl');
-    document.querySelectorAll('.pop-menu').forEach(function (pm) {
-      if (!pc || !pc.contains(pm) || ev.target.closest('[role="menuitem"]')) pm.hidden = true;
-    });
   });
   document.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') closePauseMenu();
@@ -3263,15 +3247,6 @@
           save('matches', m);
           refreshDisplayButtons(m);
         }
-        break;
-      case 'menu-toggle':
-        var pmn = btn.parentNode.querySelector('.pop-menu');
-        pmn.hidden = !pmn.hidden;
-        break;
-      case 'show-scorers':
-        askChoice('Topscorer', '', null, [{ label: 'Schließen', value: null, primary: true, cancel: true, focus: true }]);
-        var mbs = document.querySelectorAll('.modal-backdrop .modal'), mb = mbs[mbs.length - 1];
-        if (mb) { mb.classList.add('wide'); mb.querySelector('h3').insertAdjacentHTML('afterend', scorersHtml(m)); }
         break;
       case 'app-start':
         var sKey = btn.getAttribute('data-app');
