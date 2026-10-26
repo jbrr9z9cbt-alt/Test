@@ -1,5 +1,19 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## Beschlossen, für die nächste Beta (Verschlankung, Schritt für Schritt besprochen)
+
+1. **Datensicherung auf die Seite „Wettkämpfe“ verlagern** (beschlossen, keine Vorschaubilder nötig):
+   - In jeder Wettkampfzeile rechts kleine Knöpfe **„Sichern“** (Einzelsicherung) und **„Löschen“** (bisherige Rückfrage,
+     vorher automatischer Sicherungspunkt). Klick auf die übrige Zeile öffnet den Wettkampf. Auf dem Handy rutschen die Knöpfe nach unten.
+   - Unter der Liste Block **„Gesamtsicherung der <Liga>“** mit „Alles sichern“ (Hinweis zum Dateinamen) und
+     **„Sicherung einlesen …“** (Import von Gesamt- und Einzelsicherungen wie bisher, vorher Sicherungspunkt).
+   - Darunter Block **„Datenspeicher“** wie bisher, darunter **„Automatische Sicherungspunkte (n) ▸“** eingeklappt,
+     ganz unten klein und rot **„Alle Daten löschen …“** mit der bisherigen doppelten Abfrage (Eingabe „LÖSCHEN“).
+   - Der **„Löschen“-Knopf auf der Wettkampfseite entfällt**.
+   - Der **Menüpunkt „Datensicherung“** in der oberen Leiste entfällt; Anleitung, Infoseite und README auf die neue Stelle anpassen.
+
+## Weitere offene Punkte
+
 - **Endnote bei „kein Turner“ nicht abgeschwächt darstellen** (Wunsch nach Beta 74):
   In der Wertungseingabe ist bei „kein Turner“ die Endnote 0,00 derzeit grau/blass. Sie ist aber die gültige
   Wertung und soll ganz normal schwarz erscheinen. Die gesperrten Eingabefelder bleiben grau.
