@@ -102,11 +102,19 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .badge.final { background: #dcfce7; color: #166534; }
 
 /* ---------- Übersicht ---------- */
-.match-row {
-  display: grid; grid-template-columns: 2fr 2fr auto auto; gap: 1rem; align-items: center;
-  padding: .75rem .5rem; border-top: 1px solid var(--line); color: inherit; text-decoration: none;
-}
+/* Wettkampfzeile: Klick auf die Zeile öffnet den Wettkampf, rechts „Sichern“ und „Löschen“ */
+.match-row { display: flex; align-items: center; gap: .75rem; border-top: 1px solid var(--line); }
 .match-row:hover { background: #fafafa; }
+.match-link {
+  flex: 1; min-width: 0; display: grid; grid-template-columns: 2fr 2fr auto auto; gap: 1rem; align-items: center;
+  padding: .75rem .5rem; color: inherit; text-decoration: none;
+}
+.match-acts { display: flex; gap: .4rem; padding-right: .5rem; flex: none; }
+.file-btn { position: relative; cursor: pointer; }
+.snap-details { margin-top: .75rem; }
+.snap-details summary { cursor: pointer; font-weight: 600; padding: .3rem 0; }
+.snap-details[open] summary { margin-bottom: .4rem; }
+.wipe-row { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .75rem; margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--line); }
 .match-title { font-weight: 600; }
 .match-score { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
@@ -172,15 +180,15 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .side-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; width: 2.6rem; }
 .side .side-label {
   background: var(--team, #737373); color: var(--team-fg, #fff); border-radius: 4px; padding: .15rem .4rem;
-  width: auto; flex: 0 1 auto; max-width: 11rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: none; font-size: .78rem;
+  width: auto; flex: 0 1 auto; max-width: 11rem; overflow-wrap: break-word; line-height: 1.25; text-transform: none; font-size: .78rem;
 }
 .side-head select { min-width: 0; flex: 1; }
 .side-foot { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: center; margin-top: .35rem; }
 .side-foot .check { margin: 0; }
 .side-foot .timer-btn { margin-left: auto; }
-.score-row { display: flex; gap: .6rem; align-items: stretch; }
-.score-grp { display: grid; gap: .4rem; align-items: end; min-width: 0; padding: .3rem .45rem .45rem; border: 1px solid #cfcfcf; border-radius: 8px; }
-.grp-title { grid-column: 1 / -1; font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.score-row { display: flex; gap: 1.1rem; align-items: stretch; }
+/* E- und D-Felder als zwei Gruppen ohne Überschrift und Rahmen; der größere Abstand der Zeile trennt sie */
+.score-grp { display: grid; gap: .4rem; align-items: end; min-width: 0; }
 .score-field span, .final span { font-size: .72rem; color: var(--muted); }
 .score-field input { text-align: right; font-variant-numeric: tabular-nums; padding: .45rem .4rem; }
 .result-row { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin-top: .4rem; font-size: .85rem; color: var(--muted); }
@@ -425,8 +433,12 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
   .duel { grid-template-columns: 1fr; grid-template-rows: none; }
   .duel .side.first, .duel .side.second, .duel-result, .duel-actions { grid-column: 1; grid-row: auto; }
   .duel-result { padding: .25rem 0; }
-  .match-row { grid-template-columns: 1fr auto; }
-  .match-row .match-teams { grid-column: 1; }
+  .match-link { grid-template-columns: 1fr auto; }
+  .match-link .match-teams { grid-column: 1; }
+  /* Handy/Tablet hochkant: „Sichern“ und „Löschen“ rutschen in der Zeile nach unten */
+  .match-row { flex-wrap: wrap; gap: 0; }
+  .match-link { flex-basis: 100%; }
+  .match-acts { width: 100%; justify-content: flex-end; padding: 0 .5rem .6rem; }
 }
 @media (max-width: 560px) {
   .row2 { grid-template-columns: 1fr; }
@@ -477,8 +489,7 @@ body.no-league .topbar nav { visibility: hidden; }
 /* Schmale Bildschirme: Bereiche der Wertungseingabe kompakter */
 @media (max-width: 480px) {
   .score-row { gap: .35rem; }
-  .score-grp { padding: .25rem .3rem .35rem; gap: .3rem; }
-  .grp-title { font-size: .58rem; letter-spacing: .01em; }
+  .score-grp { gap: .3rem; }
 }
 
 /* Seite Regeln */
@@ -572,16 +583,23 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 .print-table td.ps-s { text-decoration: line-through; color: #777; }
 .ps-struck { font-style: normal; color: #555; }
 
-/* Lange Vereinsnamen neben dem Spielstand dürfen umbrechen (kein seitliches Scrollen auf dem Handy). */
+/* Lange Vereinsnamen dürfen umbrechen – nach Leerzeichen, „/“ und „-“, notfalls auch mitten im Wort. */
 .scoreline .team { min-width: 0; }
 .scoreline .team .name { overflow-wrap: break-word; }
-/* Landesliga auf dem Handy: Punktsummen unter den beiden Vereinsnamen */
+/* Punkt als Teil der ersten Zeile, damit er beim Umbruch direkt vor dem Namen bleibt */
+.scoreline .team-tag { display: inline; }
+.scoreline .team-tag .dot { margin-right: .35rem; vertical-align: -.02em; }
+/* Handy: beide Vereinsnamen nebeneinander, der Spielstand mittig darunter (beide Ligen) */
 @media (max-width: 560px) {
-  .match-head .scoreline.sums { grid-template-columns: 1fr 1fr; }
-  .scoreline.sums .big { grid-column: 1 / -1; grid-row: 2; text-align: center; }
+  .match-head .scoreline { grid-template-columns: 1fr 1fr; column-gap: .75rem; row-gap: .15rem; }
+  .match-head .scoreline .big { grid-column: 1 / -1; grid-row: 2; text-align: center; }
+  /* Wertungskachel: Bei langem Vereinsnamen rutscht die Turnerauswahl in eine eigene Zeile, statt zu schmal zu werden. */
+  .side-head { flex-wrap: wrap; row-gap: .4rem; }
+  .side-head select { flex: 1 1 7rem; }
 }
 
 /* Knöpfe zur Anzeigetafel als Gruppe */
+.tool-right { display: contents; }
 .board-group { display: inline-flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .4rem; border: 1px solid #cfcfcf; border-radius: 10px; background: #f5f5f5; }
 
 /* Fenster „Wettkampfergebnis“ / „Zwischenstand“ auf der Tafel */
@@ -603,7 +621,9 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
   .tab { flex: 1; min-width: 0; padding: .35rem .2rem; }
   .tab .tab-name { display: none; }
   .tab .tab-ico { width: 34px; height: 34px; }
-  .tab .tab-score { font-size: .85rem; }
+  /* Handy: nur Logo und Abzeichen (✓ ● 🔒), keine Summen – in beiden Ligen */
+  .tab .tab-score { display: none; }
+  .tab .tab-ico { margin-bottom: 0; }
 }
 /* 2: Anzeigetafel – Tabelle (laufendes Gerät voll, andere abgeschwächt), Geräteüberschrift, Timer */
 .board-table .bt-ico { width: 1.5em; height: 1.5em; margin-right: .45em; opacity: .55; }
@@ -844,8 +864,7 @@ body.board-light .board-table tfoot td { border-top-color: #525252; }
 .tv-judges tr.gap td { padding-top: .9em; }
 /* Steuerleiste im Eingabefenster */
 .tv-ctl { display: inline-flex; align-items: center; border: 2px solid #2563eb; border-radius: 10px; overflow: hidden; }
-.tv-ctl .btn { border: 0; border-radius: 0; }
-.tv-ctl .pos { padding: 0 .9rem; font-weight: 700; white-space: nowrap; }
+.tv-ctl .btn { border: 0; border-radius: 0; min-width: 3rem; padding-left: .7rem; padding-right: .7rem; }
 .tv-ctl .tv-end { border-left: 1px solid #d4d4d4; }
 
 /* Mannschaftsabzug (Landesliga): dezente Links unten im Gerätebereich, Hinweise im Kopf und auf der Tafel */
@@ -894,3 +913,72 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 .bonus-box.off { background: #e2e2e2; border-color: #d0d0d0; color: #737373; }
 
 .side-foot .hidden-keep { visibility: hidden; }
+
+/* ---------- Wettkampfseite am Laptop: oberer Bereich flach, volle Breite, beim Scrollen fixiert ---------- */
+@media (min-width: 1100px) {
+  body.match-page main { max-width: none; padding: .6rem 1rem 1rem; }
+  body.match-page .match-top { position: sticky; top: var(--topbar-h, 52px); z-index: 6; background: var(--bg); margin: -.6rem -1rem .5rem; padding: .6rem 1rem .1rem; }
+  body.match-page .match-top .banner, body.match-page .match-top .unlock-bar { margin-bottom: .4rem; }
+
+  /* Kopf: Liga · Datum · Beginn · Status, Mannschaften mit Stand, Gerätepunkte in einer Zeile; darunter die Werkzeugzeile */
+  body.match-page .match-head { display: flex; flex-wrap: wrap; align-items: center; column-gap: 1.5rem; row-gap: .35rem; padding: .45rem .9rem; margin-bottom: .45rem; }
+  body.match-page .match-meta { display: flex; align-items: baseline; gap: .6rem; }
+  body.match-page .match-meta h2 { font-size: 1rem; margin: 0; white-space: nowrap; }
+  /* Bei langem Vereinsnamen bricht „Beginn: …“ um, damit die Mannschaftsnamen daneben mehr Platz haben. */
+  body.match-page .match-meta .muted { font-size: .85rem; max-width: 30vw; }
+  body.match-page .match-head .scoreline { flex: 1; margin: 0; gap: .8rem; grid-template-columns: 1fr auto 1fr; }
+  body.match-page .scoreline .team .label { display: none; }
+  /* Namen nie mitten im Wort trennen: Reicht der Platz nicht, rutscht die Spielstandzeile unter Liga und Datum. */
+  body.match-page .scoreline .team { min-width: min-content; }
+  body.match-page .scoreline .team .name { font-size: 1.05rem; }
+  body.match-page .scoreline .big, body.match-page .scoreline .big.sums { font-size: 1.6rem; line-height: 1.1; white-space: nowrap; }
+  body.match-page .subscore { font-size: .9rem; white-space: nowrap; }
+  body.match-page .deduct-note { margin: 0; }
+  body.match-page .match-head > .actions { flex-basis: 100%; margin: 0; gap: .5rem; }
+  body.match-page .match-head .board-group { padding: .15rem; gap: .3rem; }
+  /* Wettkampf-Knöpfe und „gespeichert“ bleiben rechts zusammen; wird es zu eng, rutscht nur „gespeichert“ rechtsbündig darunter. */
+  body.match-page .match-head .tool-right { display: flex; flex: 1 1 20rem; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: .2rem .5rem; }
+  body.match-page .match-head .tool-right .board-group { flex-wrap: nowrap; }
+  body.match-page .match-head .btn, body.match-page .match-head .bs-theme button { padding: .3rem .7rem; font-size: .86rem; }
+  body.match-page .match-head .save-status { margin-left: .3rem; }
+
+  /* Gerätereiter: flach in einer Zeile, kleines Logo links, Stand rechts */
+  body.match-page .tabs { gap: .3rem; margin-bottom: .4rem; padding: 6px 0 0; overflow: visible; }
+  body.match-page .tab { flex: 1 1 0; min-width: 0; flex-direction: row; align-items: center; gap: .45rem; padding: .25rem .55rem; }
+  body.match-page .tab .tab-ico { display: inline-block; width: 22px; height: 22px; margin: 0; flex: none; }
+  body.match-page .tab .tab-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.match-page .tab .tab-score { margin-left: auto; white-space: nowrap; font-size: .9rem; }
+  body.match-page .tab-badge { top: -7px; right: -5px; width: 20px; height: 20px; }
+}
+
+/* ---------- Wertungskacheln am Laptop: volle Breite, flacher ---------- */
+@media (min-width: 1100px) {
+  /* Zeile 1: Turner · Zeile 2: Eingabefelder, dahinter E-Note und Endnote · Zeile 3: Wertung 0,00, Sturz-Timer, Freigabe */
+  /* Reicht die Breite nicht (z. B. drei E-Kampfrichter in schmalen Kacheln), rutschen E-Note und Endnote von selbst in die nächste Zeile. */
+  body.match-page .side { display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: .9rem; }
+  body.match-page .side-head { flex: 1 1 100%; margin-bottom: .35rem; }
+  body.match-page .score-row { flex: 1 1 0; min-width: min-content; }
+  body.match-page .result-row { flex: none; margin: 0 0 0 auto; gap: .8rem; align-items: flex-end; }
+  body.match-page .result-row > span { display: flex; flex-direction: column; align-items: flex-end; padding: 0; line-height: 1.2; white-space: nowrap; }
+  /* Felder mit fester Mindestbreite, Beschriftungen einzeilig (sonst wird die Kachel höher) */
+  body.match-page .score-row { gap: .8rem; }
+  body.match-page .score-grp { flex: 0 1 auto !important; min-width: 0; grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(2.9rem, 5rem); gap: .35rem; }
+  body.match-page .score-field > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.match-page .result-row strong { font-size: 1.05rem; }
+  body.match-page .result-row .final strong { font-size: 1.35rem; }
+  body.match-page .side-foot { flex: 1 1 100%; min-height: 2.1rem; }
+
+  /* Landesliga: „Wertung freigeben“ bzw. „✓ freigegeben“ rechts in der Fußzeile der Kachel (bei einer Korrektur darunter) */
+  body.match-page .cl-cell { position: relative; }
+  body.match-page .cl-cell:not(.pending) > .duel-actions { position: absolute; right: calc(.35rem + .5rem + 2px); bottom: calc(.35rem + .5rem); }
+  body.match-page .cl-cell:not(.pending) .side-foot { padding-right: 11.5rem; }
+  body.match-page .cl-cell .duel-actions .btn { padding: .3rem .8rem; }
+
+  /* Oberliga: Scorepunkte und Freigabe in der Mittelspalte zwischen den beiden Kacheln */
+  body.match-page .duel { grid-template-columns: minmax(0, 1fr) 10.5rem minmax(0, 1fr); grid-template-rows: 1fr auto; row-gap: .4rem; }
+  body.match-page .duel > .side.first { grid-column: 1; grid-row: 1 / 3; }
+  body.match-page .duel > .side.second { grid-column: 3; grid-row: 1 / 3; }
+  body.match-page .duel > .duel-result { grid-column: 2; grid-row: 1; }
+  body.match-page .duel > .duel-actions { grid-column: 2; grid-row: 2; flex-direction: column; flex-wrap: nowrap; justify-content: flex-end; align-items: stretch; text-align: center; }
+  body.match-page .duel > .duel-actions .btn { padding: .4rem .6rem; }
+}

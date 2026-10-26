@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '74';
+  var APP_BUILD = '75';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -84,6 +84,11 @@
   function teamName(id) {
     var t = team(id);
     return t ? t.name : (state.legacyTeamNames[id] || 'Unbekannte Mannschaft');
+  }
+
+  // Vereinsname als HTML: nach „/“ darf umbrochen werden (z. B. „SG Langenei-Kickenbach/Gleidorf“).
+  function teamHtml(id) {
+    return esc(teamName(id)).replace(/\//g, '/<wbr>');
   }
 
   function leagueOf(key) {
@@ -485,6 +490,7 @@
   function render() {
     var r = route();
     document.body.classList.toggle('board-mode', r.name === 'match' && r.sub === 'board');
+    document.body.classList.toggle('match-page', r.name === 'match' && !r.sub);
     document.body.classList.toggle('board-light', r.name === 'match' && r.sub === 'board' && boardLight(match(r.id)));
     if (r.league) currentLeague = r.league;
     var ready = !!r.league && leagueReady(r.league);
@@ -509,21 +515,22 @@
         if (!m) { html = notFound(); break; }
         html = r.sub === 'board' ? viewBoard(m) : r.sub === 'print' ? viewPrint(m) : viewMatch(m);
         break;
-      case 'data': html = viewData(); break;
+      case 'data': html = viewHome(); break;
       case 'rules': html = viewRules(); break;
       case 'help': html = viewHelp(); break;
       case 'info': html = viewInfo(); break;
       default: html = viewStart();
     }
     $app.innerHTML = (state.persistent ? '' : warningBanner()) + html;
-    if (r.name === 'data') refreshDataView();
+    if ((r.name === 'home' || r.name === 'data') && ready) refreshDataView();
     var mf = $app.querySelector('form[data-form="match"]');
     if (mf) { syncJudgeFields(mf); syncLineup(mf); }
     if (r.name === 'match' && r.sub === 'print') fitPrintToA4();
-    if (r.name === 'home' && ready) refreshStorageBox();
+
     var isBoard = r.name === 'match' && r.sub === 'board' && match(r.id);
     if (isBoard) { checkBoardFlash(match(r.id)); fitBoard(); }
     else state.board = { matchId: null, lastReveal: '' };
+    syncTopbarHeight();
     if (!keepScroll) window.scrollTo(0, 0);
     tickTimers();
     if (isBoard) { fitBoard(); fitIntro(); fitScorers(); }
@@ -532,7 +539,7 @@
 
   function warningBanner() {
     return '<div class="banner danger">⚠ Der Browser erlaubt hier keine dauerhafte Speicherung (z. B. privater Modus). ' +
-      'Daten gehen beim Schließen verloren – bitte regelmäßig unter „Daten“ exportieren.</div>';
+      'Daten gehen beim Schließen verloren – bitte regelmäßig unter „Wettkämpfe“ eine Gesamtsicherung erstellen.</div>';
   }
 
   // ---------- Startseite ----------
@@ -561,28 +568,47 @@
 
   // ---------- Ansicht: Übersicht ----------
 
+  /**
+   * Übersicht der Liga: Wettkämpfe (je Zeile „Sichern“ und „Löschen“), darunter die Gesamtsicherung mit Import
+   * und der Datenspeicher mit den automatischen Sicherungspunkten und „Alle Daten löschen“.
+   */
   function viewHome() {
+    var lg = leagueOf(currentLeague);
     var matches = leagueMatches(currentLeague);
     var list = matches.length ? matches.map(function (m) {
       var r = S.matchResult(m);
-      return '<a class="match-row" href="#/match/' + m.id + '">' +
+      return '<div class="match-row"><a class="match-link" href="#/match/' + m.id + '">' +
         '<div><div class="match-title">' + esc(fmtDate(m.date) || 'ohne Datum') + '</div>' +
         '<div class="muted">' + esc(matchLeague(m).name) + '</div></div>' +
         '<div class="match-teams">' + teamTag(m, 'home') + ' <span class="muted">vs.</span> ' + teamTag(m, 'guest') + '</div>' +
         '<div class="match-score">' + totalPair(m, r) + '</div>' +
-        '<div>' + statusBadge(m, r) + '</div></a>';
+        '<div>' + statusBadge(m, r) + '</div></a>' +
+        '<div class="match-acts"><button class="btn small" data-action="export-match" data-id="' + m.id + '" title="Diesen Wettkampf als Datei sichern">Sichern</button>' +
+        '<button class="btn small danger ghost" data-action="del-match" data-id="' + m.id + '">Löschen</button></div></div>';
     }).join('') : '<p class="muted">Noch keine Wettkämpfe angelegt.</p>';
 
     return '<section class="card">' +
       '<div class="card-head"><h2>Wettkämpfe</h2>' +
       '<a class="btn primary" href="' + leagueHref('new') + '">+ Neuer Wettkampf</a>' +
       '</div>' + list + '</section>' +
-      '<section class="card"><h2>Datenspeicher</h2><div id="storage-box" class="muted">wird geprüft …</div></section>';
+      '<section class="card"><h2>Gesamtsicherung der ' + esc(lg.short) + '</h2>' +
+      '<p class="muted small">Alle Mannschaften, Turnernamen und Wettkämpfe der ' + esc(lg.short) + ' in einer Datei; der Dateiname beginnt mit <b>' + filePrefix(currentLeague) + 'GESAMTSICHERUNG_</b>. ' +
+      'Die Daten liegen nur auf diesem Gerät – zum Schutz gegen Geräteverlust regelmäßig sichern, z. B. auf einen USB-Stick. ' +
+      'Einzelne Wettkämpfe sichert „Sichern“ in der Zeile des Wettkampfs.</p>' +
+      '<div class="actions wrap"><button class="btn primary" data-action="export">Alles sichern</button>' +
+      '<label class="btn file-btn">Sicherung einlesen …<input type="file" accept=".json,application/json" data-import hidden></label></div>' +
+      '<p class="muted small">Eine Gesamtsicherung ersetzt alle Daten der ' + esc(lg.short) + ' (die andere Liga bleibt unverändert). Ein einzelner Wettkampf wird hinzugefügt bzw. ersetzt nur denselben Wettkampf. ' +
+      'Vor jedem Einlesen wird automatisch ein Sicherungspunkt angelegt.</p></section>' +
+      '<section class="card"><h2>Datenspeicher</h2><div id="storage-box" class="muted">wird geprüft …</div>' +
+      '<details class="snap-details"><summary>Automatische Sicherungspunkte <span id="snap-count"></span></summary>' +
+      '<div id="snapshots" class="muted">wird geladen …</div></details>' +
+      '<div class="wipe-row"><button class="btn small danger ghost" data-action="wipe">Alle Daten löschen …</button>' +
+      '<span class="muted small">Löscht alle Wettkämpfe und eigene Änderungen an den Turnernamen der ' + esc(lg.short) + ' auf diesem Gerät; Mannschaften und vorgegebene Turner bleiben. Vorher wird ein Sicherungspunkt angelegt.</span></div></section>';
   }
 
   function teamTag(m, sideKey) {
     var id = sideKey === 'home' ? m.homeTeamId : m.guestTeamId;
-    return '<span class="team-tag"><span class="dot" style="background:' + sideColor(m, sideKey).hex + '"></span>' + esc(teamName(id)) + '</span>';
+    return '<span class="team-tag"><span class="dot" style="background:' + sideColor(m, sideKey).hex + '"></span>' + teamHtml(id) + '</span>';
   }
 
   function statusBadge(m, r) {
@@ -966,9 +992,10 @@
         appIcon(a.key, 'tab-ico') + '<span class="tab-name">' + a.name + '</span><span class="tab-score" data-out="tab-' + a.key + '">' + totalPair(m, ar) + '</span></button>';
     }).join('');
 
-    return '<section class="card match-head">' +
+    // Kopf, Hinweise und Gerätereiter bilden den oberen Bereich (am Laptop beim Scrollen fixiert).
+    return '<div class="match-top"><section class="card match-head">' +
       '<div class="match-meta"><h2>' + esc(matchLeague(m).name) + '</h2>' +
-      '<div class="muted">' + esc(fmtDate(m.date)) + ' · Beginn: ' + esc(teamName(m.startTeam === 'guest' ? m.guestTeamId : m.homeTeamId)) +
+      '<div class="muted">' + esc(fmtDate(m.date)) + ' · Beginn: ' + teamHtml(m.startTeam === 'guest' ? m.guestTeamId : m.homeTeamId) +
       ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
       '<div class="scoreline' + (isClassic(m) ? ' sums' : '') + '">' +
       '<div class="team home"><div class="label">Heim</div><div class="name">' + teamTag(m, 'home') + '</div></div>' +
@@ -989,21 +1016,20 @@
       // Reihenfolge wie im Ablauf: Turnervorstellung, Wettkampfpause, Wettkampfergebnis
       '<span data-out="intro">' + introControls(m) + '</span>' + pauseControls() +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
-      scorersLabel(m.display && m.display.scorers) + '</button></div>' +
-      // Knöpfe zum Wettkampf selbst als zweite Gruppe; „Löschen“ steht für sich.
-      '<div class="board-group" role="group" aria-label="Wettkampf">' +
+      scorersLabel() + '</button></div>' +
+      // Knöpfe zum Wettkampf selbst als zweite Gruppe, rechts daneben der Speicherstatus
+      '<div class="tool-right"><div class="board-group" role="group" aria-label="Wettkampf">' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
       (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
         : '<button class="btn primary" data-action="finalize">Wettkampf abschließen</button>') +
       '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a></div>' +
-      '<button class="btn danger ghost" data-action="del-match">Löschen</button>' +
-      '<span id="save-status" class="save-status"></span>' +
+      '<span id="save-status" class="save-status"></span></div>' +
       '</div></section>' +
       (locked ? '<div class="banner info">Dieser Wettkampf ist abgeschlossen und schreibgeschützt.</div>' : '') +
       '<div data-out="pending">' + pendingBanner(m) + '</div>' +
       (m.unlockApparatus && m.status !== 'final' ? '<div class="unlock-bar">⚠ <b>Gerätesperre aufgehoben</b> – alle Geräte sind frei wählbar. ' +
         '<button type="button" class="btn" data-action="relock">Sperre wieder aktivieren</button></div>' : '') +
-      '<nav class="tabs">' + tabs + '</nav>' +
+      '<nav class="tabs">' + tabs + '</nav></div>' +
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
       '<section class="card"><h3>Topscorer</h3><div data-out="scorers">' + scorersHtml(m) + '</div></section>';
   }
@@ -1022,7 +1048,8 @@
     if (pm) pm.hidden = true;
   }
 
-  function scorersLabel(on) { return on ? 'Wettkampfergebnis ausblenden' : 'Wettkampfergebnis einblenden'; }
+  /** Gleiche Beschriftung in beiden Zuständen; eingeblendet zeigt der Knopf dunkel hinterlegt (wie Hell/Dunkel). */
+  function scorersLabel() { return 'Ergebnis/Siegerehrung'; }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
   /**
@@ -1127,15 +1154,15 @@
       '" data-key="' + key + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
       (!classic && position === 1 ? '<span class="lead-tag">legt vor</span>' : '') +
       '<div class="side-head"><span class="order-no" title="' + (classic ? 'Startposition am Gerät' : 'Startreihenfolge im Duell') + '">' + position + '.</span>' +
-      '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>' +
+      '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + teamHtml(sideKey === 'home' ? m.homeTeamId : m.guestTeamId) + '</span>' +
       gymnastSelect(m, appKey, idx, sideKey, side, locked) + '</div>' +
-      // Zwei Bereiche: E-Kampfgericht (Abzüge) und D-Kampfgericht (D-Note, Standbonus, neutraler Abzug).
+      // Zwei Gruppen ohne Überschrift: E-Kampfgericht (Abzüge) und D-Kampfgericht (D-Note, Standbonus, neutraler Abzug).
       '<div class="score-row">' +
-      '<div class="score-grp" style="flex:' + eCols + ';grid-template-columns:repeat(' + eCols + ',minmax(0,1fr))"><div class="grp-title">E-Kampfgericht</div>' +
+      '<div class="score-grp" style="flex:' + eCols + ';grid-template-columns:repeat(' + eCols + ',minmax(0,1fr))">' +
       scoreInput(appKey, idx, sideKey, 'e1', side.e1, dis, 'Abzüge E1') +
       scoreInput(appKey, idx, sideKey, 'e2', side.e2, dis, 'Abzüge E2') +
       (three ? scoreInput(appKey, idx, sideKey, 'e3', side.e3, dis, 'Abzüge E3') : '') + '</div>' +
-      '<div class="score-grp" style="flex:' + dCols + ';grid-template-columns:repeat(' + dCols + ',minmax(0,1fr))"><div class="grp-title">D-Kampfgericht</div>' +
+      '<div class="score-grp" style="flex:' + dCols + ';grid-template-columns:repeat(' + dCols + ',minmax(0,1fr))">' +
       scoreInput(appKey, idx, sideKey, 'd', side.d, dis, 'D-Note') +
       (bonusAllowed ? '<label class="score-field bonus-field"><span>Standbonus</span><span class="bonus-box' + (dis ? ' off' : '') + '"><input type="checkbox" ' +
         fieldAttrs(appKey, idx, sideKey, 'bonus') + (side.bonus ? ' checked' : '') + (dis ? ' disabled' : '') + '> +0,1</span></label>' : '') +
@@ -1275,11 +1302,7 @@
     }).join('');
     return doneBar(m, appKey) + (m.status === 'final' || st0(m, appKey) === 'done' ? '' : '<div class="warmup-row">' + warmupButton(m, appKey) + startButton(m, appKey) + '</div>') +
       '<div class="card-head"><h3>' + a.name + '</h3>' +
-      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels +
-      '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
-      (S.eJudgeCount(m.rules) === 3 ? 'E-Note = 10 − mittlerer der drei E-Abzüge (höchster und niedrigster gestrichen). ' : 'E-Note = 10 − Mittelwert der Abzüge E1 und E2. ') +
-      'Endnote = D-Note + Standbonus + E-Note − neutraler Abzug; „Wertung 0,00“ gibt einem angetretenen Turner die Endnote 0. Der vorlegende Turner (1.) steht links bzw. oben. ' +
-      'Die Scorepunkte eines Duells zählen und erscheinen auf der Anzeigetafel erst nach „Wertung freigeben“. Jede Eingabe wird sofort gespeichert.</p>';
+      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels;
   }
 
   // ---------- Landesliga: Eingabe je Übung ----------
@@ -1336,9 +1359,6 @@
       '<div class="cl-row cl-head">' + order.map(function (k, n) {
         return '<div>' + teamTag(m, k) + (n === 0 ? ' <span class="muted small">beginnt</span>' : '') + '</div>';
       }).join('') + '</div>' + rows + sums +
-      '<p class="muted small">Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. <code>4,8</code> oder <code>1.3</code>; Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten. ' +
-      'Geturnt wird abwechselnd in der Reihenfolge der Startpositionen (1., 2., 3. …). Je Mannschaft zählen die ' + m.rules.counting +
-      ' höchsten Wertungen, die niedrigste ist die Streichwertung. Jede Übung wird einzeln mit „Wertung freigeben“ gezählt und auf der Anzeigetafel gezeigt. Jede Eingabe wird sofort gespeichert.</p>' +
       deductionLinks(m);
   }
 
@@ -1383,7 +1403,7 @@
     if (!list.length) return '<p class="muted">' + (classic ? 'Noch keine Wertungen.' : 'Noch keine Scorepunkte vergeben.') + '</p>';
     return '<div class="table-wrap"><table class="table compact"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">Geräte</th><th class="num">' + (classic ? 'Summe' : 'Scorepunkte') + '</th></tr></thead><tbody>' +
       list.map(function (s) {
-        return '<tr><td>' + s.rank + '.</td><td>' + esc(gymnastLabel(s.number, s.name) || '–') + '</td><td>' + esc(teamName(s.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</td><td class="num">' + s.starts + '</td>' +
+        return '<tr><td>' + s.rank + '.</td><td>' + esc(gymnastLabel(s.number, s.name) || '–') + '</td><td>' + teamHtml(s.team === 'home' ? m.homeTeamId : m.guestTeamId) + '</td><td class="num">' + s.starts + '</td>' +
           '<td class="num"><strong>' + pts(m, s.team, classic ? fmt(s.points) : s.points) + '</strong></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
@@ -1420,6 +1440,8 @@
           var act = $app.querySelector('[data-out="sideact-' + key + '"]');
           var html = sideActions(m, d, tab, i, k, duelBlocked(m, tab, i, k) || !scoresAllowed(m, tab));
           if (act && act.innerHTML !== html) act.innerHTML = html;
+          var cell = act && act.closest('.cl-cell');
+          if (cell) cell.classList.toggle('pending', S.sidePending(d, k));
           out('enote-' + key, fmt(S.eScore(d[k], m.rules)));
           out('final-' + key, fmt(S.sideFinal(d[k], m.rules)));
           var sideEl = $app.querySelector('.side[data-key="' + key + '"]');
@@ -1801,9 +1823,9 @@
     return '<div class="board">' +
       '<div class="board-title">' + esc([matchLeague(m).name, fmtDate(m.date)].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="board-score">' +
-      '<div class="board-team" style="color:' + homeColor + '">' + esc(teamName(m.homeTeamId)) + boardDeduction(m, 'home') + '</div>' +
+      '<div class="board-team" style="color:' + homeColor + '">' + teamHtml(m.homeTeamId) + boardDeduction(m, 'home') + '</div>' +
       '<div class="board-big' + (isClassic(m) ? ' sums' : '') + '">' + totalPair(m, r, true) + '</div>' +
-      '<div class="board-team" style="color:' + guestColor + '">' + esc(teamName(m.guestTeamId)) + boardDeduction(m, 'guest') + '</div></div>' +
+      '<div class="board-team" style="color:' + guestColor + '">' + teamHtml(m.guestTeamId) + boardDeduction(m, 'guest') + '</div></div>' +
       '<div class="board-grid"><table class="board-table"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody>' +
       '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num"><span class="sp-num">' + r.homeApp + '</span></td><td class="num"><span class="sp-num">' + r.guestApp + '</span></td></tr></tfoot></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
@@ -1894,7 +1916,7 @@
     var rows = [];
     function add(role, name, side, gap) {
       if (name) rows.push('<tr' + (gap ? ' class="gap"' : '') + '><td>' + role + '</td><td>' + esc(name) + '</td><td class="r">' +
-        (side ? esc(teamName(side === 'home' ? m.homeTeamId : m.guestTeamId)) : '') + '</td></tr>');
+        (side ? teamHtml(side === 'home' ? m.homeTeamId : m.guestTeamId) : '') + '</td></tr>');
     }
     add('E1/OK', j.e1);
     if (!three) add('E2', j.e2);
@@ -1917,7 +1939,7 @@
       body = '<div class="tv-big-team tv-fit tv-kg">Kampfgericht</div>' +
         (rows.length ? '<table class="tv-judges' + (rows.length > 4 ? ' many' : '') + '">' + rows.join('') + '</table>' : '');
     } else {
-      var color = boardTone(m, p.side), name = esc(teamName(p.side === 'home' ? m.homeTeamId : m.guestTeamId));
+      var color = boardTone(m, p.side), name = teamHtml(p.side === 'home' ? m.homeTeamId : m.guestTeamId);
       if (p.gym) {
         body = '<div class="tv-team tv-fit" style="color:' + color + '">' + name + '</div>' +
           '<div class="tv-num" style="color:' + color + '">' + p.gym.number + '</div><div class="tv-name tv-fit">' + esc(p.gym.name) + '</div>';
@@ -1947,13 +1969,13 @@
   function introControls(m) {
     var step = introStep(m);
     if (step < 0) return '<button class="btn" data-action="intro-start">Turnervorstellung</button>';
+    // Läuft die Vorstellung, bleibt der Knopf so groß wie vorher: nur ◀ ▶ ■ (der Stand steht auf der Tafel oben rechts).
     var pages = introPages(m), p = pages[Math.min(step, pages.length - 1)];
     var pos = p.judges ? 'Kampfgericht' : (p.side === 'home' ? 'Heim' : 'Gast') + (p.gym ? ' · Turner ' + p.pos + ' / ' + p.count : ' · Mannschaft');
-    return '<span class="tv-ctl" role="group" aria-label="Turnervorstellung">' +
-      '<button class="btn" data-action="intro-step" data-dir="-1"' + (step === 0 ? ' disabled' : '') + '>◀ Zurück</button>' +
-      '<span class="pos">' + pos + '</span>' +
-      '<button class="btn primary" data-action="intro-step" data-dir="1">Weiter ▶</button>' +
-      '<button class="btn tv-end" data-action="intro-end">Beenden</button></span>';
+    return '<span class="tv-ctl" role="group" aria-label="Turnervorstellung" title="Turnervorstellung: ' + pos + '">' +
+      '<button class="btn" data-action="intro-step" data-dir="-1" aria-label="Zurück" title="Zurück"' + (step === 0 ? ' disabled' : '') + '>◀</button>' +
+      '<button class="btn primary" data-action="intro-step" data-dir="1" aria-label="Weiter" title="Weiter">▶</button>' +
+      '<button class="btn tv-end" data-action="intro-end" aria-label="Beenden" title="Beenden">■</button></span>';
   }
 
   function refreshIntro(m) {
@@ -1990,14 +2012,14 @@
     var list = S.topScorers(view, 3);
     var classic = isClassic(m);
     return '<div class="scorer-overlay"><div class="so-box"><div class="so-title">' + (r.complete ? 'Wettkampfergebnis' : 'Zwischenstand') + '</div>' +
-      '<div class="so-result"><div class="t" style="color:' + boardTone(m, 'home') + '">' + esc(teamName(m.homeTeamId)) + '</div>' +
+      '<div class="so-result"><div class="t" style="color:' + boardTone(m, 'home') + '">' + teamHtml(m.homeTeamId) + '</div>' +
       '<div class="big">' + totalPair(m, r, true) + '</div>' +
-      '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + esc(teamName(m.guestTeamId)) + '</div></div>' +
+      '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + teamHtml(m.guestTeamId) + '</div></div>' +
       '<div class="so-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + (r.complete ? ' · Wettkampfpunkte ' + r.homeMatch + ':' + r.guestMatch : '') + (deductionsText(m) ? ' · ' + esc(deductionsText(m)) : '') + '</div>' +
       '<div class="so-title so-h">Topscorer</div>' +
       (list.length ? '<table class="so-table">' + list.map(function (x) {
         return '<tr><td class="so-rank">' + x.rank + '.</td><td class="so-name">' + esc(gymnastLabel(x.number, x.name) || '–') +
-          '<small>' + esc(teamName(x.team === 'home' ? m.homeTeamId : m.guestTeamId)) + '</small></td><td class="so-app">' + x.starts + (x.starts === 1 ? ' Gerät' : ' Geräte') + '</td>' +
+          '<small>' + teamHtml(x.team === 'home' ? m.homeTeamId : m.guestTeamId) + '</small></td><td class="so-app">' + x.starts + (x.starts === 1 ? ' Gerät' : ' Geräte') + '</td>' +
           '<td class="so-pts">' + pts(m, x.team, classic ? fmt(x.points) : x.points, true) + '</td></tr>';
       }).join('') + '</table>' : '<div class="so-empty">' + (classic ? 'Noch keine Wertungen' : 'Noch keine Scorepunkte') + '</div>') + '</div></div>';
   }
@@ -2104,7 +2126,13 @@
     if (k < 1) box.style.transform = 'scale(' + k.toFixed(3) + ')';
   }
 
-  window.addEventListener('resize', function () { fitBoard(); fitIntro(); fitScorers(); });
+  /** Der fixierte obere Bereich der Wettkampfseite schließt direkt an die App-Leiste an. */
+  function syncTopbarHeight() {
+    var tb = document.querySelector('.topbar');
+    if (tb) document.documentElement.style.setProperty('--topbar-h', tb.offsetHeight + 'px');
+  }
+
+  window.addEventListener('resize', function () { fitBoard(); fitIntro(); fitScorers(); syncTopbarHeight(); });
 
   /** Nach jedem Aufbau der Anzeigetafel prüfen, ob eine neue Wertung freigegeben wurde. */
   function checkBoardFlash(m) {
@@ -2264,7 +2292,7 @@
   function refreshDisplayButtons(m) {
     var t = $app.querySelector('[data-action="toggle-scorers"]');
     var son = !!(m.display && m.display.scorers);
-    if (t) { t.textContent = scorersLabel(son); t.classList.toggle('on', son); }
+    if (t) { t.textContent = scorersLabel(); t.classList.toggle('on', son); }
     $app.querySelectorAll('[data-action="theme"]').forEach(function (b) {
       b.classList.toggle('on', (b.getAttribute('data-theme') === 'light') === boardLight(m));
     });
@@ -2630,40 +2658,7 @@
     }
   }
 
-  // ---------- Ansichten: Datensicherung und Regeln ----------
-
-  function viewData() {
-    return '<section class="card"><h2>Datensicherung</h2>' +
-      '<p>Alle Daten liegen ausschließlich lokal auf diesem Gerät. Zusätzlich legt die App automatisch Sicherungspunkte an. ' +
-      'Für Sicherheit gegen Geräteverlust bitte regelmäßig eine Sicherungsdatei exportieren (z. B. auf einen USB-Stick).</p>' +
-      '<div id="data-storage" class="muted">wird geprüft …</div>' +
-      '<h3>Exportieren</h3>' +
-      '<div class="export-grid">' +
-      '<div class="export-box"><h4>Gesamtsicherung</h4>' +
-      '<p class="muted small">Alle Mannschaften, Turnernamen und Wettkämpfe der ' + esc(leagueOf(currentLeague).short) + '. Dateiname beginnt mit <b>' + filePrefix(currentLeague) + 'GESAMTSICHERUNG_</b>.</p>' +
-      '<div class="actions"><button class="btn primary" data-action="export">Alles sichern</button></div></div>' +
-      '<div class="export-box"><h4>Einzelner Wettkampf</h4>' +
-      '<p class="muted small">Nur der gewählte Wettkampf. Dateiname beginnt mit <b>' + filePrefix(currentLeague) + 'EINZELWETTKAMPF_</b>.</p>' +
-      (leagueMatches(currentLeague).length
-        ? '<div class="actions wrap"><select id="export-match-select" aria-label="Wettkampf auswählen">' +
-          leagueMatches(currentLeague).map(function (m) {
-            return '<option value="' + esc(m.id) + '">' + esc(fmtDate(m.date) + ' – ' + teamName(m.homeTeamId) + ' : ' + teamName(m.guestTeamId)) + '</option>';
-          }).join('') + '</select><button class="btn" data-action="export-match">Wettkampf sichern</button></div>'
-        : '<p class="muted">Noch keine Wettkämpfe vorhanden.</p>') +
-      '</div></div>' +
-      '<h3>Importieren / Wiederherstellen</h3>' +
-      '<form class="stack" data-form="import">' +
-      '<input type="file" name="file" accept=".json,application/json" required>' +
-      '<div class="actions"><button class="btn" type="submit">Importieren</button></div></form>' +
-      '<p class="muted small">Eine Gesamtsicherung ersetzt alle Daten der ' + esc(leagueOf(currentLeague).short) + ' (die andere Liga bleibt unverändert). Ein einzelner Wettkampf wird hinzugefügt bzw. ersetzt nur denselben Wettkampf – alles andere bleibt unverändert. ' +
-      'Vor jedem Import wird automatisch ein Sicherungspunkt des aktuellen Stands angelegt.</p>' +
-      '<h3>Automatische Sicherungspunkte</h3><div id="snapshots" class="muted">wird geladen …</div>' +
-      '</section>' +
-
-      '<section class="card"><h2>Alle Daten löschen</h2>' +
-      '<p class="muted">Löscht alle Wettkämpfe und eigene Änderungen an den Turnernamen der ' + esc(leagueOf(currentLeague).short) + ' auf diesem Gerät. Die Mannschaften und die vorgegebenen Turner bleiben erhalten. Ein Sicherungspunkt wird vorher angelegt.</p>' +
-      '<button class="btn danger" data-action="wipe">Alle Daten löschen …</button></section>';
-  }
+  // ---------- Ansichten: Regeln, Anleitung, Infoseite ----------
 
   function viewRules() {
     var classic = leagueOf(currentLeague).model === 'classic';
@@ -2757,9 +2752,13 @@
           ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
           : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „legt vor“ markiert.',
         '<b>Einturnzeit und Gerätestart</b>: Turner lassen sich an jedem Gerät jederzeit auswählen (auch vorab). Mit „Einturnzeit (6:40) starten“ beginnt das Einturnen; nach Ablauf und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch – erst dann sind Wertungen und „Wertung 0,00“ möglich, und die Anzeigetafel wechselt auf dieses Gerät. Bis dahin bleibt dort das vorige Gerät mit allen Werten stehen. Wird die Einturnzeit vorzeitig gestoppt, fragt die App, ob das Gerät jetzt starten soll. Ohne Einturnzeit: „Gerät direkt starten“ (mit Rückfrage). Ein versehentlicher Start lässt sich zurücknehmen, solange noch keine Wertung eingetragen ist.',
-        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt. Solange ein Gerät läuft oder an einem Gerät die Einturnzeit läuft, kann an keinem anderen Gerät die Einturnzeit oder der Start begonnen werden; gesperrte Geräte lassen sich trotzdem öffnen, um Turner zu ändern. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre über „Gerät starten“ an einem gesperrten Gerät und „Gerätesperre aufheben …“ (doppelt bestätigt) aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
+        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt (am Handy nur Logo und Abzeichen, die Ergebnisse stehen im Gerätebereich). Am Laptop bleibt der obere Bereich mit den Gerätereitern beim Scrollen stehen. Solange ein Gerät läuft oder an einem Gerät die Einturnzeit läuft, kann an keinem anderen Gerät die Einturnzeit oder der Start begonnen werden; gesperrte Geräte lassen sich trotzdem öffnen, um Turner zu ändern. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre über „Gerät starten“ an einem gesperrten Gerät und „Gerätesperre aufheben …“ (doppelt bestätigt) aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
 
-        'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen. E-Note und Endnote rechnet die App.',
+        'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen – mit Komma oder Punkt und einer Nachkommastelle, z. B. 4,8 oder 1.3. ' +
+          'E-Note und Endnote rechnet die App: E-Note = 10 − Mittelwert der Abzüge E1 und E2 (bei drei E-Kampfrichtern 10 − mittlerer Abzug, höchster und niedrigster gestrichen); Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. Jede Eingabe wird sofort gespeichert.',
+        classic
+          ? 'Je Mannschaft zählen an jedem Gerät die ' + S.CLASSIC_RULES.counting + ' höchsten Wertungen, die niedrigste ist die Streichwertung. Jede Übung wird einzeln mit „Wertung freigeben“ gezählt und auf der Anzeigetafel gezeigt.'
+          : 'Die Scorepunkte eines Duells zählen und erscheinen auf der Anzeigetafel erst nach „Wertung freigeben“.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
           ' Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
         '<b>kein Turner</b> (ganz oben in der Turnerauswahl, auch vorab wählbar): Die Übung zählt 0 Punkte, bereits eingegebene Wertungen werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint sie als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b>: Der Turner ist angetreten, erhält aber die Endnote 0 – das Kästchen erscheint erst nach Auswahl eines Turners; bereits eingegebene Werte werden dabei gelöscht.',
@@ -2785,8 +2784,8 @@
 
       sec('5. Anzeigetafel', [
         '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort doppelt auf die Tafel klicken – das schaltet das Vollbild ein und aus.',
-        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Wettkampfergebnis einblenden</b> zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet. ' +
-        '<b>Turnervorstellung</b> zeigt nacheinander die Gastmannschaft (Titelseite, dann die anwesenden Turner nach Startnummer), die Heimmannschaft und zum Schluss das Kampfgericht. Weiterschalten mit den Knöpfen oder per Tastatur – Pfeil rechts, Leertaste oder Bild ab (auch mit einem Presenter), zurück mit Pfeil links oder Bild auf, Esc beendet. Während der Vorstellung sind keine anderen Fenster auf der Tafel möglich.',
+        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Ergebnis/Siegerehrung</b> blendet ein bzw. aus (eingeblendet ist der Knopf dunkel hinterlegt) und zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet. ' +
+        '<b>Turnervorstellung</b> zeigt nacheinander die Gastmannschaft (Titelseite, dann die anwesenden Turner nach Startnummer), die Heimmannschaft und zum Schluss das Kampfgericht. Solange sie läuft, zeigt der Knopf nur ◀ ▶ ■ (zurück, weiter, beenden); weiterschalten damit oder per Tastatur – Pfeil rechts, Leertaste oder Bild ab (auch mit einem Presenter), zurück mit Pfeil links oder Bild auf, Esc beendet. Während der Vorstellung sind keine anderen Fenster auf der Tafel möglich.',
         '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         (classic ? 'Nach jeder Freigabe erscheint 10 Sekunden groß auf der Tafel die Endnote der Übung mit dem Turner darüber' : 'Nach jeder Freigabe erscheinen 10 Sekunden groß auf der Tafel die Scorepunkte des Duells mit dem Sieger darüber') +
           ', Korrekturen 10 Sekunden. Der Sturz-Timer erscheint groß als Fenster über der Tafel; Einturnzeit und Wettkampfpause laufen groß in der Karte oben rechts, Liste und Wertungen bleiben dabei sichtbar.'
@@ -2796,7 +2795,7 @@
         '<b>Wettkampf abschließen</b> sperrt die Eingabe. Anschließend fragt die App, ob nur dieser Wettkampf oder alles gesichert werden soll.',
         '<b>Protokoll / Drucken</b> erstellt das Wettkampfprotokoll auf einer DIN-A4-Seite (auch als PDF speicherbar).',
         'Über <b>Wieder öffnen</b> kann ein abgeschlossener Wettkampf erneut bearbeitet werden.',
-        'Die Sicherungsdateien lassen sich jederzeit unter <b>Datensicherung</b> erstellen; wie das funktioniert, steht unter ' + INFO_LINK + '.'
+        'Sicherungsdateien lassen sich jederzeit auf der Seite <b>Wettkämpfe</b> erstellen: „Sichern“ in der Zeile eines Wettkampfs bzw. „Alles sichern“ darunter; mehr dazu unter ' + INFO_LINK + '.'
       ]) + '</section>';
   }
 
@@ -2821,11 +2820,11 @@
       ]) +
 
       sec('3. Datensicherung', [
-        'Die Daten jeder Liga werden <b>getrennt gesichert</b>. Die Seite <b>Datensicherung</b> befindet sich deshalb in der jeweiligen Liga (oben im Menü).',
-        'Dort regelmäßig eine Gesamtsicherung oder einzelne Wettkämpfe als Datei sichern, z. B. auf einen USB-Stick. Der Dateiname zeigt Liga und Art der Sicherung.',
-        'Beim Importieren ersetzt eine Gesamtsicherung alle Daten dieser Liga; die andere Liga bleibt unverändert. Ein einzelner Wettkampf wird nur hinzugefügt bzw. ersetzt.',
-        'Die App legt zusätzlich automatische Sicherungspunkte an, aus denen sich ein früherer Stand wiederherstellen lässt.',
-        '<b>Alle Daten löschen</b> entfernt alle Wettkämpfe und eigene Änderungen an Turnernamen dieser Liga; die vorgegebenen Turner bleiben erhalten.'
+        'Die Daten jeder Liga werden <b>getrennt gesichert</b>, jeweils auf der Seite <b>Wettkämpfe</b> der Liga.',
+        'Einzelne Wettkämpfe sichert „Sichern“ in der Zeile des Wettkampfs, alle Daten der Liga „Alles sichern“ im Abschnitt <b>Gesamtsicherung</b> darunter – regelmäßig, z. B. auf einen USB-Stick. Der Dateiname zeigt Liga und Art der Sicherung.',
+        'Beim Einlesen („Sicherung einlesen …“) ersetzt eine Gesamtsicherung alle Daten dieser Liga; die andere Liga bleibt unverändert. Ein einzelner Wettkampf wird nur hinzugefügt bzw. ersetzt.',
+        'Die App legt zusätzlich automatische Sicherungspunkte an, aus denen sich ein früherer Stand wiederherstellen lässt (im Abschnitt <b>Datenspeicher</b>, aufklappbar).',
+        '<b>Alle Daten löschen</b> (ganz unten im Abschnitt Datenspeicher) entfernt alle Wettkämpfe und eigene Änderungen an Turnernamen dieser Liga; die vorgegebenen Turner bleiben erhalten.'
       ]) +
 
       sec('4. Updates', [
@@ -2835,13 +2834,12 @@
   }
 
   function refreshDataView() {
-    DB.storageInfo().then(function (info) {
-      var el = document.getElementById('data-storage');
-      if (el) el.innerHTML = storageInfoHtml(info);
-    });
+    refreshStorageBox();
     DB.listSnapshots().then(function (list) {
       var el = document.getElementById('snapshots');
       if (!el) return;
+      var cnt = document.getElementById('snap-count');
+      if (cnt) cnt.textContent = '(' + list.length + ')';
       if (!list.length) { el.innerHTML = '<p class="muted">Noch keine Sicherungspunkte.</p>'; return; }
       el.innerHTML = '<div class="table-wrap"><table class="table compact"><thead><tr><th>Zeitpunkt</th><th>Anlass</th><th class="num">Mannschaften</th><th class="num">Wettkämpfe</th><th></th></tr></thead><tbody>' +
         list.map(function (s) {
@@ -2971,6 +2969,7 @@
     var el = ev.target;
     if (el.dataset && el.dataset.picking) return; // erst mit Enter übernehmen
     if (el.hasAttribute('data-field')) { handleScoreChange(el); return; }
+    if (el.hasAttribute('data-import')) { importFile(el.files[0]); el.value = ''; return; }
     if (el.name === 'neutralE2' && el.form) { syncJudgeFields(el.form); return; }
     if (el.classList.contains('lineup-check')) { syncLineup(el.form); return; }
     if ((el.name === 'home' || el.name === 'guest') && el.form && el.form.getAttribute('data-form') === 'match') {
@@ -3108,28 +3107,30 @@
 
     if (kind === 'match') {
       submitMatchForm(form);
-    } else if (kind === 'import') {
-      var file = form.file.files[0];
-      if (!file) return;
-      file.text().then(function (text) {
-        var obj;
-        try { obj = JSON.parse(text); } catch (e) { throw new Error('Datei ist kein gültiges JSON.'); }
-        // Ältere, verschlüsselt exportierte Sicherungen lassen sich weiterhin einlesen.
-        if (SB.isEncrypted(obj)) {
-          var password = prompt('Diese Sicherung ist verschlüsselt. Bitte Passwort eingeben:');
-          if (!password) throw new Error('Import abgebrochen.');
-          return SB.decryptJSON(obj, password);
-        }
-        return obj;
-      }).then(function (data) {
-        if (data && data.format === MATCH_FORMAT) return importMatch(data);
-        validateBackup(data);
-        var part = sliceLeague(data, currentLeague);
-        if (!confirm('Import ersetzt alle Daten der ' + leagueOf(currentLeague).short + ' durch ' + part.teams.length + ' Mannschaften und ' + part.matches.length + ' Wettkämpfe. Fortfahren?')) return;
-        return restoreData(data, 'Import').then(function () { toast('Import erfolgreich'); });
-      }).catch(function (e) { toast(e.message, 'error'); });
     }
   });
+
+  /** Sicherungsdatei einlesen: Gesamtsicherung der Liga oder einzelner Wettkampf (ältere verschlüsselte Dateien mit Passwort). */
+  function importFile(file) {
+    if (!file) return;
+    file.text().then(function (text) {
+      var obj;
+      try { obj = JSON.parse(text); } catch (e) { throw new Error('Datei ist kein gültiges JSON.'); }
+      // Ältere, verschlüsselt exportierte Sicherungen lassen sich weiterhin einlesen.
+      if (SB.isEncrypted(obj)) {
+        var password = prompt('Diese Sicherung ist verschlüsselt. Bitte Passwort eingeben:');
+        if (!password) throw new Error('Import abgebrochen.');
+        return SB.decryptJSON(obj, password);
+      }
+      return obj;
+    }).then(function (data) {
+      if (data && data.format === MATCH_FORMAT) return importMatch(data);
+      validateBackup(data);
+      var part = sliceLeague(data, currentLeague);
+      if (!confirm('Import ersetzt alle Daten der ' + leagueOf(currentLeague).short + ' durch ' + part.teams.length + ' Mannschaften und ' + part.matches.length + ' Wettkämpfe. Fortfahren?')) return;
+      return restoreData(data, 'Import').then(function () { toast('Import erfolgreich'); });
+    }).catch(function (e) { toast(e.message, 'error'); });
+  }
 
   // Auswahl der Pausendauer schließt bei Klick daneben oder mit Esc.
   document.addEventListener('click', function (ev) {
@@ -3201,13 +3202,15 @@
         });
         break;
       case 'del-match':
+        m = match(btn.getAttribute('data-id')) || m;
+        if (!m) return;
         askConfirm('Wettkampf vom ' + fmtDate(m.date) + ' (' + teamName(m.homeTeamId) + ' – ' + teamName(m.guestTeamId) + ') wirklich löschen?').then(function (yes) {
           if (yes) delMatch();
         });
         var delMatch = function () { takeSnapshot('vor Löschen eines Wettkampfs').then(function () {
           state.matches = state.matches.filter(function (x) { return x.id !== m.id; });
           return remove('matches', m.id);
-        }).then(function () { location.hash = leagueHref('home', matchLeague(m).key); toast('Wettkampf gelöscht'); }); };
+        }).then(function () { keepScroll = true; render(); toast('Wettkampf gelöscht'); }); };
         break;
       case 'reveal':
         if (m && isClassic(m)) { revealSide(m, btn); return; }
@@ -3404,8 +3407,7 @@
         syncLineup(lf);
         break;
       case 'export-match':
-        var sel = document.getElementById('export-match-select');
-        var em = sel && match(sel.value);
+        var em = match(btn.getAttribute('data-id'));
         if (em) exportMatch(em);
         break;
       case 'export-snap':

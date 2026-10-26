@@ -6,7 +6,7 @@ Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätt
 
 ## Seiten
 
-Kopfzeile je Liga: Wettkämpfe · Mannschaften · Regeln · Datensicherung · Anleitung (Kurzanleitung für den Wettkampftag, Texte je Liga).
+Kopfzeile je Liga: Wettkämpfe · Mannschaften · Regeln · Anleitung (Kurzanleitung für den Wettkampftag, Texte je Liga).
 Von der Startseite aus: „Installation und Datensicherung“ (`#/info`) mit Installation, empfohlenen Geräten, Datensicherung und Updates für beide Ligen.
 Adressen: `#/oberliga/…` bzw. `#/landesliga/…`; ein Wettkampf (`#/match/<id>`) gehört fest zu seiner Liga.
 
@@ -36,10 +36,18 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   Vorzeitig gestoppte Einturnzeit → Rückfrage „Gerät jetzt starten?“; ohne Einturnzeit „Gerät direkt starten“ mit Rückfrage.
   „Start zurücknehmen“, solange keine Wertung eingetragen ist. Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
 - **Gerätereiter mit Abzeichen** (beide Ligen): ✓ abgeschlossen, ● läuft (ab „Gerät starten“), 🔒 gesperrt.
+  Am Handy nur Logo und Abzeichen (ohne Summen); am Laptop (ab 1100 px) flach in einer Zeile und zusammen mit Kopf und
+  Werkzeugzeile beim Scrollen fixiert.
   Solange ein Gerät läuft oder irgendwo die Einturnzeit läuft, lassen sich an keinem anderen Gerät Einturnzeit oder Start beginnen (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
   Abgeschlossene Geräte öffnen sich gesperrt (nur ansehen); „Bearbeiten“ mit Bestätigung gibt sie frei, bis das Gerät verlassen wird.
   Notausgang: „Gerät starten“ an einem gesperrten Gerät → „Gerätesperre aufheben …“ (doppelt bestätigt); solange steht über den
   Geräten ein Hinweis mit „Sperre wieder aktivieren“.
+- **Wettkampfseite am Laptop** (ab 1100 px): Kopf in einer Zeile (Liga, Datum, Beginn, Status, Mannschaften mit Stand,
+  Gerätepunkte), darunter die Werkzeugzeile (Anzeigetafel links, Wettkampf rechts). Die Wertungskacheln nutzen die volle Breite;
+  E-Note und Endnote stehen in der Zeile der Eingabefelder, „Wertung freigeben“ im Fuß der Kachel (Landesliga) bzw. in der
+  Mitte unter den Scorepunkten (Oberliga). Keine Überschriften „E-/D-Kampfgericht“ mehr (auch nicht am Handy).
+- **Lange Vereinsnamen** brechen nach Leerzeichen, „/“ und „-“ um. Am Handy stehen im Kopf beide Namen nebeneinander und der
+  Stand mittig darunter; in den Wertungskacheln rutscht die Turnerauswahl bei Bedarf in eine eigene Zeile.
 - **7 feste Mannschaften** mit vorgegebenen Turnern (Startnummern 1–20) aus `js/config.js`
 - Der Ausrichter kann Turnernamen korrigieren und freie Startnummern belegen. Wird die vorgegebene
   Turnerliste mit einem Update geändert (`rosterVersion`), gilt wieder der vorgegebene Stand –
@@ -92,14 +100,14 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   - Doppelklick auf die Tafel schaltet das Vollbild ein und aus (kurzer Hinweis beim Öffnen); Gerätepunkte stehen als letzte Zeile der Gerätetabelle
   - Knöpfe „Hell“ / „Dunkel“ daneben: hell ist Standard (gut lesbar mit Beamer in heller Halle),
     dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
-  - Knopf „Wettkampfergebnis einblenden/ausblenden“ zeigt Stand, Gerätepunkte und Topscorer als Fenster über der Tafel
+  - Knopf „Ergebnis/Siegerehrung“ (eingeblendet: dunkel hinterlegt) zeigt Stand, Gerätepunkte und Topscorer als Fenster über der Tafel
     (Überschrift „Zwischenstand“, solange der Wettkampf läuft); beim Öffnen der Tafel ist es immer ausgeblendet
   - Knopf „Wettkampfpause“: im aufklappenden Menü 10, 15 oder 20 Minuten wählen, die Pause startet sofort – Restzeit groß in der Detailkarte der Tafel (Liste bleibt sichtbar),
     am Ende Signalton und 5 Sekunden „Zeit abgelaufen“; ein Klick auf den laufenden Knopf beendet die Pause
   - Landesliga: Links „Mannschaftsabzug Heim/Gast“ unten im Gerätebereich (ein Abzug je Mannschaft für den ganzen Wettkampf); mindert nur die Gesamtpunktzahl,
     Hinweis im Kopf, auf der Tafel („inkl. Abzug“) und im Protokoll (* in der Übersicht, Erklärung in der Ergebniszeile). Oberliga: Mannschaftsabzüge als neutraler Abzug beim betroffenen Turner
   - Knopf „Turnervorstellung“: Titelseite und anwesende Turner (nach Startnummer) erst der Gast-, dann der Heimmannschaft, zum Schluss das Kampfgericht
-    (E1/OK, neutraler E2, Vereinskampfrichter als D, E bzw. D/E nach Verein); Steuerung mit Zurück/Weiter/Beenden, Pfeiltasten, Leertaste, Bild auf/ab (Presenter) und Esc;
+    (E1/OK, neutraler E2, Vereinskampfrichter als D, E bzw. D/E nach Verein); Steuerung im Knopf selbst mit ◀ ▶ ■ (zurück/weiter/beenden; der Knopf wird dabei nicht breiter), Pfeiltasten, Leertaste, Bild auf/ab (Presenter) und Esc;
     währenddessen keine anderen Fenster auf der Tafel
   - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.
@@ -149,6 +157,9 @@ Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ zusam
 - **Dauerhafter Speicher**: die App fordert beim Browser an, dass die Daten nicht automatisch gelöscht werden.
 - **Automatische Sicherungspunkte**: die letzten 30 Stände werden aufbewahrt und lassen sich wiederherstellen.
   Vor Import, Wiederherstellung und Löschen wird immer zuerst gesichert.
+- **Sichern und Einlesen auf der Seite „Wettkämpfe“** der jeweiligen Liga (eigene Seite „Datensicherung“ entfällt):
+  „Sichern“ und „Löschen“ in jeder Wettkampfzeile, darunter „Gesamtsicherung“ mit „Alles sichern“ und „Sicherung einlesen …“,
+  darunter „Datenspeicher“ mit aufklappbaren Sicherungspunkten und „Alle Daten löschen …“.
 - **Export/Import** als JSON-Datei, **getrennt je Liga** (Dateinamen beginnen mit `wtb-oberliga_` bzw. `wtb-landesliga_`), wahlweise
   - **Gesamtsicherung** (`wtb-<liga>_GESAMTSICHERUNG_<Datum>_<Uhrzeit>.json`): alle Mannschaften,
     Turnernamen und Wettkämpfe der Liga; beim Import werden nur die Daten dieser Liga ersetzt.
