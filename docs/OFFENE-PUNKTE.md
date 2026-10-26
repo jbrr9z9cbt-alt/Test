@@ -1,6 +1,6 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Beschlossen und in Beta 75 umgesetzt (lokal getestet, Veröffentlichung erst nach Freigabe)
+## Beschlossen und in Beta 75 umgesetzt (veröffentlicht)
 
 Ergänzungen bei der Umsetzung:
 - Punkt 7: Am Handy rutscht in der Wertungskachel die Turnerauswahl bei langem Vereinsnamen in eine eigene Zeile
@@ -8,6 +8,7 @@ Ergänzungen bei der Umsetzung:
 - Punkt 7 am Laptop: „Beginn: …“ bricht bei langem Namen um; reicht der Platz trotzdem nicht, rutscht nur die
   Gerätepunkte-Angabe bzw. die Spielstandzeile weiter – Namen werden nie mitten im Wort getrennt.
 - Punkt 4: „✓ gespeichert“ bleibt rechts bei den Wettkampf-Knöpfen (bei 1280 px rechtsbündig darunter).
+- Zusätzlich: Bei „kein Turner“ ist die Endnote 0,00 normal schwarz (Eingabefelder und E-Note bleiben blass).
 
 
 1. **Datensicherung auf die Seite „Wettkämpfe“ verlagern** (beschlossen, keine Vorschaubilder nötig):
@@ -77,9 +78,6 @@ Ergänzungen bei der Umsetzung:
   besonders spürbar: erst Feld verlassen, dann freigeben). Mögliche Lösung: Noten und Freigabe schon beim Tippen aktualisieren.
   Freigabe-Reihenfolge der Duelle ist frei (kein Zwang, Duell 1 zuerst).
 
-- **Endnote bei „kein Turner“ nicht abgeschwächt darstellen** (Wunsch nach Beta 74):
-  In der Wertungseingabe ist bei „kein Turner“ die Endnote 0,00 derzeit grau/blass. Sie ist aber die gültige
-  Wertung und soll ganz normal schwarz erscheinen. Die gesperrten Eingabefelder bleiben grau.
 - **Wertungseingabe im eigenen Fenster** (Idee, erst nach dem Test beim echten Wettkampf angehen):
   Je Gerät eine kompakte Übersicht (eine Zeile je Übung: Turnerauswahl, D, E, Endnote, Stand) mit Knopf
   „Wertung eingeben“ bzw. „Wertung ändern“. Das Fenster zeigt Turner/Mannschaft/Gerät, die Felder E1, E2 (E3), D,

@@ -173,8 +173,8 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 .side.home { background: #ebebeb; border: 1px solid #dcdcdc; }
 .side.guest { background: #ebebeb; border: 1px solid #dcdcdc; }
 .side { border-left: 5px solid var(--team, #737373) !important; box-shadow: 0 0 0 2px var(--team, #737373) inset; }
-/* „nicht angetreten“: alles blass außer dem Häkchen selbst – so sieht man, wo man es wieder lösen kann */
-.side.dns .score-row, .side.dns .result-row, .side.dns .side-foot .timer-btn { opacity: .45; }
+/* „kein Turner“: Eingabefelder und E-Note blass; die Endnote 0,00 ist die gültige Wertung und bleibt normal schwarz. */
+.side.dns .score-row, .side.dns .result-row > span:not(.final), .side.dns .side-foot .timer-btn { opacity: .45; }
 .side.dns .side-foot label:first-child { font-weight: 700; }
 .side-head { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; }
 .side-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; width: 2.6rem; }
