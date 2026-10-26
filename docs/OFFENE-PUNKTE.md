@@ -59,6 +59,11 @@
 
 ## Weitere offene Punkte
 
+- **Bekanntes Verhalten, vorerst bewusst unverändert:** Ein eingetippter Wert wird erst beim Verlassen des Felds übernommen.
+  Steht der Cursor noch im letzten Feld eines Duells bzw. einer Übung, bleibt „Wertung freigeben“ gesperrt (am Handy
+  besonders spürbar: erst Feld verlassen, dann freigeben). Mögliche Lösung: Noten und Freigabe schon beim Tippen aktualisieren.
+  Freigabe-Reihenfolge der Duelle ist frei (kein Zwang, Duell 1 zuerst).
+
 - **Endnote bei „kein Turner“ nicht abgeschwächt darstellen** (Wunsch nach Beta 74):
   In der Wertungseingabe ist bei „kein Turner“ die Endnote 0,00 derzeit grau/blass. Sie ist aber die gültige
   Wertung und soll ganz normal schwarz erscheinen. Die gesperrten Eingabefelder bleiben grau.
