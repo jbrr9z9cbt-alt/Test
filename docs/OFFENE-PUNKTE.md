@@ -12,14 +12,16 @@
    - Der **„Löschen“-Knopf auf der Wettkampfseite entfällt**.
    - Der **Menüpunkt „Datensicherung“** in der oberen Leiste entfällt; Anleitung, Infoseite und README auf die neue Stelle anpassen.
 
-2. **Wettkampf-Knöpfe in ein Menü „☰ Wettkampf“** (beschlossen):
-   - Statt der Gruppe Setup / Abschließen / Protokoll nur noch ein Knopf **„☰ Wettkampf“** auf der Wettkampfseite.
-   - Offener Wettkampf: **Setup**, **Abschließen**, **Protokoll**. Abgeschlossen: **Wieder öffnen**, **Protokoll**
-     (ohne „Wettkampf“ in den Einträgen, das Menü heißt schon so).
-   - Aufklappen per Antippen; schließt bei Klick daneben, Esc oder nach Auswahl.
-   - Unverändert: Rückfragen bei Abschließen (unvollständig) und Wieder öffnen, danach „Sicherung erstellen?“;
-     Protokoll öffnet die Druckansicht. Löschen steht nicht im Menü (wandert auf die Seite „Wettkämpfe“, Punkt 1).
-   - Anzeigetafel-Knöpfe: noch offen, der Nutzer denkt darüber nach.
+2. ~~Menü „☰ Wettkampf“~~ – **verworfen**: Die Wettkampf-Knöpfe (Setup, Abschließen bzw. Wieder öffnen, Protokoll) bleiben wie sie sind;
+   nur „Löschen“ wandert auf die Seite „Wettkämpfe“ (Punkt 1).
+
+3. **Anzeigetafel-Knöpfe** (beschlossen):
+   - „Wettkampfergebnis einblenden/ausblenden“ heißt künftig **„Ergebnis/Siegerehrung“**; die Beschriftung bleibt gleich,
+     ob eingeblendet ist, zeigt der Knopf als dunkel hinterlegten Zustand (wie Hell/Dunkel). Die Tafel selbst bleibt unverändert.
+   - **Turnervorstellung**: Während sie läuft, wird der Knopf nicht breiter, sondern zeigt nur **◀ ▶ ■**
+     (zurück, weiter, beenden) in der Größe des bisherigen Knopfs. Die lange Steuerleiste mit „Gast · Turner 3/7“ entfällt
+     (war auf dem Handy viel zu breit). ◀ ist auf der ersten Seite ausgegraut; Tastatur/Presenter wie bisher.
+   - Anleitung und README anpassen.
 
 ## Weitere offene Punkte
 
