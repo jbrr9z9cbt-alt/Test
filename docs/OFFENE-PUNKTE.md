@@ -12,6 +12,15 @@
    - Der **„Löschen“-Knopf auf der Wettkampfseite entfällt**.
    - Der **Menüpunkt „Datensicherung“** in der oberen Leiste entfällt; Anleitung, Infoseite und README auf die neue Stelle anpassen.
 
+2. **Wettkampf-Knöpfe in ein Menü „☰ Wettkampf“** (beschlossen):
+   - Statt der Gruppe Setup / Abschließen / Protokoll nur noch ein Knopf **„☰ Wettkampf“** auf der Wettkampfseite.
+   - Offener Wettkampf: **Setup**, **Abschließen**, **Protokoll**. Abgeschlossen: **Wieder öffnen**, **Protokoll**
+     (ohne „Wettkampf“ in den Einträgen, das Menü heißt schon so).
+   - Aufklappen per Antippen; schließt bei Klick daneben, Esc oder nach Auswahl.
+   - Unverändert: Rückfragen bei Abschließen (unvollständig) und Wieder öffnen, danach „Sicherung erstellen?“;
+     Protokoll öffnet die Druckansicht. Löschen steht nicht im Menü (wandert auf die Seite „Wettkämpfe“, Punkt 1).
+   - Anzeigetafel-Knöpfe: noch offen, der Nutzer denkt darüber nach.
+
 ## Weitere offene Punkte
 
 - **Endnote bei „kein Turner“ nicht abgeschwächt darstellen** (Wunsch nach Beta 74):
