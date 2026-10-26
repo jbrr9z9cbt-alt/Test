@@ -1,5 +1,30 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## Beschlossen für die nächste Beta (wird gesammelt und dann auf einmal umgesetzt)
+
+Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
+
+1. **Einturnzeit / Gerät direkt starten am Handy zu breit:** Die Zeile mit „Einturnzeit (6:40) starten“ und
+   „Gerät direkt starten“ ist am Handy ca. 395 px breit, die Karte nur ca. 350 px. Dadurch wird die ganze Seite
+   seitlich verschiebbar (weißer Streifen rechts neben der Kopfleiste). Lösung: Passen die Knöpfe nicht nebeneinander,
+   rutscht „Gerät direkt starten“ unter „Einturnzeit (6:40) starten“, beide gleich breit im Rahmen. Laptop unverändert.
+   Beim Testen auch den Zustand **vor** „Gerät starten“ am Handy messen (bisher nur nach dem Start geprüft).
+
+2. **Datumsfeld auf iPhone und iPad ragt aus dem Rahmen** („Neuer Wettkampf“ bzw. Setup; am Laptop in Ordnung).
+   Ursache: Safari gibt dem Datumsfeld eine eigene Mindestbreite. Lösung: Safari-Eigendarstellung des Datumsfelds
+   abschalten, damit es die Breite einhält; Datum dann linksbündig wie die anderen Felder.
+   Hier nur in Chrome prüfbar – Kontrolle auf iPhone/iPad durch den Nutzer nach dem Veröffentlichen.
+
+3. **Turnervorstellung als Fenster in der App:** Beim Start erscheint in der App dasselbe Fenster wie auf der Tafel
+   (Titelseite, Turner mit Nummer, Kampfgericht, oben „3 / 11“), unten im Fenster **◀ ▶ ■**. Das Fenster liegt wie auf
+   der Tafel über der ganzen Seite (Handy bildschirmfüllend, Laptop groß in der Mitte); die App darunter muss nicht
+   bedienbar bleiben. Der Knopf in der Werkzeugzeile heißt wieder nur „Turnervorstellung“ und bleibt so groß wie früher
+   (die ◀ ▶ ■ im Knopf entfallen). Tastatur und Presenter wie bisher; ■ bzw. Esc beendet die Vorstellung in App und Tafel.
+   Anleitung und README anpassen.
+
+4. **Beschriftung „Standbonus“ läuft am Handy in „Neutr. Abzug“** (Landesliga-Kachel mit drei E-Kampfrichtern, iPhone):
+   „Stand-/bonus“ darf zweizeilig werden wie „Neutr./Abzug“. Auch Oberliga mit E3 prüfen.
+
 ## Beschlossen und in Beta 75 umgesetzt (veröffentlicht)
 
 Ergänzungen bei der Umsetzung:
