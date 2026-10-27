@@ -37,8 +37,7 @@ Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
      „…“ gekürzt werden, während die gleichartige daneben vollständig bleibt (wie bisher „Abzüge E1“ ganz, „Abzüge E2/E3“
      als „Abzüge …“). Beschriftungen brechen nicht um und werden nicht abgekürzt; entweder alle lang oder alle kurz –
      einheitlich für alle Kacheln der Geräteseite (Heim und Gast, alle Duelle bzw. Übungen gleich).
-     Die Kurzformen in der Anleitung kurz erklären
-     (z. B. „Stand = Standbonus, NA = neutraler Abzug“; im Protokoll steht „NA“ bereits so).
+   - Die Kurzformen in der Anleitung kurz erklären (z. B. „Stand = Standbonus, NA = neutraler Abzug“; im Protokoll steht „NA“ bereits so).
    - Prüfen: Handy (360/390 px), iPad hoch und quer, Laptop 1100–1366 px; beide Ligen, mit E2 und mit E3.
 
 ## Beschlossen und in Beta 75 umgesetzt (veröffentlicht)
