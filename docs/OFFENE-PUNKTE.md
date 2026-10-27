@@ -29,9 +29,11 @@ Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
    - iPad quer (Oberliga mit E3, Laptop-Darstellung ab 1100 px): „Abzüge E2“ und „Abzüge E3“ werden zu
      „Abzüge …“ abgekürzt – man sieht nicht mehr, welches Feld welcher Kampfrichter ist.
    - Ziel: Keine Beschriftung wird abgeschnitten, keine läuft in die nächste, und alle Beschriftungen einer Kachel
-     stehen auf gleicher Höhe. Vorschlag: Wenn der Platz nicht reicht, kurze Beschriftungen für alle Felder
-     (z. B. „E1“, „E2“, „E3“, „D-Note“, „Bonus“, „N. Abzug“), sonst die langen wie heute.
-     Kurzformen vor der Umsetzung mit Vorschaubildern abstimmen.
+     stehen auf gleicher Höhe.
+   - **Beschlossen:** Reicht der Platz nicht, bekommen alle Felder der Kachel die Kurzformen
+     **„E1“, „E2“, „E3“, „D-Note“, „Stand“, „NA“** (statt „Abzüge E1/E2/E3“, „D-Note“, „Standbonus“, „Neutr. Abzug“);
+     sonst bleiben die langen Beschriftungen wie heute. Die Kurzformen in der Anleitung kurz erklären
+     (z. B. „Stand = Standbonus, NA = neutraler Abzug“; im Protokoll steht „NA“ bereits so).
    - Prüfen: Handy (360/390 px), iPad hoch und quer, Laptop 1100–1366 px; beide Ligen, mit E2 und mit E3.
 
 ## Beschlossen und in Beta 75 umgesetzt (veröffentlicht)
