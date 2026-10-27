@@ -40,6 +40,23 @@ Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
    - Die Kurzformen in der Anleitung kurz erklären (z. B. „Stand = Standbonus, NA = neutraler Abzug“; im Protokoll steht „NA“ bereits so).
    - Prüfen: Handy (360/390 px), iPad hoch und quer, Laptop 1100–1366 px; beide Ligen, mit E2 und mit E3.
 
+5. **Wettkampf-Setup: ungespeicherte Änderungen nicht verlieren** (beschlossen 27.10.2026):
+   Problem: Im Setup wird – anders als auf den anderen Seiten – erst mit dem Knopf ganz unten gespeichert. Wer z. B. die
+   beginnende Mannschaft ändert oder einen Kampfrichternamen korrigiert und dann über einen Reiter der Kopfzeile geht,
+   verliert die Änderung. (Turnernamen unter „Anwesende Turner“ werden schon jetzt sofort in die Mannschaftsliste übernommen.)
+   - **Rückfrage beim Verlassen**, nur wenn etwas geändert wurde – bei Reitern der Kopfzeile, Logo und Zurück-Taste
+     des Browsers. App-Fenster (kein Browser-Dialog): „Änderungen speichern?“ – „Im Wettkampf-Setup wurden Änderungen
+     gemacht, die noch nicht gespeichert sind.“ Knöpfe **[Weiter bearbeiten] [Verwerfen] [Speichern]**.
+     „Speichern“ = derselbe Ablauf wie der Knopf unten (alle Prüfungen und Rückfragen), danach zur gewählten Seite;
+     „Verwerfen“ geht ohne Speichern weiter; „Weiter bearbeiten“ bleibt, nichts geht verloren.
+     Bei „Neuer Wettkampf“ heißt der Knopf **[Anlegen]**. „Abbrechen“ unten fragt nicht (bewusstes Verwerfen).
+   - **Fester Knopf unten:** „Speichern“ (bzw. „Anlegen“) und „Abbrechen“ stehen im Setup fest am unteren Bildschirmrand,
+     ohne Scrollen erreichbar; solange etwas ungespeichert ist, steht daneben klein „nicht gespeichert“.
+   - Kein automatisches Speichern im Setup (neuer Wettkampf entsteht erst mit „Anlegen“; Pflichtfelder und Rückfragen
+     sollen nicht mitten im Ausfüllen greifen; Änderung der beginnenden Mannschaft soll bewusst bestätigt werden).
+   - Prüfen: Handy, iPad, Laptop; neuer Wettkampf und Setup eines laufenden Wettkampfs; Zurück-Taste; Tastatur am Handy
+     darf den festen Knopf nicht verdecken bzw. er darf keine Eingabefelder verdecken.
+
 ## Beschlossen und in Beta 75 umgesetzt (veröffentlicht)
 
 Ergänzungen bei der Umsetzung:
