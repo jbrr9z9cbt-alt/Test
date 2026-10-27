@@ -22,8 +22,17 @@ Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
    (die ◀ ▶ ■ im Knopf entfallen). Tastatur und Presenter wie bisher; ■ bzw. Esc beendet die Vorstellung in App und Tafel.
    Anleitung und README anpassen.
 
-4. **Beschriftung „Standbonus“ läuft am Handy in „Neutr. Abzug“** (Landesliga-Kachel mit drei E-Kampfrichtern, iPhone):
-   „Stand-/bonus“ darf zweizeilig werden wie „Neutr./Abzug“. Auch Oberliga mit E3 prüfen.
+4. **Beschriftungen der Eingabefelder auf kleinen Bildschirmen** (Bildschirmfotos iPhone und iPad, 26./27.10.2026):
+   - iPhone (Landesliga, E1/E2): „Standbonus“ läuft in „Neutr. Abzug“ hinein; „Abzüge E2“ bricht zweizeilig um,
+     „Abzüge E1“ daneben nicht – die Beschriftungen stehen unterschiedlich hoch und wirken unruhig.
+     Mit drei E-Kampfrichtern dasselbe Problem.
+   - iPad quer (Oberliga mit E3, Laptop-Darstellung ab 1100 px): „Abzüge E2“ und „Abzüge E3“ werden zu
+     „Abzüge …“ abgekürzt – man sieht nicht mehr, welches Feld welcher Kampfrichter ist.
+   - Ziel: Keine Beschriftung wird abgeschnitten, keine läuft in die nächste, und alle Beschriftungen einer Kachel
+     stehen auf gleicher Höhe. Vorschlag: Wenn der Platz nicht reicht, kurze Beschriftungen für alle Felder
+     (z. B. „E1“, „E2“, „E3“, „D-Note“, „Bonus“, „N. Abzug“), sonst die langen wie heute.
+     Kurzformen vor der Umsetzung mit Vorschaubildern abstimmen.
+   - Prüfen: Handy (360/390 px), iPad hoch und quer, Laptop 1100–1366 px; beide Ligen, mit E2 und mit E3.
 
 ## Beschlossen und in Beta 75 umgesetzt (veröffentlicht)
 
