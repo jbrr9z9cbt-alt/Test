@@ -57,6 +57,37 @@ Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
    - Prüfen: Handy, iPad, Laptop; neuer Wettkampf und Setup eines laufenden Wettkampfs; Zurück-Taste; Tastatur am Handy
      darf den festen Knopf nicht verdecken bzw. er darf keine Eingabefelder verdecken.
 
+6. **Einheitliche Statuszeile je Gerät** (beschlossen 28.10.2026 nach Vorschaubildern):
+   Eine Zeile im Rahmen wie heute „Gerät läuft“ (grauer Rahmen, heller Hintergrund) oberhalb des Geräts; Text fett,
+   alle Knöpfe darin gleich gestaltet (weiß, umrandet). Am Handy rutscht der Knopf bei Bedarf in die zweite Zeile.
+   | Zustand | Anzeige | Knopf |
+   |---|---|---|
+   | frei, nicht gestartet | – | „Einturnzeit (6:40) starten“ · „Gerät direkt starten“ (wie heute, Punkt 1 beachten) |
+   | Einturnzeit läuft | wie heute (Timer-Knopf mit Stopp) | – |
+   | 5 s „Einturnen beendet“ | „Gerät startet gleich …“ | – |
+   | läuft | **„● Gerät läuft“** (ocker) | **„Start zurücknehmen“** bis zur ersten Freigabe |
+   | abgeschlossen (gesperrt) | **„✓ Gerät abgeschlossen“** (grün) | **„Bearbeiten“** → bisherige Abfrage |
+   | abgeschlossen, noch/wieder änderbar | „✓ Gerät abgeschlossen“ | – (direkt nach der letzten Freigabe bzw. nach „Bearbeiten“) |
+   | gesperrt | **„🔒 Gerät gesperrt – <Gerät> läuft“** bzw. „– Einturnzeit an <Gerät> läuft“ (grau) | **„Sperre aufheben …“** |
+   | Wettkampf abgeschlossen | keine Statuszeile (Hinweis „schreibgeschützt“ und „Wieder öffnen“ wie heute) | – |
+   - Der bisherige grüne Balken „… ist abgeschlossen – die Wertungen sind gesperrt“ und die blassen Knöpfe an gesperrten
+     Geräten entfallen (kein Klick mehr auf einen ausgegrauten Knopf nötig).
+   - **„Start zurücknehmen“** gilt bis zur **ersten Freigabe** an diesem Gerät (bisher: bis zur ersten eingetragenen Note).
+     Sind schon Noten eingetragen, kommt die Rückfrage „Start zurücknehmen?“ – „An <Gerät> sind schon Noten eingetragen.
+     Sie werden gelöscht; die Turnerauswahl bleibt erhalten.“ [Abbrechen] [Start zurücknehmen]; dabei werden die Noten
+     (D, E1–E3, Standbonus, neutraler Abzug, „Wertung 0,00“) gelöscht, Turnerauswahl und „kein Turner“ bleiben.
+     Ohne eingetragene Noten wie heute ohne Rückfrage. Tafel zeigt danach wieder das vorige Gerät (wie heute).
+   - **„Sperre aufheben …“**: hebt wie bisher die Sperre für **alle** Geräte auf. Das bisherige erste Hinweisfenster
+     („… ist gesperrt [OK]“) entfällt, weil die Zeile den Grund nennt; es folgen direkt die beiden bisherigen Warnfragen
+     („⚠ Gerätesperre aufheben? … Danach sind alle Geräte frei wählbar“ und „Wirklich aufheben?“).
+     Gelber Hinweis „Gerätesperre aufgehoben – Sperre wieder aktivieren“ bleibt.
+   - **Gerätereiter gesperrter Geräte** nicht mehr ausgegraut, nur das Schloss-Abzeichen (sie bleiben anklickbar,
+     um Turner zu ändern).
+   - Unverändert: Einturnzeit → automatischer Start, Rückfrage „Gerät jetzt starten?“, Sperre gegen zwei laufende Geräte,
+     Turnerwahl an gesperrten Geräten, Anzeigetafel. Anleitung und README anpassen.
+   - Prüfen: beide Ligen, Handy/iPad/Laptop, alle Zustände der Tabelle; Zurücknehmen mit/ohne eingetragene Noten;
+     ältere Wettkämpfe (ohne „Gerät starten“) zeigen „Gerät läuft“ ohne „Start zurücknehmen“.
+
 ## Beschlossen und in Beta 75 umgesetzt (veröffentlicht)
 
 Ergänzungen bei der Umsetzung:
