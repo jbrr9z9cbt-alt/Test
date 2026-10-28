@@ -68,7 +68,7 @@ Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
    | läuft | **„● Gerät läuft“** (ocker) | **„Start zurücknehmen“** bis zur ersten Freigabe |
    | abgeschlossen (gesperrt) | **„✓ Gerät abgeschlossen“** (grün) | **„Bearbeiten“** → bisherige Abfrage |
    | abgeschlossen, noch/wieder änderbar | „✓ Gerät abgeschlossen“ | – (direkt nach der letzten Freigabe bzw. nach „Bearbeiten“) |
-   | gesperrt | **„🔒 Gerät gesperrt – <Gerät> läuft“** bzw. „– Einturnzeit an <Gerät> läuft“ (grau) | **„Sperre aufheben …“** |
+   | gesperrt | **„🔒 Gerät gesperrt – <Gerät> läuft“** bzw. „– Einturnzeit an <Gerät> läuft“ (grau), darunter klein und normal: „Turner können schon gewählt werden.“ | **„Sperre aufheben …“** |
    | Wettkampf abgeschlossen | keine Statuszeile (Hinweis „schreibgeschützt“ und „Wieder öffnen“ wie heute) | – |
    - Der bisherige grüne Balken „… ist abgeschlossen – die Wertungen sind gesperrt“ und die blassen Knöpfe an gesperrten
      Geräten entfallen (kein Klick mehr auf einen ausgegrauten Knopf nötig).
@@ -83,6 +83,9 @@ Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
      Gelber Hinweis „Gerätesperre aufgehoben – Sperre wieder aktivieren“ bleibt.
    - **Gerätereiter gesperrter Geräte** nicht mehr ausgegraut, nur das Schloss-Abzeichen (sie bleiben anklickbar,
      um Turner zu ändern).
+   - **Hinweis zur Turnerwahl bleibt erhalten:** Er stand bisher nur im entfallenden Hinweisfenster („Turner lassen sich
+     trotzdem schon ändern“) und wandert in die Statuszeile: zweite Zeile, klein, normale Schrift,
+     „Turner können schon gewählt werden.“ (am Handy steht der Knopf darunter).
    - Unverändert: Einturnzeit → automatischer Start, Rückfrage „Gerät jetzt starten?“, Sperre gegen zwei laufende Geräte,
      Turnerwahl an gesperrten Geräten, Anzeigetafel. Anleitung und README anpassen.
    - Prüfen: beide Ligen, Handy/iPad/Laptop, alle Zustände der Tabelle; Zurücknehmen mit/ohne eingetragene Noten;
