@@ -1064,6 +1064,14 @@ body.sd-open { overflow: hidden; }
 .sd-prev { background: #f5f5f5; border-radius: 8px; padding: .45rem .7rem; font-size: .9rem; margin-top: .5rem; }
 .sd-btns { display: flex; gap: .6rem; justify-content: flex-end; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
 .sd-hint { margin-right: auto; font-size: .82rem; color: var(--muted); }
+/* Sturz-Timer des Turners groß im Fenster (Farben wie auf der hellen Tafel) */
+.sd-fall { margin-top: .6rem; text-align: center; border-radius: 12px; padding: .4rem .6rem .5rem; border: 2px solid #d97706; background: #fef3c7; }
+.sd-fall.phase2 { border-color: #dc2626; background: #fee2e2; }
+.sd-fall .t { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #92400e; }
+.sd-fall.phase2 .t, .sd-fall .n { color: #b91c1c; }
+.sd-fall .s { font-size: 3.6rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.sd-fall .s.fz-0 { color: #171717; } .sd-fall .s.fz-1 { color: #92400e; } .sd-fall .s.fz-2 { color: #b91c1c; }
+.sd-fall .n { font-size: 1.2rem; font-weight: 900; }
 .sd-set { margin-top: .6rem; text-align: right; }
 .sd-set label { display: inline-flex; flex-direction: row; align-items: center; gap: .4rem; font-size: .75rem; color: var(--muted); }
 .sd-set select { width: auto; padding: .15rem .3rem; font-size: .75rem; }
@@ -1095,13 +1103,20 @@ body.sd-open { overflow: hidden; }
   .sd-name { font-size: 1.15rem; }
   .sd-fields { gap: .5rem; }
   .sd-grp { gap: .3rem; }
-  .sd-f input[type=text], .sd-box { height: clamp(2.8rem, 7vh, 3.6rem); font-size: 1.35rem; }
-  .sd-box { font-size: .95rem; gap: .25rem; }
+  .sd-f input[type=text], .sd-box { height: clamp(3rem, 8vh, 4rem); font-size: 1.75rem; }
+  .sd-box { font-size: 1.05rem; gap: .25rem; }
+  .sd-n b { font-size: 1.5rem; }
   .sd-keys button { height: clamp(3.2rem, 8.5vh, 4.4rem); }
-  .sd-res { margin-top: .5rem; }
-  .sd-n .fin b { font-size: 1.6rem; }
+  .sd-n .fin b { font-size: 2.6rem; }
+  .sd-res { margin-top: .9rem; }
+  /* Mit Zahlentastatur: Abbrechen/Freigeben direkt über der Tastatur (Daumen), der Sturz-Timer mittig in der Lücke */
+  .sd-win.kp .sd-main { display: contents; }
+  .sd-win.kp .sd-fall { margin: auto 0; }
+  .sd-win.kp .sd-btns { margin-top: auto; }
+  .sd-win.kp .sd-fall:not([hidden]) + .sd-btns { margin-top: 0; }
+  .sd-win.kp .sd-set { margin-top: .3rem; }
+  .sd-win.kp .sd-pad { margin-top: .3rem; }
   .sd-btns { margin-top: .6rem; }
   .sd-btns .btn { flex: 1 1 0; }
   .sd-hint { flex-basis: 100%; }
-  .sd-pad { margin-top: auto; }
 }

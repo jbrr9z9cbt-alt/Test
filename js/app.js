@@ -2342,6 +2342,15 @@
       if (wb.textContent !== wl) wb.textContent = wl;
       wb.classList.toggle('t-running', won);
     }
+    var sf = scoreDlg && document.querySelector('#score-dlg [data-dlg-out="fall"]');
+    if (sf) {
+      var mine = !!fall && fall.t.appKey === scoreDlg.appKey && fall.t.idx === scoreDlg.idx && fall.t.side === scoreDlg.sideKey;
+      var fh = mine ? '<div class="t">Sturz-Timer</div><div class="s ' + fallTone(fall) + '">' + secs(fall.remaining) + '</div>' +
+        (fall.phase === 2 ? '<div class="n">Abzug 0,3</div>' : '') : '';
+      if (sf.innerHTML !== fh) sf.innerHTML = fh;
+      sf.hidden = !mine;
+      sf.className = 'sd-fall' + (mine ? ' phase' + fall.phase : '');
+    }
     var pause = pauseState(m);
     var pb = $app.querySelector('[data-action="pause-timer"]');
     if (pb) {
@@ -2779,11 +2788,11 @@
 
         'Je Turner: Turner in der Kachel auswählen, dann <b>Wertung eingeben</b> – es öffnet sich das Wertungsfenster mit Abzügen E1, E2 (ggf. E3), D-Note, Standbonus und neutralem Abzug. ' +
           'Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. 4,8 oder 1.3; E-Note und Endnote rechnet die App schon beim Tippen: E-Note = 10 − Mittelwert der Abzüge E1 und E2 (bei drei E-Kampfrichtern 10 − mittlerer Abzug, höchster und niedrigster gestrichen); Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. ' +
-          'Bei wenig Platz stehen über allen Feldern Kurzformen: E1–E3 = Abzüge der E-Kampfrichter, Stand = Standbonus, NA = neutraler Abzug. Der Sturz-Timer ist auch im Fenster bedienbar.',
+          'Bei wenig Platz stehen über allen Feldern Kurzformen: E1–E3 = Abzüge der E-Kampfrichter, Stand = Standbonus, NA = neutraler Abzug. Der Sturz-Timer ist auch im Fenster bedienbar; läuft er, stehen seine Sekunden dort groß.',
         '<b>Wertung freigeben</b> im Fenster übernimmt die Werte; <b>Abbrechen</b> verwirft sie ohne Rückfrage. In der Kachel stehen die Werte danach als Text, der Knopf heißt dann „Wertung ändern“.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.' : 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.') +
           ' Im Fenster springt Enter ins nächste Feld und nach dem letzten auf „Wertung freigeben“, die Pfeiltasten ändern Noten in 0,1-Schritten, Esc bricht ab. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
-        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Ohne getipptes Komma ist die letzte Ziffer die Nachkommastelle („17“ = 1,7), ein getipptes Komma gilt wie getippt („4 , 5“ = 4,5); „Weiter ▶“ springt ins nächste Feld, ±0,1 ändert den Wert. ' +
+        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Ohne getipptes Komma ist die letzte Ziffer die Nachkommastelle („17“ = 1,7), ein getipptes Komma gilt wie getippt („4 , 5“ = 4,5); „Weiter ▶“ springt ins nächste Feld, nach dem letzten auf „Wertung freigeben“. Am Handy stehen „Abbrechen“ und „Wertung freigeben“ direkt über der Zahlentastatur. ' +
           'Mit angeschlossener Tastatur verschwindet sie beim ersten Tastendruck. Einstellung unten im Fenster: automatisch, immer oder nie (gilt für dieses Gerät).',
         '<b>kein Turner</b> (ganz oben in der Turnerauswahl, auch vorab wählbar): Die Übung zählt 0 Punkte; auch sie wird über „Wertung eingeben“ freigegeben. Bereits erfasste Werte werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0.',
         classic
@@ -3098,6 +3107,7 @@
       '<div class="sd-main"><div class="sd-head"><span class="sd-where">' + where + '</span>' + timer + '</div>' +
       '<div class="sd-gym"><span class="sd-tag">' + teamHtml(g.sideKey === 'home' ? m.homeTeamId : m.guestTeamId) + '</span>' + who + '</div>' + body +
       '<div class="sd-prev" data-dlg-out="prev"></div>' +
+      '<div class="sd-fall" data-dlg-out="fall" hidden></div>' +
       '<div class="sd-btns"><span class="sd-hint" data-dlg-out="hint"></span><button type="button" class="btn" data-action="sd-cancel">Abbrechen</button>' +
       '<button type="button" class="btn primary" data-action="sd-release">' + (g.correction ? 'Korrektur freigeben' : 'Wertung freigeben') + '</button></div>' +
       '<div class="sd-set"><label>Zahlentastatur <select data-dlg="keypad">' + opt('auto', 'automatisch') + opt('on', 'immer') + opt('off', 'nie') + '</select></label></div>' +
@@ -3112,6 +3122,7 @@
     document.body.classList.add('sd-open');
     fitFieldLabels();
     refreshScoreDlg();
+    tickTimers();
     if (focus) focusDlgField();
   }
 

@@ -62,9 +62,12 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
     freigegeben, wird das Duell freigegeben – in beliebiger Reihenfolge.
   - Ältere Daten: noch nicht freigegebene Noten und offene Korrekturen (Beta 76 und früher) erscheinen im Fenster;
     „Korrektur freigeben“ übernimmt, „Abbrechen“ verwirft eine offene Korrektur.
-  - **Zahlentastatur** (Touch-Geräte): eigene Tastatur im Fenster (0–9, Komma, ⌫, „Weiter ▶“, −0,1/+0,1) mit großer Anzeige
-    des aktiven Felds; die Tastatur des Geräts bleibt zu. Ohne Komma ist die letzte Ziffer die Nachkommastelle („17“ = 1,7),
-    ein getipptes Komma gilt wie getippt. Handy: Fenster bildschirmfüllend, Tastatur unten; iPad quer: rechts daneben.
+  - **Zahlentastatur** (Touch-Geräte): eigene Tastatur im Fenster – 7 8 9 ⌫ / 4 5 6 ⌫ / 1 2 3 Weiter / 0 0 , Weiter
+    (0 doppelt breit, ⌫ und „Weiter ▶“ doppelt hoch) – mit großer Anzeige des aktiven Felds; die Tastatur des Geräts bleibt zu.
+    Ohne Komma ist die letzte Ziffer die Nachkommastelle („17“ = 1,7), ein getipptes Komma gilt wie getippt. „Weiter ▶“ nach
+    dem letzten Feld markiert „Wertung freigeben“. Handy: Fenster bildschirmfüllend, größere Felder und Endnote,
+    „Abbrechen“/„Wertung freigeben“ direkt über der Tastatur; iPad quer: Tastatur rechts daneben, hochkant darunter.
+  - **Sturz-Timer** des Turners auch im Fenster; läuft er, stehen seine Sekunden groß im Fenster (Farben wie auf der Tafel).
     Einstellung im Fenster: automatisch (Touch-Geräte; verschwindet beim ersten Druck einer echten Taste) / immer / nie,
     gespeichert je Gerät. Mit echter Tastatur kein automatisches Komma („5“ = 5,0).
 - **Lange Vereinsnamen** brechen nach Leerzeichen, „/“ und „-“ um. Am Handy stehen im Kopf beide Namen nebeneinander und der
