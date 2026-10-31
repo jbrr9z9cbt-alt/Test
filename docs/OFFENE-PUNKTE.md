@@ -27,6 +27,16 @@ Gefunden mit Beta 77 auf dem iPhone in Safari (Bildschirmfotos 31.10.2026):
      Wettkampf wie bisher gesperrt.
    - Laptop: Fokus beim Öffnen auf der Auswahl, wenn noch kein Turner gewählt ist, sonst im ersten leeren Feld;
      Enter öffnet die Liste wie in der Kachel. Ohne Turner sind die Notenfelder gesperrt.
+6. **iPhone: Felder im Wertungsfenster lassen sich per Tipp nicht zuverlässig auswählen, Berührungen landen teils auf
+   Knöpfen hinter dem Fenster** (gemeldet 31.10.2026). Wahrscheinliche Ursachen und Abhilfe:
+   - Die Felder sind mit Zahlentastatur schreibgeschützte Eingabefelder; iOS behandelt Tipps darauf teils als
+     Textauswahl/Fokus statt als Klick → mit Zahlentastatur die Felder als **Schaltflächen** darstellen (sehen gleich aus).
+   - iOS zoomt bei Doppeltipp und beim Antippen der Auswahl „Zahlentastatur“ (Schrift kleiner als 16 px); danach stimmt
+     die Trefferfläche des fest stehenden Fensters nicht mehr, Tipps landen dahinter → Doppeltipp-Zoom im Fenster
+     abschalten, Auswahllisten im Fenster mit mindestens 16 px Schrift.
+   - Die Seite hinter dem Fenster lässt sich am iPhone trotz Sperre verschieben → Seite hinter dem Fenster fest
+     verriegeln und die Scroll-Position beim Schließen wiederherstellen.
+   - Hier nur in Chrome prüfbar; Kontrolle auf dem iPhone durch den Nutzer nach dem Veröffentlichen.
 
 
 ## Beschlossen und in Beta 77 umgesetzt (veröffentlicht): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
