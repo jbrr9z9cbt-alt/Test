@@ -16,6 +16,17 @@ Gefunden mit Beta 77 auf dem iPhone in Safari (Bildschirmfotos 31.10.2026):
    Kacheln; unentschieden: 0 in Schwarz) statt des Satzes „Vorschau Duell 1: … → 5 Scorepunkte für …“.
 4. **Automatisches Komma entfällt**: Auf der Zahlentastatur wird genau das Getippte übernommen („4 , 5“ = 4,5;
    „4“ = 4,0). Mit echter Tastatur wie bisher.
+5. **Turnerauswahl auch im Wertungsfenster** (beschlossen 31.10.2026):
+   - Oben im Fenster dieselbe Auswahlliste wie in der Kachel („kein Turner“ ganz oben); die Auswahl in der Kachel bleibt
+     zusätzlich (Vorauswahl).
+   - Vor der Freigabe wird ein im Fenster gewählter Turner **sofort gespeichert** (wie in der Kachel); „Abbrechen“ verwirft
+     nur die getippten Noten. Wechsel auf „kein Turner“ bei schon erfassten Noten: dieselbe Rückfrage wie heute.
+     Nach der Freigabe gehört ein Turnerwechsel zur Korrektur („Korrektur freigeben“), wie bisher.
+   - **„Wertung eingeben“ auch ohne gewählten Turner anklickbar** (Turner dann im Fenster wählen). Weiterhin **gesperrt
+     vor „Gerät starten“ und an gesperrten Geräten**; abgeschlossenes Gerät (bis „Bearbeiten“) und abgeschlossener
+     Wettkampf wie bisher gesperrt.
+   - Laptop: Fokus beim Öffnen auf der Auswahl, wenn noch kein Turner gewählt ist, sonst im ersten leeren Feld;
+     Enter öffnet die Liste wie in der Kachel. Ohne Turner sind die Notenfelder gesperrt.
 
 
 ## Beschlossen und in Beta 77 umgesetzt (veröffentlicht): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
