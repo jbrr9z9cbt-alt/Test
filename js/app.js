@@ -3088,9 +3088,11 @@
     var set = keypadSetting();
     var opt = function (v, l) { return '<option value="' + v + '"' + (set === v ? ' selected' : '') + '>' + l + '</option>'; };
     var pad = kp ? '<div class="sd-pad"><div class="sd-disp"><span class="w" data-dlg-out="kpwhat"></span><span class="val" data-dlg-out="kpval"></span></div>' +
-      '<div class="sd-keys">' + ['7', '8', '9', 'back', '4', '5', '6', ',', '1', '2', '3', 'next', '0', 'minus', 'plus'].map(function (k) {
-        var label = { back: '⌫', next: 'Weiter ▶', minus: '−0,1', plus: '+0,1' }[k] || k;
-        return '<button type="button" class="' + (k === 'next' ? 'k-next' : /^\d$/.test(k) || k === ',' ? '' : 'k-fn') + '" data-action="sd-key" data-k="' + k + '" aria-label="' + label + '">' + label + '</button>';
+      // 7 8 9 ⌫ / 4 5 6 ⌫ / 1 2 3 Weiter / 0 0 , Weiter – „0“ doppelt breit, ⌫ und „Weiter ▶“ doppelt hoch
+      '<div class="sd-keys">' + ['7', '8', '9', 'back', '4', '5', '6', '1', '2', '3', 'next', '0', ','].map(function (k) {
+        var label = { back: '⌫', next: 'Weiter ▶' }[k] || k;
+        var area = { back: 'kb', next: 'kn', ',': 'kc' }[k] || 'k' + k;
+        return '<button type="button" class="' + (k === 'next' ? 'k-next' : k === 'back' ? 'k-fn' : '') + '" style="grid-area:' + area + '" data-action="sd-key" data-k="' + k + '" aria-label="' + label + '">' + label + '</button>';
       }).join('') + '</div></div>' : '';
     return '<div class="sd-backdrop"><div class="sd-win' + (kp ? ' kp' : '') + '" role="dialog" aria-modal="true" aria-label="Wertung" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
       '<div class="sd-main"><div class="sd-head"><span class="sd-where">' + where + '</span>' + timer + '</div>' +
@@ -3139,7 +3141,7 @@
     var shown = isClassic(m) ? S.revOf(d, g.sideKey).shown : d.shown && d.shown[g.sideKey];
     var changed = !shown || !sameAsShown(side, shown) || (isClassic(m) ? S.sidePending(d, g.sideKey) : S.hasPendingCorrection(d));
     var rel = box.querySelector('[data-action="sd-release"]');
-    if (rel) rel.disabled = !(ready && changed);
+    if (rel) { rel.disabled = !(ready && changed); rel.classList.toggle('sd-next', keypadOn() && !g.active); }
     var other = d[g.sideKey === 'home' ? 'guest' : 'home'];
     var otherReady = sideReady(m, other);
     out('hint', bad.length ? 'Ungültiger Wert – eine Nachkommastelle, z. B. ' + (bad[0] === 'd' ? '4,5' : '1,3') :
@@ -3160,7 +3162,7 @@
     if (keypadOn()) {
       var f = g.active;
       out('kpwhat', f ? esc(DLG_LABEL[f]) + ' · <b>' + esc(gymnastLabel(g.draft.number, g.draft.name)) + '</b>' : 'Feld antippen');
-      out('kpval', f ? esc(g.text[f] || '–') + (g.buf ? '<small>getippt: ' + esc(g.buf.split('').join(' ')) + '</small>' : '') : '');
+      out('kpval', f ? esc(g.text[f] || '–') : '');
     }
   }
 
@@ -3187,11 +3189,6 @@
       if (buf.indexOf(',') < 0) buf = (buf === '' ? '0' : buf) + ',';
     } else if (k === 'back') {
       buf = buf.slice(0, -1);
-    } else if (k === 'minus' || k === 'plus') {
-      var cur = dlgValue(f, g.text[f] || '');
-      if (cur === null || Number.isNaN(cur)) cur = 0;
-      cur = Math.max(0, Math.min(f === 'd' ? 20000 : 10000, cur + (k === 'plus' ? 100 : -100)));
-      buf = String(cur / 100);
     }
     g.buf = buf;
     g.text[f] = bufText(buf);
