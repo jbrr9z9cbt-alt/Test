@@ -1,6 +1,6 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Beschlossen und in Beta 76 umgesetzt (lokal getestet, Veröffentlichung erst nach Freigabe)
+## Beschlossen und in Beta 76 umgesetzt (veröffentlicht)
 
 Ergänzungen bei der Umsetzung:
 - Punkt 3: Das Fenster in der App folgt Hell/Dunkel der Tafel; hochkant (Handy) ist die Schrift größer als auf der
