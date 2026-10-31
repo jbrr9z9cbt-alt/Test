@@ -1,6 +1,16 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Beschlossen für die nächste Beta (wird gesammelt und dann auf einmal umgesetzt)
+## Beschlossen und in Beta 76 umgesetzt (lokal getestet, Veröffentlichung erst nach Freigabe)
+
+Ergänzungen bei der Umsetzung:
+- Punkt 3: Das Fenster in der App folgt Hell/Dunkel der Tafel; hochkant (Handy) ist die Schrift größer als auf der
+  Tafel, damit man sie am Gerät lesen kann. Lange Vereinsnamen stehen in der Vorstellung immer in einer Zeile
+  (werden verkleinert, kein Umbruch nach „/“).
+- Punkt 4: Auf sehr schmalen Handys (≤ 400 px) sind die Beschriftungen minimal kleiner, damit „D-Note“ auch mit
+  drei E-Kampfrichtern ganz passt. Eingabefelder und Standbonus-Kästchen gleich hoch (Beschriftungen auf einer Linie).
+- Punkt 5: Geänderte Turnernamen gelten nicht als ungespeichert (werden sofort übernommen); fehlen beim Speichern
+  über die Rückfrage Pflichtfelder, bleibt die Seite offen und das Feld wird markiert.
+
 
 Gefunden mit Beta 75 auf iPhone/iPad (Bildschirmfotos vom 26.10.2026):
 

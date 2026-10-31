@@ -34,13 +34,19 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   Einturnzeit (6:40) und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch: erst dann Wertungen und
   „Wertung 0,00“, und die Anzeigetafel wechselt auf das Gerät (bis dahin bleibt das vorige Gerät mit allen Werten stehen).
   Vorzeitig gestoppte Einturnzeit → Rückfrage „Gerät jetzt starten?“; ohne Einturnzeit „Gerät direkt starten“ mit Rückfrage.
-  „Start zurücknehmen“, solange keine Wertung eingetragen ist. Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
+  „Start zurücknehmen“ bis zur ersten Freigabe (eingetragene Noten werden nach Rückfrage gelöscht, Turnerauswahl bleibt).
+  Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
+- **Statuszeile je Gerät** (ein Rahmen für alle Zustände): frei („Einturnzeit (6:40) starten“ · „Gerät direkt starten“, am Handy
+  untereinander), Einturnzeit läuft, „Gerät startet gleich …“, „● Gerät läuft“ (+ „Start zurücknehmen“), „✓ Gerät abgeschlossen“
+  (+ „Bearbeiten“, solange gesperrt), „🔒 Gerät gesperrt – <Gerät> läuft“ mit „Turner können schon gewählt werden.“ und
+  „Sperre aufheben …“. Beim abgeschlossenen Wettkampf keine Statuszeile.
 - **Gerätereiter mit Abzeichen** (beide Ligen): ✓ abgeschlossen, ● läuft (ab „Gerät starten“), 🔒 gesperrt.
   Am Handy nur Logo und Abzeichen (ohne Summen); am Laptop (ab 1100 px) flach in einer Zeile und zusammen mit Kopf und
   Werkzeugzeile beim Scrollen fixiert.
   Solange ein Gerät läuft oder irgendwo die Einturnzeit läuft, lassen sich an keinem anderen Gerät Einturnzeit oder Start beginnen (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
   Abgeschlossene Geräte öffnen sich gesperrt (nur ansehen); „Bearbeiten“ mit Bestätigung gibt sie frei, bis das Gerät verlassen wird.
-  Notausgang: „Gerät starten“ an einem gesperrten Gerät → „Gerätesperre aufheben …“ (doppelt bestätigt); solange steht über den
+  Gesperrte Reiter sind nicht ausgegraut, sie tragen nur das Schloss.
+  Notausgang: „Sperre aufheben …“ in der Statuszeile eines gesperrten Geräts (doppelt bestätigt, gilt für alle Geräte); solange steht über den
   Geräten ein Hinweis mit „Sperre wieder aktivieren“.
 - **Wettkampfseite am Laptop** (ab 1100 px): Kopf in einer Zeile (Liga, Datum, Beginn, Status, Mannschaften mit Stand,
   Gerätepunkte), darunter die Werkzeugzeile (Anzeigetafel links, Wettkampf rechts). Die Wertungskacheln nutzen die volle Breite;
@@ -62,7 +68,10 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 - **Anwesende Turner**: Nach der Wahl der Vereine stehen auf derselben Seite alle Turner beider
   Mannschaften zum Abhaken (zunächst alle abgehakt; Fehlende abwählen). Namen lassen sich dort
   korrigieren und auf freien Startnummern ergänzen – das wird sofort in die Mannschaftsliste übernommen.
-  Bei der Wertungseingabe stehen nur die abgehakten Turner zur Auswahl. Änderbar über „Bearbeiten“.
+  Bei der Wertungseingabe stehen nur die abgehakten Turner zur Auswahl. Änderbar über „Wettkampf Setup“.
+- **Wettkampf Setup** speichert erst mit „Speichern“ (Knopf fest am unteren Rand, daneben „nicht gespeichert“).
+  Wer die Seite mit ungespeicherten Änderungen verlässt (Reiter, Logo, Zurück-Taste), wird gefragt:
+  „Weiter bearbeiten“, „Verwerfen“ oder „Speichern“ (bei „Neuer Wettkampf“: „Anlegen“). „Abbrechen“ verwirft ohne Rückfrage.
 - **Startreihenfolge** (lt. Scoresystem): Die am Gerät beginnende Mannschaft beginnt Duell 1+2, die andere
   Duell 3+4; bei jedem Gerätewechsel wechselt die beginnende Mannschaft.
   In der Erfassung steht der **vorlegende Turner** links (bzw. oben auf schmalen Bildschirmen) und ist markiert;
@@ -88,6 +97,8 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   - **Standbonus** +0,1 (nicht am Pauschenpferd)
   - Endnote = D-Note + Standbonus + E-Note − neutraler Abzug
   - **Eingabereihenfolge** je Übung: Abzüge E1, E2 (ggf. E3), D-Note, Standbonus, neutraler Abzug
+  - **Feldbeschriftungen** nie umgebrochen oder gekürzt: Reicht der Platz nicht, zeigen alle Kacheln der Geräteseite die
+    Kurzformen E1, E2, E3, D-Note, Stand, NA
   - **Tastatur**: Gerät mit der Maus wählen, dann führt Tab durch den ganzen Ablauf: Turnerauswahl des
     vorlegenden Turners, E1, E2, (E3), D-Note, Standbonus, neutraler Abzug, dann der gegnerische Turner
     genauso, zuletzt „Wertung freigeben“ – danach weiter mit dem vorlegenden Turner des nächsten Duells.
@@ -107,7 +118,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   - Landesliga: Links „Mannschaftsabzug Heim/Gast“ unten im Gerätebereich (ein Abzug je Mannschaft für den ganzen Wettkampf); mindert nur die Gesamtpunktzahl,
     Hinweis im Kopf, auf der Tafel („inkl. Abzug“) und im Protokoll (* in der Übersicht, Erklärung in der Ergebniszeile). Oberliga: Mannschaftsabzüge als neutraler Abzug beim betroffenen Turner
   - Knopf „Turnervorstellung“: Titelseite und anwesende Turner (nach Startnummer) erst der Gast-, dann der Heimmannschaft, zum Schluss das Kampfgericht
-    (E1/OK, neutraler E2, Vereinskampfrichter als D, E bzw. D/E nach Verein); Steuerung im Knopf selbst mit ◀ ▶ ■ (zurück/weiter/beenden; der Knopf wird dabei nicht breiter), Pfeiltasten, Leertaste, Bild auf/ab (Presenter) und Esc;
+    (E1/OK, neutraler E2, Vereinskampfrichter als D, E bzw. D/E nach Verein); in der App erscheint dasselbe Fenster wie auf der Tafel (über der ganzen Seite) mit ◀ ▶ ■ (zurück/weiter/beenden), Pfeiltasten, Leertaste, Bild auf/ab (Presenter) und Esc;
     währenddessen keine anderen Fenster auf der Tafel
   - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an
   - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.

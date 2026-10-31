@@ -52,6 +52,13 @@ main { max-width: 1150px; margin: 0 auto; padding: 1rem; }
 /* ---------- Karten & Layout ---------- */
 .card { background: var(--card); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
 .card.narrow { max-width: 640px; margin-left: auto; margin-right: auto; }
+/* Wettkampf-Setup: Speichern/Abbrechen fest am unteren Bildschirmrand; Eingabefelder rutschen beim Antippen nicht dahinter */
+.form-bar { position: sticky; bottom: 0; z-index: 5; background: var(--card); padding: .7rem 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.form-bar .unsaved { margin-left: auto; font-size: .85rem; font-weight: 600; color: #b45309; }
+html.setup-page { scroll-padding-bottom: 5rem; }
+/* Datumsfeld: Safari (iPhone/iPad) gibt ihm sonst eine eigene Mindestbreite – es ragte aus dem Rahmen */
+input[type=date] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; min-height: 2.6rem; text-align: left; }
+input[type=date]::-webkit-date-and-time-value { text-align: left; }
 .card-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: .5rem; }
 .card-head h2, .card-head h3 { margin: 0; }
 .stack { display: flex; flex-direction: column; gap: .75rem; }
@@ -190,7 +197,14 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 /* E- und D-Felder als zwei Gruppen ohne Überschrift und Rahmen; der größere Abstand der Zeile trennt sie */
 .score-grp { display: grid; gap: .4rem; align-items: end; min-width: 0; }
 .score-field span, .final span { font-size: .72rem; color: var(--muted); }
-.score-field input { text-align: right; font-variant-numeric: tabular-nums; padding: .45rem .4rem; }
+/* Feldbeschriftungen einzeilig; reicht der Platz nicht, zeigen alle Kacheln der Geräteseite die Kurzformen (fitFieldLabels) */
+.score-field > .lbl { display: block; white-space: nowrap; overflow: hidden; }
+.lbl .l-short { display: none; }
+.short-labels .lbl .l-long { display: none; }
+.short-labels .lbl .l-short { display: inline; }
+/* Sehr schmale Handys mit drei E-Kampfrichtern: Beschriftung minimal kleiner, damit auch „D-Note“ ganz passt */
+@media (max-width: 400px) { .score-field .lbl span { font-size: .68rem; } }
+.score-field input { text-align: right; font-variant-numeric: tabular-nums; padding: .45rem .4rem; height: 2.4rem; }
 .result-row { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin-top: .4rem; font-size: .85rem; color: var(--muted); }
 .result-row > span { padding: 0 .45rem; }
 .result-row .final { text-align: right; }
@@ -232,7 +246,18 @@ body.board-mode:not(.board-light) .draw0 { color: #fff !important; }
 .sp-sep { color: #a3a3a3; margin: 0 .1em; }
 
 /* Timer */
-.warmup-row { display: inline-flex; margin-bottom: .75rem; padding: .4rem; border: 1px solid #cfcfcf; border-radius: 10px; background: #f5f5f5; }
+/* Statuszeile über dem Gerät: ein Rahmen für alle Zustände (frei, Einturnzeit, läuft, abgeschlossen, gesperrt) */
+.warmup-row { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .4rem .6rem; max-width: 100%; box-sizing: border-box;
+  margin-bottom: .75rem; padding: .4rem; border: 1px solid #cfcfcf; border-radius: 10px; background: #f5f5f5; }
+.status-row:empty { display: none; }
+.status-row > .st-text:first-child, .status-row > .st-lines:first-child { padding-left: .5rem; }
+.status-row > .st-text:last-child, .status-row > .st-lines:last-child { padding-right: .5rem; }
+.st-text { font-weight: 700; }
+.st-run { color: #b45309; }
+.st-done { color: #166534; }
+.st-lock { color: #525252; }
+.st-lines { display: flex; flex-direction: column; gap: .1rem; }
+.st-sub { font-size: .8rem; color: var(--muted); }
 .timer-btn { font-variant-numeric: tabular-nums; }
 /* Sturz-Timer im Knopf: wie das Fenster auf der hellen Tafel (hellgelb, dann hellrot; Zahl schwarz → ocker → rot) */
 .timer-btn.t-fall1 { background: #fef3c7; border-color: #d97706; font-weight: 700; }
@@ -698,7 +723,6 @@ body.board-light .fall-win.phase2 .fw-note, body.board-light .fall-win.ended .pw
 .tab.st-done .tab-badge { background: #16a34a; }
 .tab.st-run .tab-badge { background: #f59e0b; }
 .tab.st-run .tab-badge::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
-.tab.st-locked { opacity: .6; }
 .tab.st-locked .tab-badge { background: #a3a3a3; font-size: 12px; }
 
 /* ---------- Anzeigetafel: feste Aufteilung des Bildschirms ----------
@@ -783,11 +807,10 @@ body.board-light .fall-win.phase2 .fw-note, body.board-light .fall-win.ended .pw
 #score-flash.wide span.sf-num { font-size: min(44vh, 24vw); margin-top: 3vh; }
 body.board-light #score-flash .sf-who { color: #171717; }
 
-/* Abgeschlossenes Gerät (nur ansehen) und aufgehobene Gerätesperre */
-.done-bar, .unlock-bar { display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap; padding: .55rem .9rem; border-radius: 10px; margin: 0 0 .75rem; font-size: .95rem; }
-.done-bar { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
-.unlock-bar { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; margin: .25rem 0 .5rem; }
-.done-bar .btn, .unlock-bar .btn { margin-left: auto; }
+/* Aufgehobene Gerätesperre */
+.unlock-bar { display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap; padding: .55rem .9rem; border-radius: 10px; font-size: .95rem;
+  background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; margin: .25rem 0 .5rem; }
+.unlock-bar .btn { margin-left: auto; }
 .modal .linkish { background: none; border: 0; color: #737373; text-decoration: underline; font: inherit; font-size: .85rem; cursor: pointer; padding: 0; margin-right: auto; }
 
 /* Anzeigetafel Oberliga: rechte Wertung gespiegelt (linksbündig), gleicher Abstand zu den Scorepunkten wie links */
@@ -862,10 +885,29 @@ body.board-light .board-table tfoot td { border-top-color: #525252; }
 .tv-judges td:first-child { font-weight: 900; }
 .tv-judges td.r { font-size: .6em; opacity: .8; font-weight: 700; }
 .tv-judges tr.gap td { padding-top: .9em; }
-/* Steuerleiste im Eingabefenster */
+/* Im Eingabefenster: dasselbe Fenster wie auf der Tafel (Hell/Dunkel wie die Tafel), unten ◀ ▶ ■; die Seite darunter ist nicht bedienbar */
+.app-tv.tv-light .pause-win { background: #fff; color: #171717; }
+.tv-ctl-bar { display: flex; justify-content: center; padding-top: .9rem; }
 .tv-ctl { display: inline-flex; align-items: center; border: 2px solid #2563eb; border-radius: 10px; overflow: hidden; }
-.tv-ctl .btn { border: 0; border-radius: 0; min-width: 3rem; padding-left: .7rem; padding-right: .7rem; }
+.tv-ctl .btn { border: 0; border-radius: 0; min-width: 4.5rem; padding: .55rem 1rem; font-size: 1.3rem; line-height: 1; }
 .tv-ctl .tv-end { border-left: 1px solid #d4d4d4; }
+body.intro-open { overflow: hidden; }
+@media (max-width: 560px) { .app-tv .tv-win { padding: 1.2rem 1.2rem 1.4rem; } }
+/* Hochkant (Handy, Tablet): Schrift nach der Fensterbreite, damit man die Angaben direkt am Gerät lesen kann (Tafel unverändert) */
+@media (orientation: portrait) {
+  .app-tv .tv-top { font-size: min(3vw, 1.1rem); }
+  .app-tv .tv-label { font-size: min(4.2vw, 1.6rem); }
+  .app-tv .tv-big-team { font-size: min(11vw, 4.5rem); }
+  .app-tv .tv-big-team.tv-kg { font-size: min(9vw, 3.6rem); }
+  .app-tv .tv-cap { font-size: min(4.6vw, 1.8rem); }
+  .app-tv .tv-count { font-size: min(3.8vw, 1.4rem); }
+  .app-tv .tv-team { font-size: min(6.5vw, 2.6rem); }
+  .app-tv .tv-num { font-size: min(32vw, 12rem); }
+  .app-tv .tv-name { font-size: min(8vw, 3.2rem); }
+  .app-tv .tv-judges { font-size: min(4.2vw, 1.7rem); }
+  .app-tv .tv-judges.many { font-size: min(3.6vw, 1.45rem); }
+  .app-tv .tv-judges td { padding: .3em .5em; }
+}
 
 /* Mannschaftsabzug (Landesliga): dezente Links unten im Gerätebereich, Hinweise im Kopf und auf der Tafel */
 .deduct-row { display: flex; justify-content: flex-end; gap: 1.2rem; margin-top: .4rem; }
@@ -878,11 +920,11 @@ body.board-light .board-table tfoot td { border-top-color: #525252; }
 .board-ded { position: absolute; left: 0; right: 0; top: 100%; font-size: .42em; font-weight: 700; color: #f59e0b; white-space: nowrap; }
 body.board-light .board-ded { color: #c2410c; }
 
-/* Gerät starten: neben der Einturnzeit; gesperrt (anderes Gerät läuft) blass, ein Klick erklärt warum */
-.warmup-row .start-btn { margin-left: .6rem; }
-.start-btn.is-locked { opacity: .45; }
-.start-on { margin-left: .9rem; font-weight: 700; color: #b45309; }
-.warmup-row { align-items: center; }
+/* Handy: Passen „Einturnzeit (6:40) starten“ und „Gerät direkt starten“ nicht nebeneinander, steht der zweite Knopf
+   darunter – beide gleich breit im Rahmen. */
+@media (max-width: 560px) {
+  .status-row .warmup-btn, .status-row .start-btn { flex: 1 1 12rem; }
+}
 
 /* Einturnzeit und Pause in der Detailkarte der Tafel: deckt nur die Karte ab, Liste und Tabelle bleiben sichtbar */
 .tm-card { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; overflow: hidden; text-align: center;
@@ -906,7 +948,6 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 }
 /* Sturz-Timer hochkant: langer Turnername darf umbrechen (die Sekunden nie) */
 @media (orientation: portrait) { .fw-name { white-space: normal; } }
-.warmup-btn.is-locked { opacity: .45; }
 
 /* Wertungseingabe: gesperrte Felder im Grau des Hintergrunds, nur offene Felder sind weiß (auch das Standbonus-Kästchen) */
 .side input:disabled, .side select:disabled { background: #e2e2e2; border-color: #d0d0d0; }
@@ -963,7 +1004,6 @@ body.board-light .tm-card { background: #fff; color: #171717; }
   /* Felder mit fester Mindestbreite, Beschriftungen einzeilig (sonst wird die Kachel höher) */
   body.match-page .score-row { gap: .8rem; }
   body.match-page .score-grp { flex: 0 1 auto !important; min-width: 0; grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(2.9rem, 5rem); gap: .35rem; }
-  body.match-page .score-field > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   body.match-page .result-row strong { font-size: 1.05rem; }
   body.match-page .result-row .final strong { font-size: 1.35rem; }
   body.match-page .side-foot { flex: 1 1 100%; min-height: 2.1rem; }
