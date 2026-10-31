@@ -20,8 +20,20 @@ Konzept (Überlegung vom 31.10.2026, noch nicht beschlossen):
 - Zahlentastatur im Fenster (Touch-Geräte): 0–9, Komma, ⌫, −0,1/+0,1, „Weiter ▶“, „Fertig“; Anzeigezeile mit Feld, Turner, Wert;
   Handy-Tastatur bleibt zu; automatisch auf Touch-Geräten, verschwindet beim ersten Druck einer echten Taste;
   Einstellung automatisch/immer/nie; optional automatisches Komma („17“ → „1,7“).
-- Offene Entscheidungen: Knöpfe im Fenster; Wegfall des Korrektur-Zwischenzustands; Zahlentastatur-Einstellung und
-  automatisches Komma. Vor der Umsetzung Vorschaubilder (Laptop, Handy mit Zahlentastatur).
+- **Beschlossen (31.10.2026, nach Vorschaubildern):**
+  - Im Fenster nur **[Abbrechen] [Wertung freigeben]** (kein „Übernehmen“); „Abbrechen“ ohne Rückfrage (Eingaben verworfen).
+  - Korrektur: „Wertung ändern“ → Fenster → „Korrektur freigeben“ oder Abbrechen; kein Zwischenzustand mehr.
+  - **Sturz-Timer** des Turners auch im offenen Fenster (oben rechts), die Übung kann noch laufen.
+  - **Oberliga, 1. Turner:** „Wertung freigeben“ speichert; die Tafel zeigt **nichts Neues** – die vorgelegte Note bleibt für
+    Zuschauer, Turner und Trainer unsichtbar, bis der 2. Turner freigegeben ist (das gibt das ganze Duell frei, wie heute).
+  - Zahlentastatur mit Einstellung (automatisch/immer/nie), **automatisches Komma** („17“ → 1,7) und trotzdem Komma-Taste
+    („4 , 5“ → 4,5); Anzeige über der Tastatur zeigt den Wert, wie er übernommen wird. Taste **„Fertig“ entfällt**
+    („Weiter ▶“ groß über zwei Reihen). iPad quer: Tastatur rechts neben den Feldern, hochkant darunter.
+  - Empfehlung (noch zu bestätigen): automatisches Komma nur auf der Bildschirm-Tastatur, mit echter Tastatur wie heute.
+- **Frage: kompakte Kacheln, damit ein Gerät am Laptop/iPad quer ohne Scrollen passt** (gemessen mit nachgestellten
+  zweizeiligen Kacheln, ca. 80 px hoch: Zeile 1 Nr., Verein, Turner, E-Note, Endnote; Zeile 2 Werte als Text, Sturz-Timer,
+  „Wertung eingeben“; Statuszeile neben dem Gerätenamen): passt bei Full HD, iPad Pro, 1366×768 als installierte App;
+  im normalen Browserfenster 1366×768 fehlen 10–60 px, iPad 11" quer Landesliga ca. 40 px, 1280×720 70–120 px.
 
 ## Beschlossen und in Beta 76 umgesetzt (veröffentlicht)
 
