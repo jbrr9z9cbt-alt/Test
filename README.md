@@ -50,8 +50,23 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   Geräten ein Hinweis mit „Sperre wieder aktivieren“.
 - **Wettkampfseite am Laptop** (ab 1100 px): Kopf in einer Zeile (Liga, Datum, Beginn, Status, Mannschaften mit Stand,
   Gerätepunkte), darunter die Werkzeugzeile (Anzeigetafel links, Wettkampf rechts). Die Wertungskacheln nutzen die volle Breite;
-  E-Note und Endnote stehen in der Zeile der Eingabefelder, „Wertung freigeben“ im Fuß der Kachel (Landesliga) bzw. in der
-  Mitte unter den Scorepunkten (Oberliga). Keine Überschriften „E-/D-Kampfgericht“ mehr (auch nicht am Handy).
+  E-Note und Endnote stehen in der Zeile der Werte. Keine Überschriften „E-/D-Kampfgericht“ mehr (auch nicht am Handy).
+- **Wertungsfenster** (beide Ligen): Die Kachel zeigt die Werte nur als Text (E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote)
+  mit Turnerauswahl, Sturz-Timer und Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“ (dann ist die
+  Turnerauswahl der Kachel gesperrt; der Turner lässt sich im Fenster korrigieren). Das Fenster enthält Gerät, Duell/Übung,
+  Turner, Sturz-Timer, die Eingabefelder, „Wertung 0,00“, E-Note und Endnote (schon beim Tippen), Oberliga beim zweiten
+  Turner eine Vorschau der Scorepunkte, und die Knöpfe „Abbrechen“ (verwirft ohne Rückfrage) und „Wertung freigeben“
+  bzw. „Korrektur freigeben“. Ungültige Werte rot, Freigabe dann gesperrt. „kein Turner“ wird ebenfalls über das Fenster
+  freigegeben (Endnote 0,00). Was im Fenster getippt ist, wird erst mit der Freigabe gespeichert.
+  - Oberliga: „Wertung freigeben“ beim ersten Turner speichert nur (Tafel zeigt nichts Neues); sind beide Turner
+    freigegeben, wird das Duell freigegeben – in beliebiger Reihenfolge.
+  - Ältere Daten: noch nicht freigegebene Noten und offene Korrekturen (Beta 76 und früher) erscheinen im Fenster;
+    „Korrektur freigeben“ übernimmt, „Abbrechen“ verwirft eine offene Korrektur.
+  - **Zahlentastatur** (Touch-Geräte): eigene Tastatur im Fenster (0–9, Komma, ⌫, „Weiter ▶“, −0,1/+0,1) mit großer Anzeige
+    des aktiven Felds; die Tastatur des Geräts bleibt zu. Ohne Komma ist die letzte Ziffer die Nachkommastelle („17“ = 1,7),
+    ein getipptes Komma gilt wie getippt. Handy: Fenster bildschirmfüllend, Tastatur unten; iPad quer: rechts daneben.
+    Einstellung im Fenster: automatisch (Touch-Geräte; verschwindet beim ersten Druck einer echten Taste) / immer / nie,
+    gespeichert je Gerät. Mit echter Tastatur kein automatisches Komma („5“ = 5,0).
 - **Lange Vereinsnamen** brechen nach Leerzeichen, „/“ und „-“ um. Am Handy stehen im Kopf beide Namen nebeneinander und der
   Stand mittig darunter; in den Wertungskacheln rutscht die Turnerauswahl bei Bedarf in eine eigene Zeile.
 - **7 feste Mannschaften** mit vorgegebenen Turnern (Startnummern 1–20) aus `js/config.js`
@@ -97,14 +112,12 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   - **Standbonus** +0,1 (nicht am Pauschenpferd)
   - Endnote = D-Note + Standbonus + E-Note − neutraler Abzug
   - **Eingabereihenfolge** je Übung: Abzüge E1, E2 (ggf. E3), D-Note, Standbonus, neutraler Abzug
-  - **Feldbeschriftungen** nie umgebrochen oder gekürzt: Reicht der Platz nicht, zeigen alle Kacheln der Geräteseite die
-    Kurzformen E1, E2, E3, D-Note, Stand, NA
-  - **Tastatur**: Gerät mit der Maus wählen, dann führt Tab durch den ganzen Ablauf: Turnerauswahl des
-    vorlegenden Turners, E1, E2, (E3), D-Note, Standbonus, neutraler Abzug, dann der gegnerische Turner
-    genauso, zuletzt „Wertung freigeben“ – danach weiter mit dem vorlegenden Turner des nächsten Duells.
-    Enter öffnet die Turnerauswahl, Pfeiltasten wählen, Enter übernimmt (weiter zu E1);
-    Enter schaltet den Standbonus um und wirkt in Notenfeldern wie Tab;
-    Pfeiltasten ↑/↓ ändern Noten in 0,1-Schritten (nie unter 0)
+  - **Feldbeschriftungen** im Wertungsfenster nie umgebrochen oder gekürzt: Reicht der Platz nicht, zeigen alle Felder
+    die Kurzformen E1, E2, E3, D-Note, Stand, NA (in den Kacheln immer die Kurzformen)
+  - **Tastatur**: In der Seite führt Tab von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner;
+    Enter öffnet die Turnerauswahl, Pfeiltasten wählen, Enter übernimmt. Im Fenster springt Enter ins nächste Feld und
+    nach dem letzten auf „Wertung freigeben“; Pfeiltasten ↑/↓ ändern Noten in 0,1-Schritten (nie unter 0), Esc bricht ab,
+    Tab bleibt im Fenster. Nach dem Freigeben steht der Fokus beim nächsten Turner in Wettkampfreihenfolge.
 - **Automatische Wertung**: Scorepunkte je Duell nach Notendifferenz, Gerätepunkte, Gesamtergebnis, Tabellenpunkte
 - **Anzeigetafel** für Beamer/Fernseher (zweites Fenster bzw. Tab auf demselben Gerät):
   - Knopf „Anzeigetafel“ öffnet das Tafel-Fenster (bzw. holt es nach vorn); beendet wird sie durch Schließen des Fensters
@@ -121,16 +134,14 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
     (E1/OK, neutraler E2, Vereinskampfrichter als D, E bzw. D/E nach Verein); in der App erscheint dasselbe Fenster wie auf der Tafel (über der ganzen Seite) mit ◀ ▶ ■ (zurück/weiter/beenden), Pfeiltasten, Leertaste, Bild auf/ab (Presenter) und Esc;
     währenddessen keine anderen Fenster auf der Tafel
   - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an
-  - Ergebnisse eines Duells erscheinen erst, wenn bei der Erfassung **„Wertung freigeben“** gedrückt wird.
-    Der Knopf ist erst aktiv, wenn beide Turner gewählt und vollständig gewertet sind
-    (bei „nicht angetreten“ ohne Turner und Wertung)
+  - Ergebnisse eines Duells erscheinen erst, wenn beide Turner im Wertungsfenster **„Wertung freigeben“** haben
+    (bei „kein Turner“ ohne Turner und Wertung)
   - Dann werden die neuen Scorepunkte **10 Sekunden bildschirmfüllend** als Zahl in der Farbe der
     siegreichen Mannschaft eingeblendet, darüber Startnummer, Name und Mannschaft des Siegers, leicht blinkend
     (bei Gleichstand eine 0 in Schwarz bzw. Weiß mit „Unentschieden“ darüber)
   - Das zuletzt angezeigte Duell steht mit **D-Note, E-Note, neutralem Abzug (falls vorhanden) und Endnote** auf der Tafel
-- **Nachträgliche Änderungen**: Wird eine bereits angezeigte Wertung geändert, zeigt die Tafel weiter den alten Stand.
-  Alle anderen Duelle sind gesperrt, bis die Korrektur mit **„Korrektur freigeben“** auf die Tafel gebracht
-  oder mit „Änderung verwerfen“ zurückgenommen wurde. Auch das Abschließen des Wettkampfs ist bis dahin gesperrt.
+- **Nachträgliche Änderungen**: „Wertung ändern“ öffnet das Fenster mit den bisherigen Werten; **„Korrektur freigeben“**
+  bringt die Korrektur auf die Tafel, „Abbrechen“ lässt alles, wie es war (kein Zwischenzustand mehr).
   Die Korrektur erscheint **10 Sekunden als Overlay** über der Anzeigetafel (alte Werte durchgestrichen, neue Werte daneben).
 - **Protokoll** zum Drucken bzw. Speichern als PDF – passt immer auf **eine DIN-A4-Seite im Hochformat**
   (wird bei Bedarf automatisch verkleinert)
@@ -164,7 +175,7 @@ Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ zusam
 ## Offline-Betrieb und Datensicherheit
 
 - **Kein Server, keine Cloud**: alle Daten bleiben auf dem Gerät (IndexedDB im Browser).
-- **Sofortiges Speichern**: jede Eingabe wird direkt dauerhaft geschrieben („durability: strict“).
+- **Sofortiges Speichern**: jede Änderung (Turnerauswahl, freigegebene Wertung, Setup …) wird direkt dauerhaft geschrieben („durability: strict“).
 - **Dauerhafter Speicher**: die App fordert beim Browser an, dass die Daten nicht automatisch gelöscht werden.
 - **Automatische Sicherungspunkte**: die letzten 30 Stände werden aufbewahrt und lassen sich wiederherstellen.
   Vor Import, Wiederherstellung und Löschen wird immer zuerst gesichert.

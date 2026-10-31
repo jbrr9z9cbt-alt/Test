@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '76';
+  var APP_BUILD = '77';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -537,8 +537,14 @@
     if (!keepScroll) window.scrollTo(0, 0);
     tickTimers();
     if (isBoard) { fitBoard(); fitIntro(); fitScorers(); }
-    if (r.name === 'match' && !r.sub && match(r.id)) { fitFieldLabels(); showAppIntro(match(r.id)); }
-    else document.body.classList.remove('intro-open');
+    if (r.name === 'match' && !r.sub && match(r.id)) {
+      showAppIntro(match(r.id));
+      // Ein offenes Wertungsfenster bleibt mit seinen Eingaben erhalten (z. B. nach einer Änderung aus der Tafel).
+      if (scoreDlg && scoreDlg.matchId === r.id) showScoreDlg(false); else closeScoreDlg();
+    } else {
+      document.body.classList.remove('intro-open');
+      closeScoreDlg();
+    }
     keepScroll = false;
   }
 
@@ -1089,7 +1095,7 @@
       '<nav class="tabs">' + tabs + '</nav></div>' +
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
       '<section class="card"><h3>Topscorer</h3><div data-out="scorers">' + scorersHtml(m) + '</div></section>' +
-      '<div id="app-intro"></div>';
+      '<div id="app-intro"></div><div id="score-dlg"></div>';
   }
 
   /** Knopfbeschriftung nennt, was beim Drücken passiert. */
@@ -1144,7 +1150,7 @@
     if (!pending.length) return '';
     return '<div class="banner warn-banner">⚠ Nachträgliche Änderung: ' + pending.map(function (p) {
       return apparatusName(p.appKey) + (p.side ? ', ' + S.classicPosition(m, p.appKey, p.idx, p.side) + '. Übung' : ', Duell ' + (p.idx + 1));
-    }).join('; ') + '. Bitte zuerst <strong>„Korrektur freigeben“</strong> drücken (oder die Änderung verwerfen) – bis dahin sind alle anderen ' + unitWord(m) + ' gesperrt.</div>';
+    }).join('; ') + '. Bitte über <strong>„Wertung ändern“</strong> die Korrektur freigeben (oder dort mit „Abbrechen“ verwerfen) – bis dahin sind alle anderen ' + unitWord(m) + ' gesperrt.</div>';
   }
 
   function winnerText(m, r) {
@@ -1156,6 +1162,11 @@
   var NO_GYMNAST = '__none';
 
   function gymnastSelect(m, appKey, idx, sideKey, side, locked) {
+    return '<select ' + fieldAttrs(appKey, idx, sideKey, 'gymnast') + (locked ? ' disabled' : '') + ' aria-label="Turner">' + gymnastOptions(m, appKey, idx, sideKey, side) + '</select>';
+  }
+
+  /** Auswahlliste der Turner: „kein Turner“ oben, nur anwesende, bereits eingesetzte gesperrt. */
+  function gymnastOptions(m, appKey, idx, sideKey, side) {
     var t = team(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
     var used = {};
     m.apparatus[appKey].duels.forEach(function (d, i) {
@@ -1178,14 +1189,14 @@
         esc(gymnastLabel(g.number, label)) + (used[g.id] ? ' (bereits eingesetzt)' : '') + '</option>';
     });
     if (side.gymnastId && !found) opts += '<option value="' + esc(side.gymnastId) + '" selected>' + esc(gymnastLabel(side.number, side.name)) + '</option>';
-    return '<select ' + fieldAttrs(appKey, idx, sideKey, 'gymnast') + (locked ? ' disabled' : '') + ' aria-label="Turner">' + opts + '</select>';
+    return opts;
   }
 
   function fieldAttrs(appKey, idx, sideKey, field) {
     return 'data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '" data-field="' + field + '"';
   }
 
-  /** Kurzformen der Feldbeschriftungen – gelten für alle Kacheln einer Geräteseite gemeinsam (siehe fitFieldLabels). */
+  /** Kurzformen der Feldbeschriftungen – im Wertungsfenster für alle Felder gemeinsam (siehe fitFieldLabels). */
   var SHORT_LABEL = { 'Abzüge E1': 'E1', 'Abzüge E2': 'E2', 'Abzüge E3': 'E3', 'D-Note': 'D-Note', 'Standbonus': 'Stand', 'Neutr. Abzug': 'NA' };
 
   function fieldLabel(label) {
@@ -1193,64 +1204,72 @@
   }
 
   /**
-   * Beschriftungen nie umbrechen oder kürzen: Passt auch nur eine lange Beschriftung auf der Geräteseite nicht in ihr Feld,
-   * zeigen alle Kacheln die Kurzformen (E1, E2, E3, D-Note, Stand, NA).
+   * Beschriftungen im Wertungsfenster nie umbrechen oder kürzen: Passt auch nur eine lange Beschriftung nicht in ihr Feld,
+   * zeigen alle Felder die Kurzformen (E1, E2, E3, D-Note, Stand, NA).
    */
   function fitFieldLabels() {
-    var panel = document.getElementById('apparatus-panel');
-    if (!panel) return;
-    panel.classList.remove('short-labels');
-    var tight = Array.prototype.some.call(panel.querySelectorAll('.score-field > .lbl'), function (el) {
+    var box = document.querySelector('#score-dlg .sd-fields');
+    if (!box) return;
+    box.classList.remove('short-labels');
+    var tight = Array.prototype.some.call(box.querySelectorAll('.sd-f > .lbl'), function (el) {
       return el.scrollWidth > el.clientWidth + 0.5;
     });
-    panel.classList.toggle('short-labels', tight);
+    box.classList.toggle('short-labels', tight);
   }
 
-  function scoreInput(appKey, idx, sideKey, field, value, locked, label) {
-    var v = value === null || value === undefined ? '' : fmt1(value);
-    if (field === 'nd' && !value) v = '';
-    return '<label class="score-field">' + fieldLabel(label) +
-      '<input type="text" inputmode="decimal" autocomplete="off" ' + fieldAttrs(appKey, idx, sideKey, field) +
-      ' value="' + esc(v) + '" placeholder="' + (field === 'nd' ? '0,0' : '') + '"' + (locked ? ' disabled' : '') + '></label>';
+  /** Ist diese Übung schon auf der Tafel (freigegeben)? Oberliga: das ganze Duell, Landesliga: die einzelne Übung. */
+  function sideShown(m, appKey, idx, sideKey) {
+    var d = m.apparatus[appKey].duels[idx];
+    return isClassic(m) ? !!S.revOf(d, sideKey).shown : !!d.shown;
+  }
+
+  /** Werte der Übung als Text (die Eingabe geschieht im Wertungsfenster). */
+  function sideValuesHtml(m, appKey, side) {
+    if (side.dns) return '<div class="score-row sv-row"><span class="sv-note">kein Turner</span></div>';
+    if (side.zero) return '<div class="score-row sv-row"><span class="sv-note">Wertung 0,00</span></div>';
+    var three = S.eJudgeCount(m.rules) === 3;
+    var cell = function (label, v) {
+      return '<span class="sv"><span>' + label + '</span><b' + (v ? '' : ' class="empty"') + '>' + (v || '–') + '</b></span>';
+    };
+    var num = function (x) { return x === null || x === undefined ? '' : fmt1(x); };
+    return '<div class="score-row sv-row">' + cell('E1', num(side.e1)) + cell('E2', num(side.e2)) + (three ? cell('E3', num(side.e3)) : '') +
+      cell('D-Note', num(side.d)) + (appKey !== S.NO_BONUS_APPARATUS ? cell('Stand', side.bonus ? '+0,1' : '') : '') + cell('NA', side.nd ? fmt1(side.nd) : '') + '</div>';
+  }
+
+  /**
+   * Knopf zum Wertungsfenster: „Wertung eingeben“ bzw. – schon freigegeben (Oberliga: schon erfasst) – „Wertung ändern“.
+   * Gesperrt vor dem Gerätestart, an gesperrten bzw. abgeschlossenen Geräten und ohne Turner (außer „kein Turner“).
+   */
+  function scoreButton(m, appKey, idx, sideKey, side, locked, noScores) {
+    var shown = sideShown(m, appKey, idx, sideKey);
+    var entered = !side.dns && S.sideFinal(side, m.rules) !== null;
+    var change = shown || (!isClassic(m) && entered);
+    var off = locked || noScores || (!side.gymnastId && !side.dns);
+    return '<button type="button" class="btn ' + (change ? '' : 'primary ') + 'score-btn" data-action="score-open" data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"' +
+      (off ? ' disabled' : '') + '>' + (change ? 'Wertung ändern' : 'Wertung eingeben') + '</button>';
   }
 
   function sideHtml(m, appKey, idx, sideKey, side, locked, position, struck, noScores) {
     var classic = isClassic(m);
-    // Vor „Gerät starten“ ist nur die Turnerauswahl aktiv.
-    var dis = locked || noScores || side.dns || side.zero;
     var color = sideColor(m, sideKey);
     var key = appKey + '-' + idx + '-' + sideKey;
-    var three = S.eJudgeCount(m.rules) === 3;
-    var bonusAllowed = appKey !== S.NO_BONUS_APPARATUS;
-    var eCols = three ? 3 : 2, dCols = bonusAllowed ? 3 : 2;
     var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"';
+    var d = m.apparatus[appKey].duels[idx];
     return '<div class="side ' + sideKey + (classic ? '' : position === 1 ? ' first' : ' second') + (side.dns ? ' dns' : '') + (struck ? ' struck' : '') +
       '" data-key="' + key + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
       (!classic && position === 1 ? '<span class="lead-tag">legt vor</span>' : '') +
       '<div class="side-head"><span class="order-no" title="' + (classic ? 'Startposition am Gerät' : 'Startreihenfolge im Duell') + '">' + position + '.</span>' +
       '<span class="side-label" title="' + (sideKey === 'home' ? 'Heim' : 'Gast') + '">' + teamHtml(sideKey === 'home' ? m.homeTeamId : m.guestTeamId) + '</span>' +
-      gymnastSelect(m, appKey, idx, sideKey, side, locked) + '</div>' +
-      // Zwei Gruppen ohne Überschrift: E-Kampfgericht (Abzüge) und D-Kampfgericht (D-Note, Standbonus, neutraler Abzug).
-      '<div class="score-row">' +
-      '<div class="score-grp" style="flex:' + eCols + ';grid-template-columns:repeat(' + eCols + ',minmax(0,1fr))">' +
-      scoreInput(appKey, idx, sideKey, 'e1', side.e1, dis, 'Abzüge E1') +
-      scoreInput(appKey, idx, sideKey, 'e2', side.e2, dis, 'Abzüge E2') +
-      (three ? scoreInput(appKey, idx, sideKey, 'e3', side.e3, dis, 'Abzüge E3') : '') + '</div>' +
-      '<div class="score-grp" style="flex:' + dCols + ';grid-template-columns:repeat(' + dCols + ',minmax(0,1fr))">' +
-      scoreInput(appKey, idx, sideKey, 'd', side.d, dis, 'D-Note') +
-      (bonusAllowed ? '<label class="score-field bonus-field">' + fieldLabel('Standbonus') + '<span class="bonus-box' + (dis ? ' off' : '') + '"><input type="checkbox" ' +
-        fieldAttrs(appKey, idx, sideKey, 'bonus') + (side.bonus ? ' checked' : '') + (dis ? ' disabled' : '') + '> +0,1</span></label>' : '') +
-      scoreInput(appKey, idx, sideKey, 'nd', side.nd, dis, 'Neutr. Abzug') +
-      '</div></div>' +
+      // Nach der Freigabe wird der Turner nur noch im Wertungsfenster („Wertung ändern“) geändert.
+      gymnastSelect(m, appKey, idx, sideKey, side, locked || sideShown(m, appKey, idx, sideKey)) + '</div>' +
+      sideValuesHtml(m, appKey, side) +
       '<div class="result-row">' +
-      '<span style="flex:' + eCols + '">E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</strong></span>' +
-      '<span class="final" style="flex:' + dCols + '">' + 
-      'Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
+      '<span>E-Note <strong data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</strong></span>' +
+      '<span class="final">Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
-      // „Wertung 0,00“ nur mit ausgewähltem Turner; der Platz bleibt, damit nichts springt.
-      '<label class="check' + (side.gymnastId && !side.dns ? '' : ' hidden-keep') + '"><input type="checkbox" tabindex="-1" ' + fieldAttrs(appKey, idx, sideKey, 'zero') + (side.zero ? ' checked' : '') +
-        (locked || noScores || side.dns || !side.gymnastId ? ' disabled' : '') + '> Wertung 0,00</label>' +
+      (classic ? '<span class="side-status" data-out="sideact-' + key + '">' + sideActions(m, d, appKey, idx, sideKey) + '</span>' : '') +
       (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer"' + attrs + (locked || noScores ? ' disabled' : '') + '>Sturz-Timer</button>' : '') +
+      scoreButton(m, appKey, idx, sideKey, side, locked, noScores) +
       '</div></div>';
   }
 
@@ -1273,20 +1292,10 @@
   }
 
   /** Knöpfe unter der zweiten Übung – in der Tab-Reihenfolge als Letztes im Duell. */
-  function duelActions(r, duel, appKey, idx, locked) {
-    var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '"';
-    var ready = duelReady(r, duel);
-    if (S.hasPendingCorrection(duel)) {
-      var html = '<span class="changed">geändert – noch nicht freigegeben</span>';
-      if (!locked) {
-        html += '<button class="btn primary"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Korrektur freigeben</button>' +
-          '<button class="btn ghost" tabindex="-1"' + attrs + ' data-action="discard">Änderung verwerfen</button>';
-      }
-      return html;
-    }
-    if (duel.revealedAt) return '<span class="revealed">✓ freigegeben</span>';
-    if (locked) return '';
-    return '<button class="btn primary reveal-btn"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Wertung freigeben</button>';
+  /** Mittelspalte (Oberliga): nur noch der Stand – freigegeben wird im Wertungsfenster. */
+  function duelActions(r, duel) {
+    if (S.hasPendingCorrection(duel)) return '<span class="changed">geändert – noch nicht freigegeben</span>';
+    return duel.revealedAt ? '<span class="revealed">✓ freigegeben</span>' : '';
   }
 
   /**
@@ -1378,7 +1387,7 @@
         sideHtml(m, appKey, i, order[0], d[order[0]], locked, 1, false, noScores) +
         sideHtml(m, appKey, i, order[1], d[order[1]], locked, 2, false, noScores) +
         '<div class="duel-result" data-out="duel-' + appKey + '-' + i + '">' + duelPoints(m, ar.duels[i]) + '</div>' +
-        '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d, appKey, i, locked || noScores) + '</div>' +
+        '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d) + '</div>' +
         '</div>';
     }).join('');
     return '<div class="warmup-row status-row">' + statusRowHtml(m, appKey) + '</div>' +
@@ -1393,20 +1402,10 @@
     return S.sideFinal(s, m.rules) !== null && (s.dns || !!s.gymnastId);
   }
 
-  function sideActions(m, d, appKey, idx, sideKey, locked) {
-    var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"';
-    var ready = sideReady(m, d[sideKey]);
-    if (S.sidePending(d, sideKey)) {
-      var html = '<span class="changed">geändert – noch nicht freigegeben</span>';
-      if (!locked) {
-        html += '<button class="btn primary"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Korrektur freigeben</button>' +
-          '<button class="btn ghost" tabindex="-1"' + attrs + ' data-action="discard">Änderung verwerfen</button>';
-      }
-      return html;
-    }
-    if (S.revOf(d, sideKey).revealedAt) return '<span class="revealed">✓ freigegeben</span>';
-    if (locked) return '';
-    return '<button class="btn primary reveal-btn"' + attrs + ' data-action="reveal"' + (ready ? '' : ' disabled') + '>Wertung freigeben</button>';
+  /** Landesliga: Stand der Übung im Fuß der Kachel – freigegeben wird im Wertungsfenster. */
+  function sideActions(m, d, appKey, idx, sideKey) {
+    if (S.sidePending(d, sideKey)) return '<span class="changed">geändert – noch nicht freigegeben</span>';
+    return S.revOf(d, sideKey).revealedAt ? '<span class="revealed">✓ freigegeben</span>' : '';
   }
 
   function classicSumHtml(m, ar, sideKey) {
@@ -1427,8 +1426,7 @@
       return '<div class="cl-row">' + order.map(function (k) {
         var locked = duelBlocked(m, appKey, i, k);
         return '<div class="cl-cell' + (S.sidePending(d, k) ? ' pending' : '') + (locked && m.status !== 'final' && !doneLocked(m, appKey) ? ' blocked' : '') + '">' +
-          sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0, noScores) +
-          '<div class="duel-actions" data-out="sideact-' + appKey + '-' + i + '-' + k + '">' + sideActions(m, d, appKey, i, k, locked || noScores) + '</div></div>';
+          sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0, noScores) + '</div>';
       }).join('') + '</div>';
     }).join('');
     var sums = '<div class="cl-row cl-sums">' + order.map(function (k) {
@@ -1519,7 +1517,7 @@
         ['home', 'guest'].forEach(function (k) {
           var key = tab + '-' + i + '-' + k;
           var act = $app.querySelector('[data-out="sideact-' + key + '"]');
-          var html = sideActions(m, d, tab, i, k, duelBlocked(m, tab, i, k) || !scoresAllowed(m, tab));
+          var html = sideActions(m, d, tab, i, k);
           if (act && act.innerHTML !== html) act.innerHTML = html;
           var cell = act && act.closest('.cl-cell');
           if (cell) cell.classList.toggle('pending', S.sidePending(d, k));
@@ -1537,7 +1535,7 @@
       out('duel-' + tab + '-' + i, duelPoints(m, ar.duels[i]));
       // Knöpfe nur neu aufbauen, wenn sich etwas ändert – sonst ginge ein Fokus darauf verloren.
       var act = $app.querySelector('[data-out="duelact-' + tab + '-' + i + '"]');
-      var html = duelActions(ar.duels[i], d, tab, i, duelBlocked(m, tab, i) || !scoresAllowed(m, tab));
+      var html = duelActions(ar.duels[i], d);
       if (act && act.innerHTML !== html) act.innerHTML = html;
       ['home', 'guest'].forEach(function (k) {
         out('enote-' + tab + '-' + i + '-' + k, fmt(S.eScore(d[k], m.rules)));
@@ -1547,6 +1545,7 @@
     out('scorers', scorersHtml(m));
   }
 
+  /** Turnerauswahl in der Kachel (Noten werden im Wertungsfenster eingegeben). */
   function handleScoreChange(el) {
     var m = match(route().id);
     if (!m || m.status === 'final') return;
@@ -1556,8 +1555,6 @@
     var field = el.getAttribute('data-field');
     var side = m.apparatus[appKey].duels[idx][sideKey];
     if (duelBlocked(m, appKey, idx, sideKey)) { toast(doneLocked(m, appKey) ? 'Das Gerät ist abgeschlossen – zum Ändern „Bearbeiten“ wählen.' : 'Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
-    if (field !== 'gymnast' && !scoresAllowed(m, appKey)) { toast('Erst „Gerät starten“ drücken.', 'error'); render(); return; }
-    var pendingBefore = S.pendingCorrections(m).length;
 
     if (field === 'gymnast' && el.value === NO_GYMNAST) {
       // „kein Turner“ = nicht angetreten; bereits eingegebene Wertungen werden nach Rückfrage gelöscht.
@@ -1593,74 +1590,7 @@
           if (sel) sel.focus();
         }
       });
-      return;
     }
-
-    if (field === 'dns') {
-      if (el.checked) {
-        var hasData = side.gymnastId || side.d !== null || side.e1 !== null || side.e2 !== null || side.e3 !== null || side.nd || side.bonus || side.zero;
-        var setDns = function () {
-          Object.assign(side, S.emptySide(), { dns: true });
-          save('matches', m).then(function () { rerenderPanel(m); });
-        };
-        if (!hasData) { setDns(); return; }
-        askConfirm('„Nicht angetreten“: Turner und bereits eingegebene Wertungen dieser Übung werden gelöscht. Fortfahren?').then(function (yes) {
-          if (yes) setDns(); else el.checked = false;
-        });
-        return;
-      }
-      side.dns = false;
-      save('matches', m).then(function () { rerenderPanel(m); });
-      return;
-    }
-
-    if (field === 'zero') {
-      if (!el.checked) {
-        side.zero = false;
-        save('matches', m).then(function () { rerenderPanel(m); });
-        return;
-      }
-      if (!side.gymnastId) { el.checked = false; toast('Erst einen Turner wählen.', 'error'); return; }
-      // Wertung 0,00: bereits eingegebene Werte werden gelöscht, der Turner bleibt.
-      var setZero = function () {
-        Object.assign(side, { d: null, e1: null, e2: null, e3: null, nd: 0, bonus: false, zero: true });
-        save('matches', m).then(function () { rerenderPanel(m); });
-      };
-      var hasScores = side.d !== null || side.e1 !== null || side.e2 !== null || side.e3 !== null || side.nd || side.bonus;
-      if (!hasScores) { setZero(); return; }
-      askConfirm('Wertung 0,00: Die bereits eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?').then(function (yes) {
-        if (yes) setZero(); else el.checked = false;
-      });
-      return;
-    }
-
-    if (field === 'bonus') {
-      side.bonus = el.checked && appKey !== S.NO_BONUS_APPARATUS;
-      save('matches', m).then(function () {
-        if (S.pendingCorrections(m).length !== pendingBefore) rerenderPanel(m);
-        else refreshComputed(m);
-      });
-      return;
-    }
-
-    var v = S.parseScore(el.value);
-    if (field === 'nd' && v === null) v = 0;
-    var isDeduction = field === 'e1' || field === 'e2' || field === 'e3';
-    var max = field === 'd' ? 20000 : 10000;
-    var invalid = Number.isNaN(v) || v > max || (v !== null && v % 100 !== 0);
-    if (invalid) {
-      el.classList.add('invalid');
-      toast((isDeduction ? 'Ungültiger E-Abzug' : field === 'nd' ? 'Ungültiger neutraler Abzug' : 'Ungültige D-Note') +
-        ': „' + el.value + '“ (eine Nachkommastelle, z. B. ' + (field === 'd' ? '4,5' : '1,3') + ')', 'error');
-      return;
-    }
-    el.classList.remove('invalid');
-    side[field] = v;
-    if (v !== null && !(field === 'nd' && v === 0)) el.value = fmt1(v);
-    save('matches', m).then(function () {
-      if (S.pendingCorrections(m).length !== pendingBefore) rerenderPanel(m);
-      else refreshComputed(m);
-    });
   }
 
   function rerenderPanel(m) {
@@ -1668,7 +1598,6 @@
     if (!panel) return;
     var focusKey = focusKeyOf(document.activeElement);
     panel.innerHTML = apparatusPanel(m, currentTab(m));
-    fitFieldLabels();
     refreshComputed(m);
     tickTimers();
     restoreFocus(focusKey);
@@ -2848,27 +2777,27 @@
         '<b>Einturnzeit und Gerätestart</b>: Turner lassen sich an jedem Gerät jederzeit auswählen (auch vorab). Mit „Einturnzeit (6:40) starten“ beginnt das Einturnen; nach Ablauf und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch – erst dann sind Wertungen und „Wertung 0,00“ möglich, und die Anzeigetafel wechselt auf dieses Gerät. Bis dahin bleibt dort das vorige Gerät mit allen Werten stehen. Wird die Einturnzeit vorzeitig gestoppt, fragt die App, ob das Gerät jetzt starten soll. Ohne Einturnzeit: „Gerät direkt starten“ (mit Rückfrage). Über jedem Gerät zeigt eine Statuszeile den Stand: „● Gerät läuft“, „✓ Gerät abgeschlossen“ oder „🔒 Gerät gesperrt“ mit dem Grund. Ein versehentlicher Start lässt sich mit „Start zurücknehmen“ bis zur ersten Freigabe zurücknehmen; bereits eingetragene Noten werden dabei nach Rückfrage gelöscht, die Turnerauswahl bleibt.',
         'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt (am Handy nur Logo und Abzeichen, die Ergebnisse stehen im Gerätebereich). Am Laptop bleibt der obere Bereich mit den Gerätereitern beim Scrollen stehen. Solange ein Gerät läuft oder an einem Gerät die Einturnzeit läuft, kann an keinem anderen Gerät die Einturnzeit oder der Start begonnen werden; gesperrte Geräte lassen sich trotzdem öffnen, um Turner zu ändern. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern in der Statuszeile „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre mit „Sperre aufheben …“ in der Statuszeile eines gesperrten Geräts (doppelt bestätigt) für alle Geräte aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
 
-        'Je Turner: Turner auswählen, dann Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutralen Abzug eintragen – mit Komma oder Punkt und einer Nachkommastelle, z. B. 4,8 oder 1.3. ' +
-          'E-Note und Endnote rechnet die App: E-Note = 10 − Mittelwert der Abzüge E1 und E2 (bei drei E-Kampfrichtern 10 − mittlerer Abzug, höchster und niedrigster gestrichen); Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. Jede Eingabe wird sofort gespeichert. ' +
-          'Bei wenig Platz stehen über allen Feldern Kurzformen: E1–E3 = Abzüge der E-Kampfrichter, Stand = Standbonus, NA = neutraler Abzug.',
-        classic
-          ? 'Je Mannschaft zählen an jedem Gerät die ' + S.CLASSIC_RULES.counting + ' höchsten Wertungen, die niedrigste ist die Streichwertung. Jede Übung wird einzeln mit „Wertung freigeben“ gezählt und auf der Anzeigetafel gezeigt.'
-          : 'Die Scorepunkte eines Duells zählen und erscheinen auf der Anzeigetafel erst nach „Wertung freigeben“.',
-        (classic ? 'Mit der <b>Tab-Taste</b> geht es der Reihe nach durch die Eingabefelder.' : 'Mit der <b>Tab-Taste</b> geht es in dieser Reihenfolge durch das ganze Duell.') +
-          ' Enter öffnet die Turnerauswahl und schaltet den Standbonus um; die Pfeiltasten ändern Noten in 0,1-Schritten.',
-        '<b>kein Turner</b> (ganz oben in der Turnerauswahl, auch vorab wählbar): Die Übung zählt 0 Punkte, bereits eingegebene Wertungen werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint sie als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b>: Der Turner ist angetreten, erhält aber die Endnote 0 – das Kästchen erscheint erst nach Auswahl eines Turners; bereits eingegebene Werte werden dabei gelöscht.',
+        'Je Turner: Turner in der Kachel auswählen, dann <b>Wertung eingeben</b> – es öffnet sich das Wertungsfenster mit Abzügen E1, E2 (ggf. E3), D-Note, Standbonus und neutralem Abzug. ' +
+          'Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. 4,8 oder 1.3; E-Note und Endnote rechnet die App schon beim Tippen: E-Note = 10 − Mittelwert der Abzüge E1 und E2 (bei drei E-Kampfrichtern 10 − mittlerer Abzug, höchster und niedrigster gestrichen); Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. ' +
+          'Bei wenig Platz stehen über allen Feldern Kurzformen: E1–E3 = Abzüge der E-Kampfrichter, Stand = Standbonus, NA = neutraler Abzug. Der Sturz-Timer ist auch im Fenster bedienbar.',
+        '<b>Wertung freigeben</b> im Fenster übernimmt die Werte; <b>Abbrechen</b> verwirft sie ohne Rückfrage. In der Kachel stehen die Werte danach als Text, der Knopf heißt dann „Wertung ändern“.',
+        (classic ? 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.' : 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.') +
+          ' Im Fenster springt Enter ins nächste Feld und nach dem letzten auf „Wertung freigeben“, die Pfeiltasten ändern Noten in 0,1-Schritten, Esc bricht ab. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
+        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Ohne getipptes Komma ist die letzte Ziffer die Nachkommastelle („17“ = 1,7), ein getipptes Komma gilt wie getippt („4 , 5“ = 4,5); „Weiter ▶“ springt ins nächste Feld, ±0,1 ändert den Wert. ' +
+          'Mit angeschlossener Tastatur verschwindet sie beim ersten Tastendruck. Einstellung unten im Fenster: automatisch, immer oder nie (gilt für dieses Gerät).',
+        '<b>kein Turner</b> (ganz oben in der Turnerauswahl, auch vorab wählbar): Die Übung zählt 0 Punkte; auch sie wird über „Wertung eingeben“ freigegeben. Bereits erfasste Werte werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0.',
         classic
           ? '<b>Mannschaftsabzug</b>: Die Links „Mannschaftsabzug Heim“ bzw. „Gast“ ganz unten im Gerätebereich öffnen die Eingabe des Abzugs in Punkten. Es gibt je Mannschaft nur einen Abzug für den ganzen Wettkampf – die Links unter allen Geräten sind dieselben. Der Abzug mindert nur die Gesamtpunktzahl, nicht die Geräteergebnisse; 0 oder leer entfernt ihn. Er erscheint auf der Anzeigetafel und – nur wenn eingetragen – im Protokoll.'
           : '<b>Mannschaftsabzüge</b> werden beim Turner als <b>neutraler Abzug</b> eingetragen, der zuletzt am Gerät war bzw. bei dem der Abzug zuerst aufgefallen ist.'
       ]) +
 
       sec('3. Wertung freigeben', classic ? [
-        'Jede Übung hat ihren eigenen Knopf <b>Wertung freigeben</b>. Erst dann zählt die Wertung und erscheint auf der Anzeigetafel.',
+        'Jede Übung wird im Wertungsfenster mit <b>Wertung freigeben</b> einzeln freigegeben. Erst dann zählt die Wertung und erscheint auf der Anzeigetafel.',
         'Je Mannschaft und Gerät zählen die drei höchsten Wertungen; die Streichwertung wird grau durchgestrichen angezeigt.',
-        'Wird eine freigegebene Wertung nachträglich geändert, sind alle anderen Übungen gesperrt, bis die Änderung mit <b>Korrektur freigeben</b> bestätigt oder mit <b>Änderung verwerfen</b> zurückgenommen wird.'
+        'Korrektur: <b>Wertung ändern</b> öffnet das Fenster mit den bisherigen Werten (auch der Turner lässt sich dort ändern); <b>Korrektur freigeben</b> zeigt die neue Wertung auf der Tafel, „Abbrechen“ lässt alles, wie es war.'
       ] : [
-        'Sind beide Turner eines Duells gewählt und vollständig gewertet, wird <b>Wertung freigeben</b> aktiv. Erst dann zählen die Scorepunkte und erscheinen auf der Anzeigetafel.',
-        'Wird eine freigegebene Wertung nachträglich geändert, sind alle anderen Duelle gesperrt, bis die Änderung mit <b>Korrektur freigeben</b> bestätigt oder mit <b>Änderung verwerfen</b> zurückgenommen wird.'
+        '„Wertung freigeben“ beim ersten Turner eines Duells speichert seine Wertung – auf der Anzeigetafel erscheint sie noch nicht. Die freigegebene Wertung des zweiten Turners gibt das ganze Duell frei: Erst dann zählen die Scorepunkte und die Tafel zeigt beide Noten. Im Fenster des zweiten Turners steht vorher eine Vorschau mit den Scorepunkten.',
+        'Korrektur: <b>Wertung ändern</b> öffnet das Fenster mit den bisherigen Werten (auch der Turner lässt sich dort ändern); <b>Korrektur freigeben</b> zeigt das geänderte Duell auf der Tafel, „Abbrechen“ lässt alles, wie es war.'
       ]) +
 
       sec('4. Timer', [
@@ -3019,35 +2948,353 @@
     d[k].name = g ? g.name : shown.name;
   }
 
-  /** Landesliga: eine einzelne Übung freigeben (bzw. ihre Korrektur). */
-  function revealSide(m, btn) {
-    var appKey = btn.getAttribute('data-app');
-    var idx = parseInt(btn.getAttribute('data-duel'), 10);
-    var k = btn.getAttribute('data-side');
+  /** Oberliga: Duell auf die Tafel bringen (erste Freigabe oder Korrektur). Liefert 'first', 'correction' oder 'none'. */
+  function revealDuelNow(m, appKey, idx) {
+    var duel = m.apparatus[appKey].duels[idx];
+    var wasCorrection = S.hasPendingCorrection(duel);
+    if (duel.shown && !wasCorrection) return 'none';
+    duel.prevShown = wasCorrection ? duel.shown : null;
+    duel.revealKind = wasCorrection ? 'correction' : 'first';
+    duel.revealedAt = new Date().toISOString();
+    if (!duel.firstRevealedAt) duel.firstRevealedAt = duel.revealedAt;
+    duel.shown = { home: S.snapshotSide(duel.home), guest: S.snapshotSide(duel.guest) };
+    return wasCorrection ? 'correction' : 'first';
+  }
+
+  /** Landesliga: eine einzelne Übung auf die Tafel bringen (erste Freigabe oder Korrektur). */
+  function revealSideNow(m, appKey, idx, k) {
     var d = m.apparatus[appKey].duels[idx];
-    if (!d || m.status === 'final') return;
-    if (!sideReady(m, d[k])) { toast('Übung ist noch nicht vollständig erfasst.', 'error'); return; }
     d.revs = d.revs || { home: { revealedAt: null }, guest: { revealedAt: null } };
     var rev = d.revs[k] = d.revs[k] || { revealedAt: null };
     var wasCorrection = S.sidePending(d, k);
-    if (rev.shown && !wasCorrection) return;
+    if (rev.shown && !wasCorrection) return 'none';
     rev.prevShown = wasCorrection ? rev.shown : null;
     rev.revealKind = wasCorrection ? 'correction' : 'first';
     rev.revealedAt = new Date().toISOString();
     if (!rev.firstRevealedAt) rev.firstRevealedAt = rev.revealedAt;
     rev.shown = S.snapshotSide(d[k]);
+    return wasCorrection ? 'correction' : 'first';
+  }
+
+  // ---------- Wertungsfenster: Eingabe und Freigabe einer Übung ----------
+  // Die Kachel zeigt die Werte nur als Text. „Wertung eingeben“ öffnet dieses Fenster; erst „Wertung freigeben“
+  // übernimmt die Werte (Landesliga: auf die Tafel; Oberliga: auf die Tafel, sobald beide Turner des Duells freigegeben sind).
+  // „Abbrechen“ verwirft die Eingaben ohne Rückfrage. Auf Touch-Geräten gibt es eine eigene Zahlentastatur.
+
+  var KEYPAD_KEY = 'wtb-zahlentastatur';
+  var DLG_FIELDS = ['e1', 'e2', 'e3', 'd', 'nd'];
+  var DLG_LABEL = { e1: 'Abzüge E1', e2: 'Abzüge E2', e3: 'Abzüge E3', d: 'D-Note', nd: 'Neutr. Abzug' };
+  var scoreDlg = null;
+  var hwKeySeen = false; // echte Tastatur benutzt: Bildschirm-Tastatur („automatisch“) für diese Sitzung aus
+
+  function keypadSetting() {
+    try { return localStorage.getItem(KEYPAD_KEY) || 'auto'; } catch (e) { return 'auto'; }
+  }
+
+  function setKeypadSetting(v) {
+    try { localStorage.setItem(KEYPAD_KEY, v); } catch (e) { /* gilt dann nur bis zum Neuladen */ }
+  }
+
+  function isTouchDevice() {
+    return (navigator.maxTouchPoints || 0) > 0 || !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  }
+
+  function keypadOn() {
+    var set = keypadSetting();
+    return set === 'on' || (set === 'auto' && isTouchDevice() && !hwKeySeen);
+  }
+
+  function dlgFields(m) {
+    return S.eJudgeCount(m.rules) === 3 ? DLG_FIELDS : DLG_FIELDS.filter(function (f) { return f !== 'e3'; });
+  }
+
+  /** Getippter Text → Wert (null = leer, NaN = ungültig); neutraler Abzug leer = 0. */
+  function dlgValue(field, text) {
+    var v = S.parseScore(text);
+    if (field === 'nd' && v === null) return 0;
+    if (v === null || Number.isNaN(v)) return v;
+    return v > (field === 'd' ? 20000 : 10000) || v % 100 !== 0 ? NaN : v;
+  }
+
+  function dlgInvalid() {
+    return DLG_FIELDS.filter(function (f) { return Number.isNaN(dlgValue(f, scoreDlg.text[f] || '')); });
+  }
+
+  /** Entwurf als Übung (für E-Note, Endnote und Freigabe). */
+  function dlgSide() {
+    var s = Object.assign({}, scoreDlg.draft);
+    DLG_FIELDS.forEach(function (f) {
+      var v = s.dns || s.zero ? (f === 'nd' ? 0 : null) : dlgValue(f, scoreDlg.text[f] || '');
+      s[f] = Number.isNaN(v) ? null : v;
+    });
+    return s;
+  }
+
+  function sameAsShown(side, shown) {
+    var norm = function (f, v) { return f === 'nd' ? v || 0 : f === 'dns' || f === 'bonus' || f === 'zero' ? !!v : v === undefined ? null : v; };
+    return S.SHOWN_FIELDS.every(function (f) { return norm(f, side[f]) === norm(f, shown[f]); });
+  }
+
+  function openScoreDlg(m, appKey, idx, sideKey) {
+    var side = m.apparatus[appKey].duels[idx][sideKey];
+    var text = {};
+    DLG_FIELDS.forEach(function (f) {
+      var v = side[f];
+      text[f] = v === null || v === undefined || (f === 'nd' && !v) ? '' : fmt1(v);
+    });
+    scoreDlg = {
+      matchId: m.id, appKey: appKey, idx: idx, sideKey: sideKey, text: text, buf: null,
+      draft: { gymnastId: side.gymnastId, number: side.number, name: side.name, dns: !!side.dns, bonus: !!side.bonus, zero: !!side.zero },
+      correction: sideShown(m, appKey, idx, sideKey)
+    };
+    scoreDlg.active = dlgFields(m).filter(function (f) { return f !== 'nd' && !text[f]; })[0] || 'e1';
+    showScoreDlg(true);
+  }
+
+  function closeScoreDlg() {
+    scoreDlg = null;
+    var box = document.getElementById('score-dlg');
+    if (box) box.innerHTML = '';
+    document.body.classList.remove('sd-open');
+  }
+
+  function scoreDlgHtml(m) {
+    var g = scoreDlg, a = g.appKey, classic = isClassic(m), kp = keypadOn();
+    var color = sideColor(m, g.sideKey);
+    var pos = classic ? S.classicPosition(m, a, g.idx, g.sideKey) : (S.startOrder(m, a, g.idx)[0] === g.sideKey ? 1 : 2);
+    var where = apparatusName(a) + ' · ' + (classic ? pos + '. Übung' : 'Duell ' + (g.idx + 1) + ' · ' + pos + '. Turner' + (pos === 1 ? ' (legt vor)' : ''));
+    var attrs = ' data-app="' + a + '" data-duel="' + g.idx + '" data-side="' + g.sideKey + '"';
+    var timer = FALL_TIMER_APPARATUS.indexOf(a) >= 0 ? '<button type="button" class="btn small timer-btn" data-action="fall-timer"' + attrs + '>Sturz-Timer</button>' : '';
+    // Nach der Freigabe lässt sich hier auch der Turner korrigieren.
+    var who = g.correction
+      ? '<select class="sd-gsel" data-dlg="gymnast" aria-label="Turner">' + gymnastOptions(m, a, g.idx, g.sideKey, g.draft) + '</select>'
+      : '<span class="sd-name">' + (g.draft.dns ? 'kein Turner' : esc(gymnastLabel(g.draft.number, g.draft.name))) + '</span>';
+    var body;
+    if (g.draft.dns) {
+      body = '<div class="sd-none">kein Turner – Endnote 0,00</div>';
+    } else {
+      var inp = function (f) {
+        return '<label class="sd-f">' + fieldLabel(DLG_LABEL[f]) + '<input type="text" data-dlg="' + f + '" value="' + esc(g.text[f] || '') + '" autocomplete="off"' +
+          (f === 'nd' ? ' placeholder="0,0"' : '') + (kp ? ' readonly inputmode="none"' : ' inputmode="decimal"') + (g.draft.zero ? ' disabled' : '') +
+          (kp && g.active === f ? ' class="active"' : '') + '></label>';
+      };
+      var es = dlgFields(m).filter(function (f) { return f.charAt(0) === 'e'; });
+      body = '<div class="sd-fields"><div class="sd-grp">' + es.map(inp).join('') + '</div><div class="sd-grp">' + inp('d') +
+        (a !== S.NO_BONUS_APPARATUS ? '<label class="sd-f">' + fieldLabel('Standbonus') + '<span class="sd-box' + (g.draft.zero ? ' off' : '') + '"><input type="checkbox" data-dlg="bonus"' +
+          (g.draft.bonus ? ' checked' : '') + (g.draft.zero ? ' disabled' : '') + '> +0,1</span></label>' : '') + inp('nd') + '</div></div>' +
+        '<div class="sd-res"><label class="check"><input type="checkbox" data-dlg="zero"' + (g.draft.zero ? ' checked' : '') + (g.draft.gymnastId ? '' : ' disabled') + '> Wertung 0,00</label>' +
+        '<span class="sd-n"><span>E-Note <b data-dlg-out="enote"></b></span><span class="fin">Endnote <b data-dlg-out="final"></b></span></span></div>';
+    }
+    var set = keypadSetting();
+    var opt = function (v, l) { return '<option value="' + v + '"' + (set === v ? ' selected' : '') + '>' + l + '</option>'; };
+    var pad = kp ? '<div class="sd-pad"><div class="sd-disp"><span class="w" data-dlg-out="kpwhat"></span><span class="val" data-dlg-out="kpval"></span></div>' +
+      '<div class="sd-keys">' + ['7', '8', '9', 'back', '4', '5', '6', ',', '1', '2', '3', 'next', '0', 'minus', 'plus'].map(function (k) {
+        var label = { back: '⌫', next: 'Weiter ▶', minus: '−0,1', plus: '+0,1' }[k] || k;
+        return '<button type="button" class="' + (k === 'next' ? 'k-next' : /^\d$/.test(k) || k === ',' ? '' : 'k-fn') + '" data-action="sd-key" data-k="' + k + '" aria-label="' + label + '">' + label + '</button>';
+      }).join('') + '</div></div>' : '';
+    return '<div class="sd-backdrop"><div class="sd-win' + (kp ? ' kp' : '') + '" role="dialog" aria-modal="true" aria-label="Wertung" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
+      '<div class="sd-main"><div class="sd-head"><span class="sd-where">' + where + '</span>' + timer + '</div>' +
+      '<div class="sd-gym"><span class="sd-tag">' + teamHtml(g.sideKey === 'home' ? m.homeTeamId : m.guestTeamId) + '</span>' + who + '</div>' + body +
+      '<div class="sd-prev" data-dlg-out="prev"></div>' +
+      '<div class="sd-btns"><span class="sd-hint" data-dlg-out="hint"></span><button type="button" class="btn" data-action="sd-cancel">Abbrechen</button>' +
+      '<button type="button" class="btn primary" data-action="sd-release">' + (g.correction ? 'Korrektur freigeben' : 'Wertung freigeben') + '</button></div>' +
+      '<div class="sd-set"><label>Zahlentastatur <select data-dlg="keypad">' + opt('auto', 'automatisch') + opt('on', 'immer') + opt('off', 'nie') + '</select></label></div>' +
+      '</div>' + pad + '</div></div>';
+  }
+
+  function showScoreDlg(focus) {
+    var box = document.getElementById('score-dlg');
+    var m = scoreDlg && match(scoreDlg.matchId);
+    if (!box || !m) { closeScoreDlg(); return; }
+    box.innerHTML = scoreDlgHtml(m);
+    document.body.classList.add('sd-open');
+    fitFieldLabels();
+    refreshScoreDlg();
+    if (focus) focusDlgField();
+  }
+
+  function focusDlgField() {
+    var box = document.getElementById('score-dlg');
+    var el = box && (box.querySelector('input[data-dlg="' + (scoreDlg.active || '') + '"]:not([disabled])') || box.querySelector('[data-action="sd-release"]'));
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    if (el.select && !keypadOn()) el.select();
+  }
+
+  /** Berechnete Werte, Vorschau, Hinweis und Freigabe-Knopf nachziehen (ohne die Felder neu aufzubauen). */
+  function refreshScoreDlg() {
+    var box = document.getElementById('score-dlg');
+    var g = scoreDlg, m = g && match(g.matchId);
+    if (!box || !m) return;
+    var out = function (k, html) { var el = box.querySelector('[data-dlg-out="' + k + '"]'); if (el) el.innerHTML = html; };
+    var side = dlgSide(), bad = dlgInvalid();
+    var d = m.apparatus[g.appKey].duels[g.idx];
+    out('enote', fmt(S.eScore(side, m.rules)));
+    out('final', fmt(S.sideFinal(side, m.rules)));
+    box.querySelectorAll('input[data-dlg]').forEach(function (el) {
+      el.classList.toggle('invalid', bad.indexOf(el.getAttribute('data-dlg')) >= 0);
+      if (keypadOn()) el.classList.toggle('active', el.getAttribute('data-dlg') === g.active);
+    });
+    var ready = !bad.length && sideReady(m, side);
+    var shown = isClassic(m) ? S.revOf(d, g.sideKey).shown : d.shown && d.shown[g.sideKey];
+    var changed = !shown || !sameAsShown(side, shown) || (isClassic(m) ? S.sidePending(d, g.sideKey) : S.hasPendingCorrection(d));
+    var rel = box.querySelector('[data-action="sd-release"]');
+    if (rel) rel.disabled = !(ready && changed);
+    var other = d[g.sideKey === 'home' ? 'guest' : 'home'];
+    var otherReady = sideReady(m, other);
+    out('hint', bad.length ? 'Ungültiger Wert – eine Nachkommastelle, z. B. ' + (bad[0] === 'd' ? '4,5' : '1,3') :
+      ready && !changed ? 'Keine Änderung' :
+      !isClassic(m) && !otherReady && !shown ? 'Die Note erscheint mit dem Duell auf der Tafel.' : '');
+    // Oberliga: Vorschau des Duells, wenn der andere Turner schon gewertet ist
+    var prev = '';
+    if (!isClassic(m) && ready && otherReady) {
+      var duel = { home: g.sideKey === 'home' ? side : d.home, guest: g.sideKey === 'guest' ? side : d.guest };
+      var res = S.duelResult(duel, m.rules);
+      var order = S.startOrder(m, g.appKey, g.idx);
+      var tn = function (k) { return teamHtml(k === 'home' ? m.homeTeamId : m.guestTeamId); };
+      prev = 'Vorschau Duell ' + (g.idx + 1) + ': ' + order.map(function (k) { return '<b>' + tn(k) + ' ' + fmt(S.sideFinal(duel[k], m.rules)) + '</b>'; }).join(' – ') + ' → ' +
+        (res.winner === 'draw' ? 'unentschieden' : '<b>' + (res.winner === 'home' ? res.homePoints : res.guestPoints) + ' Scorepunkte</b> für ' + tn(res.winner));
+    }
+    out('prev', prev);
+    box.querySelector('[data-dlg-out="prev"]').hidden = !prev;
+    if (keypadOn()) {
+      var f = g.active;
+      out('kpwhat', f ? esc(DLG_LABEL[f]) + ' · <b>' + esc(gymnastLabel(g.draft.number, g.draft.name)) + '</b>' : 'Feld antippen');
+      out('kpval', f ? esc(g.text[f] || '–') + (g.buf ? '<small>getippt: ' + esc(g.buf.split('').join(' ')) + '</small>' : '') : '');
+    }
+  }
+
+  /** Bildschirm-Tastatur: automatisches Komma (die letzte Ziffer ist die Nachkommastelle), ein getipptes Komma gilt wie getippt. */
+  function bufText(buf) {
+    if (buf === '') return '';
+    if (buf.indexOf(',') >= 0) return buf;
+    var n = parseInt(buf, 10);
+    return Math.floor(n / 10) + ',' + (n % 10);
+  }
+
+  function keypadPress(k) {
+    var g = scoreDlg, m = g && match(g.matchId);
+    if (!m || g.draft.dns || g.draft.zero) return;
+    if (k === 'next') { moveDlgActive(m); return; }
+    var f = g.active;
+    if (!f) return;
+    var buf = g.buf === null ? '' : g.buf;
+    if (/^\d$/.test(k)) {
+      var comma = buf.indexOf(',');
+      if (comma >= 0 ? buf.length - comma > 1 : buf.replace(/^0+/, '').length >= 3) return;
+      buf += k;
+    } else if (k === ',') {
+      if (buf.indexOf(',') < 0) buf = (buf === '' ? '0' : buf) + ',';
+    } else if (k === 'back') {
+      buf = buf.slice(0, -1);
+    } else if (k === 'minus' || k === 'plus') {
+      var cur = dlgValue(f, g.text[f] || '');
+      if (cur === null || Number.isNaN(cur)) cur = 0;
+      cur = Math.max(0, Math.min(f === 'd' ? 20000 : 10000, cur + (k === 'plus' ? 100 : -100)));
+      buf = String(cur / 100);
+    }
+    g.buf = buf;
+    g.text[f] = bufText(buf);
+    var el = document.querySelector('#score-dlg input[data-dlg="' + f + '"]');
+    if (el) el.value = g.text[f];
+    refreshScoreDlg();
+  }
+
+  /** „Weiter ▶“ bzw. Enter: zum nächsten Feld; nach dem letzten auf „Wertung freigeben“. */
+  function moveDlgActive(m) {
+    var g = scoreDlg, fs = dlgFields(m);
+    var i = fs.indexOf(g.active);
+    var el = document.querySelector('#score-dlg input[data-dlg="' + g.active + '"]');
+    if (el && !keypadOn() && el.value) { var v = dlgValue(g.active, el.value); if (v !== null && !Number.isNaN(v) && !(g.active === 'nd' && v === 0)) { el.value = fmt1(v); g.text[g.active] = el.value; } }
+    g.active = fs[i + 1] || null;
+    g.buf = null;
+    refreshScoreDlg();
+    if (g.active) focusDlgField();
+    else { var rel = document.querySelector('#score-dlg [data-action="sd-release"]'); if (rel) rel.focus({ preventScroll: true }); }
+  }
+
+  function releaseScoreDlg() {
+    var g = scoreDlg, m = g && match(g.matchId);
+    if (!m) { closeScoreDlg(); return; }
+    var side = dlgSide();
+    if (m.status === 'final' || dlgInvalid().length || !sideReady(m, side)) return;
+    var d = m.apparatus[g.appKey].duels[g.idx], live = d[g.sideKey];
+    ['d', 'e1', 'e2', 'e3', 'bonus', 'zero'].forEach(function (f) { live[f] = side[f]; });
+    live.nd = side.nd || 0;
+    if (g.correction) { live.gymnastId = side.gymnastId; live.number = side.number; live.name = side.name; live.dns = side.dns; }
+    var kind = isClassic(m) ? revealSideNow(m, g.appKey, g.idx, g.sideKey)
+      : duelReady(S.duelResult(d, m.rules), d) ? revealDuelNow(m, g.appKey, g.idx) : 'stored';
     var viaKeyboard = lastInputKeyboard;
-    var cellKey = appKey + '-' + idx + '-' + k;
+    var key = g.appKey + '-' + g.idx + '-' + g.sideKey;
+    closeScoreDlg();
     save('matches', m).then(function () {
       rerenderPanel(m);
-      // Per Tastatur weiter zur nächsten Übung in Startreihenfolge.
-      var cells = Array.prototype.slice.call($app.querySelectorAll('#apparatus-panel .cl-cell'));
-      var pos = cells.map(function (c) { return c.querySelector('.side').getAttribute('data-key'); }).indexOf(cellKey);
-      var nextCell = cells[pos + 1];
-      var next = nextCell && nextCell.querySelector('select[data-field="gymnast"]:not([disabled]), input[data-field]:not([type=checkbox]):not([disabled])');
-      if (next && !wasCorrection && viaKeyboard) next.focus();
-      toast(wasCorrection ? 'Korrektur freigegeben' : 'Wertung freigegeben');
+      if (viaKeyboard) focusNextScoreBtn(key, kind !== 'correction');
+      toast(kind === 'correction' ? 'Korrektur freigegeben' : kind === 'stored' ? 'Wertung erfasst – erscheint mit dem Duell auf der Tafel' : kind === 'none' ? 'Keine Änderung' : 'Wertung freigegeben');
     });
+  }
+
+  function cancelScoreDlg() {
+    var g = scoreDlg, m = g && match(g.matchId);
+    closeScoreDlg();
+    if (!m) return;
+    var d = m.apparatus[g.appKey].duels[g.idx];
+    var key = g.appKey + '-' + g.idx + '-' + g.sideKey;
+    // Offene Korrektur aus einer älteren Version: „Abbrechen“ verwirft sie.
+    if (isClassic(m) ? S.sidePending(d, g.sideKey) : S.hasPendingCorrection(d)) {
+      (isClassic(m) ? [g.sideKey] : ['home', 'guest']).forEach(function (k) {
+        restoreShownSide(m, d, k, isClassic(m) ? S.revOf(d, k).shown : d.shown[k]);
+      });
+      save('matches', m).then(function () { rerenderPanel(m); focusNextScoreBtn(key, false); toast('Änderung verworfen'); });
+      return;
+    }
+    focusNextScoreBtn(key, false);
+  }
+
+  /**
+   * Fokus nach dem Fenster: bei „next“ auf den nächsten Turner in Wettkampfreihenfolge – „Wertung eingeben“ bzw., solange
+   * dort noch kein Turner gewählt ist, seine Turnerauswahl –, sonst zurück auf „Wertung eingeben“ dieses Turners.
+   */
+  function focusNextScoreBtn(key, next) {
+    var sides = Array.prototype.slice.call($app.querySelectorAll('#apparatus-panel .side'));
+    var pos = sides.map(function (sd) { return sd.getAttribute('data-key'); }).indexOf(key);
+    var list = next ? sides.slice(pos + 1) : sides.slice(pos, pos + 1);
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i].querySelector('[data-action="score-open"]:not([disabled])') || (next ? list[i].querySelector('select[data-field="gymnast"]:not([disabled])') : null);
+      if (el) { el.focus(); return; }
+    }
+  }
+
+  /** Eingaben im Fenster: Felder, Standbonus, Wertung 0,00, Turner (nur bei Korrektur) und Einstellung der Zahlentastatur. */
+  function handleDlgChange(el) {
+    var g = scoreDlg, m = g && match(g.matchId);
+    if (!m) return;
+    var f = el.getAttribute('data-dlg');
+    if (f === 'keypad') { setKeypadSetting(el.value); if (el.value !== 'auto') hwKeySeen = false; showScoreDlg(true); return; }
+    if (f === 'bonus') { g.draft.bonus = el.checked; refreshScoreDlg(); return; }
+    if (f === 'zero') {
+      g.draft.zero = el.checked;
+      if (el.checked) { DLG_FIELDS.forEach(function (x) { g.text[x] = ''; }); g.draft.bonus = false; }
+      showScoreDlg(true);
+      return;
+    }
+    if (f === 'gymnast') {
+      if (el.value === NO_GYMNAST) {
+        Object.assign(g.draft, { gymnastId: null, number: null, name: '', dns: true, bonus: false, zero: false });
+        DLG_FIELDS.forEach(function (x) { g.text[x] = ''; });
+      } else {
+        var tm = team(g.sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
+        var gy = tm && tm.gymnasts.filter(function (x) { return x.id === el.value; })[0];
+        Object.assign(g.draft, { gymnastId: el.value || null, number: gy ? gy.number : null, name: gy ? gy.name : '', dns: false });
+        if (!g.draft.gymnastId) g.draft.zero = false;
+      }
+      showScoreDlg(false);
+      return;
+    }
+    // Textfeld verlassen: gültigen Wert einheitlich anzeigen (z. B. 4.5 → 4,5)
+    var v = dlgValue(f, el.value);
+    if (v !== null && !Number.isNaN(v) && !(f === 'nd' && v === 0)) { el.value = fmt1(v); g.text[f] = el.value; }
+    refreshScoreDlg();
   }
 
   // ---------- Ereignisse ----------
@@ -3055,6 +3302,12 @@
   // Namen von D1/D2 sofort in ein noch verbundenes E2-/E3-Feld übernehmen.
   $app.addEventListener('input', function (ev) {
     var el = ev.target;
+    if (scoreDlg && el.matches && el.matches('#score-dlg input[type=text][data-dlg]')) {
+      scoreDlg.text[el.getAttribute('data-dlg')] = el.value;
+      scoreDlg.active = el.getAttribute('data-dlg');
+      refreshScoreDlg();
+      return;
+    }
     if (!el.form || el.form.getAttribute('data-form') !== 'match') return;
     if (el.name === 'judgeD1' || el.name === 'judgeD2') linkJudges(el.form);
     if (el.name === 'judgeE2Home' || el.name === 'judgeE3Guest') el.dataset.linked = el.value === el.form[el.name === 'judgeE2Home' ? 'judgeD1' : 'judgeD2'].value ? '1' : '';
@@ -3063,6 +3316,7 @@
   $app.addEventListener('change', function (ev) {
     var el = ev.target;
     if (el.dataset && el.dataset.picking) return; // erst mit Enter übernehmen
+    if (el.hasAttribute('data-dlg')) { handleDlgChange(el); return; }
     if (el.hasAttribute('data-field')) { handleScoreChange(el); return; }
     if (el.hasAttribute('data-import')) { importFile(el.files[0]); el.value = ''; return; }
     if (el.name === 'neutralE2' && el.form) { syncJudgeFields(el.form); return; }
@@ -3107,20 +3361,6 @@
     }
   });
 
-  var SCORE_FIELDS = ['d', 'e1', 'e2', 'e3', 'nd'];
-
-  /** Reihenfolge wie mit der Tabulatortaste: Turner, Notenfelder, Standbonus – je Übung –, dann „Wertung freigeben“. */
-  function entrySequence() {
-    return Array.prototype.slice.call($app.querySelectorAll(
-      'select[data-field="gymnast"]:not([disabled]), input[data-field]:not([type=checkbox]):not([disabled]), input[data-field="bonus"]:not([disabled]), button[data-action="reveal"]:not([disabled])'));
-  }
-
-  function focusNext(el) {
-    var seq = entrySequence();
-    var next = seq[seq.indexOf(el) + 1];
-    if (next) next.focus(); else el.blur();
-  }
-
   // Turnerauswahl per Tastatur: Enter öffnet die Liste, Pfeiltasten wählen, Enter übernimmt.
   // Wo der Browser keine native Liste per Skript öffnen kann, klappt das Feld als Liste auf.
   function openPicker(sel) {
@@ -3164,33 +3404,67 @@
       if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') ev.preventDefault();
       return;
     }
-    if (!el.matches || !el.matches('input[data-field]')) return;
-    var field = el.getAttribute('data-field');
-    if (ev.key === 'Enter') {
-      ev.preventDefault();
-      // Enter schaltet den Standbonus um, sonst springt Enter wie Tab zum nächsten Feld.
-      if (field === 'bonus') {
-        if (!el.disabled) { el.checked = !el.checked; handleScoreChange(el); }
-        return;
-      }
-      focusNext(el);
-      return;
-    }
-    // Pfeiltasten ↑/↓ ändern den Wert in 0,1-Schritten, nie unter 0.
-    if ((ev.key === 'ArrowUp' || ev.key === 'ArrowDown') && SCORE_FIELDS.indexOf(field) >= 0 && !el.disabled) {
-      ev.preventDefault();
-      var cur = S.parseScore(el.value);
-      if (cur === null || Number.isNaN(cur)) cur = 0;
-      var max = field === 'd' ? 20000 : 10000;
-      var v = Math.min(max, Math.max(0, cur + (ev.key === 'ArrowUp' ? 100 : -100)));
-      el.value = fmt1(v);
-      handleScoreChange(el);
-      el.select();
-    }
   });
 
+
   $app.addEventListener('focusin', function (ev) {
-    if (ev.target.matches('input[data-field]')) ev.target.select();
+    if (ev.target.matches('#score-dlg input[type=text][data-dlg]') && !keypadOn()) ev.target.select();
+  });
+
+  // Wertungsfenster per Tastatur: Enter = nächstes Feld (nach dem letzten „Wertung freigeben“), Esc = Abbrechen,
+  // Pfeile ↑/↓ = ±0,1, Tab bleibt im Fenster. Ein Druck auf eine echte Taste blendet die Bildschirm-Tastatur
+  // („automatisch“) für diese Sitzung aus; Ziffern und Komma werden dabei schon ins Feld übernommen.
+  document.addEventListener('keydown', function (ev) {
+    if (!scoreDlg || !document.getElementById('score-dlg') || document.querySelector('.modal-backdrop')) return;
+    var m = match(scoreDlg.matchId);
+    if (!m) return;
+    var el = ev.target, box = document.getElementById('score-dlg');
+    if (keypadOn() && keypadSetting() === 'auto' && ev.isTrusted && !ev.altKey && !ev.ctrlKey && !ev.metaKey &&
+        (ev.key.length === 1 || ev.key === 'Backspace' || ev.key === 'Tab')) {
+      hwKeySeen = true;
+      var f0 = scoreDlg.active;
+      if (f0 && /^[0-9.,]$/.test(ev.key) && !scoreDlg.draft.dns && !scoreDlg.draft.zero) { scoreDlg.text[f0] = ev.key; ev.preventDefault(); }
+      showScoreDlg(true);
+      if (f0 && /^[0-9.,]$/.test(ev.key)) { var inp0 = box.querySelector('input[data-dlg="' + f0 + '"]'); if (inp0) { inp0.focus(); inp0.setSelectionRange(inp0.value.length, inp0.value.length); } }
+      return;
+    }
+    if (ev.key === 'Escape') { ev.preventDefault(); cancelScoreDlg(); return; }
+    if (ev.key === 'Tab') {
+      var foc = Array.prototype.slice.call(box.querySelectorAll('input:not([disabled]), select:not([disabled]), button:not([disabled])'));
+      if (!foc.length) return;
+      var at = foc.indexOf(el);
+      if (ev.shiftKey && at <= 0) { ev.preventDefault(); foc[foc.length - 1].focus(); }
+      else if (!ev.shiftKey && (at === foc.length - 1 || at < 0)) { ev.preventDefault(); foc[0].focus(); }
+      return;
+    }
+    if (!el.matches || !el.matches('#score-dlg input[data-dlg]')) return;
+    var field = el.getAttribute('data-dlg');
+    if (ev.key === 'Enter') {
+      ev.preventDefault();
+      if (field === 'bonus' || field === 'zero') { el.click(); return; }
+      scoreDlg.active = field;
+      moveDlgActive(m);
+      return;
+    }
+    if ((ev.key === 'ArrowUp' || ev.key === 'ArrowDown') && DLG_FIELDS.indexOf(field) >= 0 && !keypadOn()) {
+      ev.preventDefault();
+      var cur = dlgValue(field, el.value);
+      if (cur === null || Number.isNaN(cur)) cur = 0;
+      var v = Math.min(field === 'd' ? 20000 : 10000, Math.max(0, cur + (ev.key === 'ArrowUp' ? 100 : -100)));
+      el.value = fmt1(v);
+      scoreDlg.text[field] = el.value;
+      refreshScoreDlg();
+      el.select();
+    }
+  }, true);
+
+  // Bildschirm-Tastatur: Antippen eines Feldes macht es zum aktiven Feld (die erste Ziffer ersetzt den alten Wert).
+  $app.addEventListener('click', function (ev) {
+    var el = ev.target.closest && ev.target.closest('#score-dlg input[type=text][data-dlg]');
+    if (!el || !scoreDlg || !keypadOn() || el.disabled) return;
+    scoreDlg.active = el.getAttribute('data-dlg');
+    scoreDlg.buf = null;
+    refreshScoreDlg();
   });
 
   $app.addEventListener('submit', function (ev) {
@@ -3266,7 +3540,6 @@
         state.ui.tab[m.id] = btn.getAttribute('data-tab');
         $app.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b === btn); });
         document.getElementById('apparatus-panel').innerHTML = apparatusPanel(m, currentTab(m));
-        fitFieldLabels();
         tickTimers();
         break;
       case 'finalize':
@@ -3308,29 +3581,18 @@
           return remove('matches', m.id);
         }).then(function () { keepScroll = true; render(); toast('Wettkampf gelöscht'); }); };
         break;
-      case 'reveal':
-        if (m && isClassic(m)) { revealSide(m, btn); return; }
-        var duel = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
-        if (!duel || m.status === 'final') return;
-        if (!duelReady(S.duelResult(duel, m.rules), duel)) { toast('Duell ist noch nicht vollständig erfasst.', 'error'); return; }
-        var wasCorrection = S.hasPendingCorrection(duel);
-        if (duel.shown && !wasCorrection) return;
-        duel.prevShown = wasCorrection ? duel.shown : null;
-        duel.revealKind = wasCorrection ? 'correction' : 'first';
-        duel.revealedAt = new Date().toISOString();
-        if (!duel.firstRevealedAt) duel.firstRevealedAt = duel.revealedAt;
-        duel.shown = { home: S.snapshotSide(duel.home), guest: S.snapshotSide(duel.guest) };
-        var revealedIdx = parseInt(btn.getAttribute('data-duel'), 10);
-        var revealViaKeyboard = lastInputKeyboard;
-        var revealedApp = btn.getAttribute('data-app');
-        save('matches', m).then(function () {
-          rerenderPanel(m);
-          // Per Tastatur weiter zur Turnerauswahl des vorlegenden Turners im nächsten Duell.
-          var nextDuel = $app.querySelectorAll('#apparatus-panel .duel')[revealedIdx + 1];
-          var next = nextDuel && nextDuel.querySelector('select[data-field="gymnast"]:not([disabled]), input[data-field]:not([type=checkbox]):not([disabled])');
-          if (next && !wasCorrection && revealViaKeyboard) next.focus();
-          toast(wasCorrection ? 'Korrektur freigegeben' : 'Wertung freigegeben');
-        });
+      case 'score-open':
+        if (!m || btn.disabled) return;
+        openScoreDlg(m, btn.getAttribute('data-app'), parseInt(btn.getAttribute('data-duel'), 10), btn.getAttribute('data-side'));
+        break;
+      case 'sd-release':
+        releaseScoreDlg();
+        break;
+      case 'sd-cancel':
+        cancelScoreDlg();
+        break;
+      case 'sd-key':
+        keypadPress(btn.getAttribute('data-k'));
         break;
       case 'open-board':
         // Öffnet das Tafel-Fenster (bzw. holt es nach vorn); ausgeschaltet wird die Tafel durch Schließen des Fensters.
@@ -3456,19 +3718,6 @@
         m.timers.warmup = { appKey: wapp, start: Date.now() };
         save('matches', m).then(function () { tickTimers(); keepScroll = true; render(); });
         tickTimers();
-        break;
-      case 'discard':
-        var dd = m && m.apparatus[btn.getAttribute('data-app')].duels[parseInt(btn.getAttribute('data-duel'), 10)];
-        if (!dd) return;
-        // Oberliga: das ganze Duell, Landesliga: nur die eine Übung.
-        var dSides = isClassic(m) ? [btn.getAttribute('data-side')] : ['home', 'guest'];
-        var dShown = function (k) { return isClassic(m) ? S.revOf(dd, k).shown : dd.shown && dd.shown[k]; };
-        if (!dShown(dSides[0])) return;
-        askConfirm('Änderung verwerfen und den angezeigten Stand wiederherstellen?').then(function (yes) {
-          if (!yes) return;
-          dSides.forEach(function (k) { restoreShownSide(m, dd, k, dShown(k)); });
-          save('matches', m).then(function () { rerenderPanel(m); toast('Änderung verworfen'); });
-        });
         break;
       case 'edit-done':
         var eKey = btn.getAttribute('data-app');

@@ -1,6 +1,6 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Beschlossen, in Umsetzung: Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur (vor dem Wettkampftest)
+## Beschlossen und in Beta 77 umgesetzt (lokal getestet, Veröffentlichung erst nach Freigabe): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
 
 **Rückkehrpunkt:** Der veröffentlichte Stand Beta 76 ist auf GitHub als eigener Zweig **`stand-beta-76`** gesichert
 (Commit `17866c1`). Funktioniert der Umbau nicht wie gewünscht, wird dieser Stand wieder veröffentlicht

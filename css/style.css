@@ -191,6 +191,16 @@ label.check { flex-direction: row; align-items: center; gap: .4rem; font-size: .
 }
 .side-head select { min-width: 0; flex: 1; }
 .side-foot { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: center; margin-top: .35rem; }
+/* Werte der Übung als Text; eingegeben wird im Wertungsfenster („Wertung eingeben“ / „Wertung ändern“) */
+.sv-row { display: flex; gap: .3rem 1.1rem; align-items: flex-end; flex-wrap: wrap; min-height: 2.6rem; }
+.sv { display: flex; flex-direction: column; min-width: 2.2rem; }
+.sv > span { font-size: .72rem; color: var(--muted); }
+.sv > b { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sv > b.empty { color: #b5b5b5; }
+.sv-note { font-weight: 600; color: #404040; padding: .3rem 0; }
+.side-foot .score-btn { margin-left: auto; }
+.side-foot .timer-btn + .score-btn { margin-left: 0; }
+.side-status { font-size: .8rem; }
 .side-foot .check { margin: 0; }
 .side-foot .timer-btn { margin-left: auto; }
 .score-row { display: flex; gap: 1.1rem; align-items: stretch; }
@@ -1008,11 +1018,6 @@ body.board-light .tm-card { background: #fff; color: #171717; }
   body.match-page .result-row .final strong { font-size: 1.35rem; }
   body.match-page .side-foot { flex: 1 1 100%; min-height: 2.1rem; }
 
-  /* Landesliga: „Wertung freigeben“ bzw. „✓ freigegeben“ rechts in der Fußzeile der Kachel (bei einer Korrektur darunter) */
-  body.match-page .cl-cell { position: relative; }
-  body.match-page .cl-cell:not(.pending) > .duel-actions { position: absolute; right: calc(.35rem + .5rem + 2px); bottom: calc(.35rem + .5rem); }
-  body.match-page .cl-cell:not(.pending) .side-foot { padding-right: 11.5rem; }
-  body.match-page .cl-cell .duel-actions .btn { padding: .3rem .8rem; }
 
   /* Oberliga: Scorepunkte und Freigabe in der Mittelspalte zwischen den beiden Kacheln */
   body.match-page .duel { grid-template-columns: minmax(0, 1fr) 10.5rem minmax(0, 1fr); grid-template-rows: 1fr auto; row-gap: .4rem; }
@@ -1021,4 +1026,79 @@ body.board-light .tm-card { background: #fff; color: #171717; }
   body.match-page .duel > .duel-result { grid-column: 2; grid-row: 1; }
   body.match-page .duel > .duel-actions { grid-column: 2; grid-row: 2; flex-direction: column; flex-wrap: nowrap; justify-content: flex-end; align-items: stretch; text-align: center; }
   body.match-page .duel > .duel-actions .btn { padding: .4rem .6rem; }
+}
+
+/* ---------- Wertungsfenster: Eingabe und Freigabe einer Übung (mit Bildschirm-Zahlentastatur auf Touch-Geräten) ---------- */
+.sd-backdrop { position: fixed; inset: 0; z-index: 280; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+body.sd-open { overflow: hidden; }
+.sd-win { background: #fff; border-radius: 14px; width: min(860px, 100%); max-height: 100%; overflow: auto; padding: 1rem 1.3rem 1rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3); border-left: 6px solid var(--team); display: flex; gap: 1.2rem; }
+.sd-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.sd-head { display: flex; align-items: center; gap: .6rem; }
+.sd-where { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+.sd-head .timer-btn { margin-left: auto; }
+.sd-gym { display: flex; align-items: center; gap: .6rem; margin: .35rem 0 .9rem; flex-wrap: wrap; }
+.sd-tag { background: var(--team); color: var(--team-fg, #fff); border-radius: 4px; padding: .15rem .45rem; font-weight: 700; font-size: .85rem; overflow-wrap: break-word; }
+.sd-name { font-size: 1.4rem; font-weight: 800; }
+.sd-gsel { font-size: 1.1rem; flex: 1 1 14rem; min-width: 0; }
+.sd-none { font-size: 1.3rem; font-weight: 700; color: #404040; padding: .8rem 0; }
+.sd-fields { display: flex; gap: 1.2rem; align-items: flex-end; }
+.sd-grp { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .45rem; flex: 2 1 0; min-width: 0; }
+.sd-grp + .sd-grp { flex: 3 1 0; }
+.sd-f { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.sd-f > .lbl { display: block; white-space: nowrap; overflow: hidden; font-size: .75rem; color: var(--muted); }
+.sd-f > .lbl span { font-size: .75rem; color: var(--muted); }
+.sd-f input[type=text] { height: 3rem; font-size: 1.35rem; text-align: right; padding: .3rem .5rem; border-radius: 8px; font-variant-numeric: tabular-nums; width: 100%; }
+.sd-f input.active { outline: 3px solid #f59e0b; outline-offset: 0; border-color: #f59e0b; }
+.sd-f input.invalid { border-color: var(--danger); background: #fef2f2; }
+.sd-f input:disabled { background: #e2e2e2; }
+.sd-box { height: 3rem; display: flex; align-items: center; justify-content: center; gap: .35rem; border: 1px solid #d4d4d4; border-radius: 8px; font-size: .9rem; background: #fff; }
+.sd-box input { width: 1.3rem; height: 1.3rem; margin: 0; }
+.sd-box.off { background: #e2e2e2; color: #737373; }
+.sd-res { display: flex; align-items: flex-end; gap: 1rem; margin: .9rem 0 .2rem; flex-wrap: wrap; }
+.sd-res .check { flex-direction: row; align-items: center; gap: .4rem; font-size: .95rem; margin: 0; }
+.sd-n { margin-left: auto; display: flex; gap: 1.2rem; align-items: flex-end; }
+.sd-n > span { display: flex; flex-direction: column; align-items: flex-end; font-size: .78rem; color: var(--muted); }
+.sd-n b { font-size: 1.2rem; color: var(--text); font-variant-numeric: tabular-nums; }
+.sd-n .fin b { font-size: 1.9rem; }
+.sd-prev { background: #f5f5f5; border-radius: 8px; padding: .45rem .7rem; font-size: .9rem; margin-top: .5rem; }
+.sd-btns { display: flex; gap: .6rem; justify-content: flex-end; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
+.sd-hint { margin-right: auto; font-size: .82rem; color: var(--muted); }
+.sd-set { margin-top: .6rem; text-align: right; }
+.sd-set label { display: inline-flex; flex-direction: row; align-items: center; gap: .4rem; font-size: .75rem; color: var(--muted); }
+.sd-set select { width: auto; padding: .15rem .3rem; font-size: .75rem; }
+/* Zahlentastatur: rechts neben den Feldern (breite Bildschirme), sonst darunter */
+.sd-win.kp { width: min(1180px, 100%); }
+.sd-pad { flex: 0 0 19rem; display: flex; flex-direction: column; border-left: 1px solid #e5e5e5; padding-left: 1rem; }
+.sd-disp { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .1rem .2rem .5rem; min-height: 2.6rem; }
+.sd-disp .w { font-size: .82rem; color: #525252; }
+.sd-disp .val { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sd-disp .val small { font-size: .75rem; font-weight: 600; color: var(--muted); margin-left: .4rem; }
+.sd-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem; }
+.sd-keys button { height: 3.2rem; font: inherit; font-size: 1.45rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 10px; background: #fff; color: var(--text); cursor: pointer; touch-action: manipulation; }
+.sd-keys button:active { background: #e5e5e5; }
+.sd-keys .k-fn { font-size: 1rem; background: #f3f3f3; }
+.sd-keys .k-next { grid-row: span 2; height: auto; background: #4a4a4a; color: #fff; font-size: 1.05rem; }
+@media (max-width: 900px), (orientation: portrait) {
+  .sd-win.kp { flex-direction: column; width: min(860px, 100%); }
+  .sd-pad { flex: none; border-left: 0; padding-left: 0; border-top: 1px solid #e5e5e5; padding-top: .5rem; }
+}
+/* Handy: Fenster bildschirmfüllend, Tastatur unten */
+@media (max-width: 560px) {
+  .sd-backdrop { padding: 0; align-items: stretch; }
+  .sd-win { width: 100%; max-height: none; height: 100%; border-radius: 0; padding: .7rem .8rem .6rem; border-left-width: 5px; flex-direction: column; gap: .4rem; }
+  .sd-win.kp { width: 100%; }
+  .sd-gym { margin: .2rem 0 .5rem; }
+  .sd-name { font-size: 1.15rem; }
+  .sd-fields { gap: .5rem; }
+  .sd-grp { gap: .3rem; }
+  .sd-f input[type=text], .sd-box { height: clamp(2.8rem, 7vh, 3.6rem); font-size: 1.35rem; }
+  .sd-box { font-size: .95rem; gap: .25rem; }
+  .sd-keys button { height: clamp(3.2rem, 8.5vh, 4.4rem); }
+  .sd-res { margin-top: .5rem; }
+  .sd-n .fin b { font-size: 1.6rem; }
+  .sd-btns { margin-top: .6rem; }
+  .sd-btns .btn { flex: 1 1 0; }
+  .sd-hint { flex-basis: 100%; }
+  .sd-pad { margin-top: auto; }
 }
