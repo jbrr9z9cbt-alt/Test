@@ -1,13 +1,13 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## In Planung: Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur (vor dem Wettkampftest)
+## Beschlossen, in Umsetzung: Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur (vor dem Wettkampftest)
 
 **Rückkehrpunkt:** Der veröffentlichte Stand Beta 76 ist auf GitHub als eigener Zweig **`stand-beta-76`** gesichert
 (Commit `17866c1`). Funktioniert der Umbau nicht wie gewünscht, wird dieser Stand wieder veröffentlicht
 (mit neuer Versionsnummer, damit installierte Geräte das Update laden). Der Umbau entsteht auf dem Arbeitszweig;
 live bleibt Beta 76, bis der Umbau freigegeben ist.
 
-Konzept (Überlegung vom 31.10.2026, noch nicht beschlossen):
+Konzept (31.10.2026):
 - Kachel zeigt die Werte nur als Text; Turnerauswahl (mit „kein Turner“) und Sturz-Timer bleiben in der Kachel.
   Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“.
 - Fenster über der Seite (Handy bildschirmfüllend): Kopf Gerät · Duell/Übung · Mannschaft · Turner; Felder E1, E2, (E3),
@@ -29,7 +29,16 @@ Konzept (Überlegung vom 31.10.2026, noch nicht beschlossen):
   - Zahlentastatur mit Einstellung (automatisch/immer/nie), **automatisches Komma** („17“ → 1,7) und trotzdem Komma-Taste
     („4 , 5“ → 4,5); Anzeige über der Tastatur zeigt den Wert, wie er übernommen wird. Taste **„Fertig“ entfällt**
     („Weiter ▶“ groß über zwei Reihen). iPad quer: Tastatur rechts neben den Feldern, hochkant darunter.
-  - Empfehlung (noch zu bestätigen): automatisches Komma nur auf der Bildschirm-Tastatur, mit echter Tastatur wie heute.
+  - Automatisches Komma **nur auf der Bildschirm-Tastatur**; mit echter Tastatur wie heute („5“ = 5,0).
+  - Kacheln behalten Größe und Aufbau, die Eingabefelder werden zu Text (wie Vorschaubilder 1 und 4) mit
+    „Wertung eingeben“ bzw. „Wertung ändern“. Zweizeilige Kompakt-Kacheln: vorerst nicht.
+  - „kein Turner“: Fenster zeigt „kein Turner – Endnote 0,00“ (Felder gesperrt) mit [Abbrechen] [Wertung freigeben];
+    auch die Null muss freigegeben werden.
+  - Oberliga: Duell wird freigegeben, sobald beide Turner freigegeben sind – zur Not auch in umgekehrter Reihenfolge.
+  - Außerdem: „Wertung eingeben“ gesperrt vor dem Gerätestart, an gesperrten/abgeschlossenen Geräten (nach „Bearbeiten“ frei)
+    und beim abgeschlossenen Wettkampf; ungültige Werte rot, Freigabe dann gesperrt; nach dem Freigeben Fokus auf den
+    nächsten Turner; „Wertung 0,00“ im Fenster; Einstellung der Zahlentastatur je Gerät; alte, nicht freigegebene Noten
+    und offene Korrekturen aus Beta 76 erscheinen im Fenster.
 - **Frage: kompakte Kacheln, damit ein Gerät am Laptop/iPad quer ohne Scrollen passt** (gemessen mit nachgestellten
   zweizeiligen Kacheln, ca. 80 px hoch: Zeile 1 Nr., Verein, Turner, E-Note, Endnote; Zeile 2 Werte als Text, Sturz-Timer,
   „Wertung eingeben“; Statuszeile neben dem Gerätenamen): passt bei Full HD, iPad Pro, 1366×768 als installierte App;
