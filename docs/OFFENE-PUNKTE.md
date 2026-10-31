@@ -1,5 +1,28 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## In Planung: Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur (vor dem Wettkampftest)
+
+**Rückkehrpunkt:** Der veröffentlichte Stand Beta 76 ist auf GitHub als eigener Zweig **`stand-beta-76`** gesichert
+(Commit `17866c1`). Funktioniert der Umbau nicht wie gewünscht, wird dieser Stand wieder veröffentlicht
+(mit neuer Versionsnummer, damit installierte Geräte das Update laden). Der Umbau entsteht auf dem Arbeitszweig;
+live bleibt Beta 76, bis der Umbau freigegeben ist.
+
+Konzept (Überlegung vom 31.10.2026, noch nicht beschlossen):
+- Kachel zeigt die Werte nur als Text; Turnerauswahl (mit „kein Turner“) und Sturz-Timer bleiben in der Kachel.
+  Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“.
+- Fenster über der Seite (Handy bildschirmfüllend): Kopf Gerät · Duell/Übung · Mannschaft · Turner; Felder E1, E2, (E3),
+  D-Note, Stand, NA, „Wertung 0,00“; E-Note/Endnote laufend; Knöpfe [Abbrechen] [Übernehmen] [Wertung freigeben].
+  Oberliga: Freigabe erst beim zweiten Turner des Duells (gibt das Duell frei), evtl. Vorschau der Scorepunkte.
+- Korrektur: „Wertung ändern“ → Fenster mit alten Werten → „Korrektur freigeben“ oder abbrechen; der Zwischenzustand
+  „geändert – noch nicht freigegeben“ samt Sperre der anderen Übungen entfiele.
+- Laptop: Tab durch die Felder, Pfeile ±0,1, Enter im letzten Feld → „Wertung freigeben“, Esc = Abbrechen,
+  danach Fokus auf „Wertung eingeben“ des nächsten Turners.
+- Zahlentastatur im Fenster (Touch-Geräte): 0–9, Komma, ⌫, −0,1/+0,1, „Weiter ▶“, „Fertig“; Anzeigezeile mit Feld, Turner, Wert;
+  Handy-Tastatur bleibt zu; automatisch auf Touch-Geräten, verschwindet beim ersten Druck einer echten Taste;
+  Einstellung automatisch/immer/nie; optional automatisches Komma („17“ → „1,7“).
+- Offene Entscheidungen: Knöpfe im Fenster; Wegfall des Korrektur-Zwischenzustands; Zahlentastatur-Einstellung und
+  automatisches Komma. Vor der Umsetzung Vorschaubilder (Laptop, Handy mit Zahlentastatur).
+
 ## Beschlossen und in Beta 76 umgesetzt (veröffentlicht)
 
 Ergänzungen bei der Umsetzung:
