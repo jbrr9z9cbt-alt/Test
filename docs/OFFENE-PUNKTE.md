@@ -1,5 +1,23 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## Fehlerkorrekturen nach Beta 77 (Liste, wird gesammelt und dann auf einmal umgesetzt)
+
+Gefunden mit Beta 77 auf dem iPhone in Safari (Bildschirmfotos 31.10.2026):
+
+1. **Wertungsfenster: alle Elemente an festem Platz, alles auf einem Bildschirm** – auch im Browser.
+   Im Safari-Browser verdeckt die Werkzeugleiste unten die untere Hälfte der Zahlentastatur (0, Komma, Weiter);
+   außerdem verschieben Vorschau und Sturz-Timer die Tastatur nach unten, die Kopfzeile bricht zweizeilig um.
+   Vorschlag: fester Aufbau von oben nach unten mit festen Höhen – nichts erscheint oder verschwindet, der Platz
+   für die Vorschau ist immer reserviert; das Fenster beginnt oben und ist so kompakt (ca. 600 px), dass es auch mit
+   Adress- und Werkzeugleiste von Safari ganz sichtbar ist (in der installierten App bleibt unten etwas Luft).
+   Kopfzeile einzeilig (z. B. „Pauschenpferd · Duell 1 · 2.“).
+2. **Großer Sturz-Timer im Fenster entfällt** (der Knopf „⏱ 21 – Stopp“ oben rechts bleibt).
+3. **Vorschau des Duellergebnisses nur als Scorepunktzahl in Mannschaftsfarbe** (wie in der Mittelspalte der
+   Kacheln; unentschieden: 0 in Schwarz) statt des Satzes „Vorschau Duell 1: … → 5 Scorepunkte für …“.
+4. **Automatisches Komma entfällt**: Auf der Zahlentastatur wird genau das Getippte übernommen („4 , 5“ = 4,5;
+   „4“ = 4,0). Mit echter Tastatur wie bisher.
+
+
 ## Beschlossen und in Beta 77 umgesetzt (veröffentlicht): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
 
 **Rückkehrpunkt:** Der veröffentlichte Stand Beta 76 ist auf GitHub als eigener Zweig **`stand-beta-76`** gesichert
