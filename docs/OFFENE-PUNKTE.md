@@ -46,6 +46,10 @@ Begonnen 01.11.2026.
    - Statt „Elemente 4 von 8“ steht „noch 4 Elemente möglich“ (Einzahl: „noch 1 Element möglich“; bei 8 Elementen:
      „keine Elemente mehr möglich“; bei mehr als 8 rot: „1 Element zu viel“ bzw. „2 Elemente zu viel“). „Summe“ rechts bleibt.
    - Bei EG entfällt der Text „höchstens 2,3“ (nur noch „Elementgruppen“); die rote Markierung bei einem zu hohen Wert bleibt.
+8. **D-Note-Rechner nach Änderung von Hand leer** (gewünscht 01.11.2026): Wurde die D-Note nach dem Rechner direkt im Feld
+   geändert, öffnet der Rechner danach leer statt mit der alten Berechnung. Regel: Der Rechner zeigt die gespeicherten
+   Anzahlen nur, wenn sie genau die D-Note im Feld ergeben (z. B. bei einer Korrektur ohne Änderung der D-Note); sonst
+   beginnt er leer. Beim Freigeben gilt schon dieselbe Regel (nicht passende Anzahlen werden nicht gespeichert).
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
 Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
