@@ -14,6 +14,35 @@
    gemeinsam oben stehen (ab 1100 px Breite: Laptop, iPad Air/Pro quer).
 3. ~~Oberen Bereich auch auf kleineren iPads fixieren~~ – **entfällt** (entschieden 01.11.2026): Kleines iPad quer (unter
    1100 px) und iPad hochkant bleiben wie bisher (nur Kopfzeile und Menüband fest). Nur die Reparatur aus Punkt 2 kommt.
+4. **Gerätestart und Gerätesperre entfallen – die Tafel folgt dem Reiter, bis freigegeben wird** (beschlossen 01.11.2026):
+   - **Nichts wird gesperrt:** Alle Gerätereiter sind jederzeit wählbar, Turner jederzeit änderbar, Wertungen jederzeit
+     eintragbar. Es entfallen: „Gerät direkt starten“ (mit Rückfrage), „Start zurücknehmen“, die Gerätesperre 🔒 mit
+     „Sperre aufheben …“, „Wertungen erst nach dem Start“, der automatische Start nach der Einturnzeit, „nur ansehen“ mit
+     „Bearbeiten“ bei fertigen Geräten und damit die ganze Statuszeile über dem Gerät. Freigegebene Wertungen ändert man
+     weiterhin über die Korrektur.
+   - **Gelber Punkt** am Reiter ab der ersten eingetragenen Teilwertung (Turnerwahl und „kein Turner“ zählen nicht, wie
+     heute); **grüner Haken**, wenn alle Wertungen freigegeben sind.
+   - **Anzeigetafel:**
+     - Solange an keinem Gerät freigegeben ist, zeigt die Tafel das Gerät des gewählten Reiters und folgt jedem Wechsel.
+     - Mit der ersten Freigabe (Oberliga: erstes Duell auf der Tafel – der erste Turner eines Duells wird ja nur
+       gespeichert; Landesliga: erste freigegebene Wertung) bleibt die Tafel auf diesem Gerät, bis alle Wertungen
+       freigegeben sind (grüner Haken) – egal, welchen Reiter der Bediener wählt.
+     - Nach der letzten Freigabe bleibt die Tafel mindestens 10 Sekunden (Dauer der großen Einblendung) auf dem fertigen
+       Gerät; wurde in der Zeit schon der Reiter gewechselt, springt sie danach von selbst um.
+     - Vergessene Freigabe: Sind mehrere Geräte angefangen und nicht fertig, zeigt die Tafel das mit der letzten Freigabe
+       (das andere behält den gelben Punkt).
+     - Korrekturen an fertigen Geräten verschieben die Tafel nicht (Korrekturanzeige wie bisher).
+   - **Bildschirmsymbol** am Reiter des Geräts, das die Tafel gerade zeigt – auch während der 10 Sekunden nach der letzten
+     Freigabe (ohne Vorschaubild, wird ausprobiert).
+   - **Einturnzeit im Menü Anzeigetafel** zwischen Turnervorstellung und Wettkampfpause (Menüband und Aufklappmenü):
+     - Ein einziger Timer (6:40) ohne Zuordnung zu einem Gerät. Reiterwechsel, Turneränderungen und Wertungen ändern nichts
+       an ihm.
+     - Läuft er, zeigt der Knopf die Restzeit (am Handy auch am Menüknopf, wie die Pause); Antippen beendet ihn vorzeitig,
+       ohne Rückfrage „Gerät jetzt starten?“.
+     - Eine laufende Wettkampfpause verhindert den Start (Knopf grau); Annahme: umgekehrt genauso.
+     - Auf der Tafel heißen die Timer „Wettkampfpause“ und „Einturnen“ (bisher „Pause“ und „Einturnzeit Barren“), am Ende
+       wie heute „Einturnen beendet“ mit Schelle bzw. „Zeit abgelaufen“ (Annahme, zu bestätigen).
+   - Ältere Wettkämpfe: Die alten Startdaten werden nicht mehr beachtet.
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
