@@ -1,9 +1,9 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Fehlerkorrekturen nach Beta 77 – umgesetzt in Beta 78 (auf dem Arbeitszweig, noch nicht veröffentlicht)
+## Fehlerkorrekturen nach Beta 77 – umgesetzt in Beta 78 (veröffentlicht 01.11.2026)
 
 Stand 01.11.2026: Punkte 1–9 umgesetzt und getestet (Laptop, iPad quer/hoch, Handy 360/375/390 px, auch mit den Höhen
-von Safari 390×664 und 375×548). Veröffentlichung erst nach Freigabe. Am iPhone selbst (Safari und installierte App) ist
+von Safari 390×664 und 375×548). Veröffentlicht nach Freigabe (Commit `3c82d54`). Am iPhone selbst (Safari und installierte App) ist
 nach dem Veröffentlichen noch zu prüfen: Antippen der Felder, kein Zoom, Seite dahinter bleibt stehen (Punkt 6).
 Rückkehrpunkt Beta 77: Stand von `main` vor der Veröffentlichung (Commit `5c73e9b`).
 
