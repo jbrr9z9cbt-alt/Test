@@ -67,8 +67,7 @@ Begonnen 01.11.2026.
       und auf kleinen Android-Handys (360×640); nur das iPhone SE im Safari (375×548) scrollt noch ca. 70 px.
       Nur die Reihe und den Satz wegzulassen reicht nur in der App (im Safari blieben ca. 130 px).
     - iPad und Laptop scrollen schon heute nicht; dort ändert sich nur der Wegfall von Reihe und Satz.
-11. **Grundsatz Namen: fester Platz für Vereins- und Turnernamen** (beschlossen 01.11.2026, nur bei e) ist der Umfang noch
-    offen):
+11. **Grundsatz Namen: fester Platz für Vereins- und Turnernamen** (beschlossen 01.11.2026):
     - Grundsatz: Vereins- und Turnernamen haben in jeder Ansicht und Bildschirmgröße einen festen Platz, der sich nicht nach
       dem Namen richtet. Durchschnittliche Namen passen ohne Umbruch und ungekürzt (Vereine bis ca. 19 Zeichen wie
       „TG Geisweid/Eichen“, „TV Jahn Plettenberg“; Turner wie „Daudrich, Michael“, „Brickwedde, Henning“ – die längsten der
@@ -94,8 +93,8 @@ Begonnen 01.11.2026.
          ist – z. B. bei SG Langenei-Kickenbach/Gleidorf; bei mittellangen Namen blieb sie daneben und zu schmal).
       d) Handy-Wertungsfenster: Vereinsschild und Turnerauswahl untereinander (beide volle Breite); am Laptop/iPad bleiben sie
          nebeneinander. Passt auch mit Safari-Leisten; auf dem kleinsten iPhone (SE) gleichen etwas kleinere Tasten das aus.
-      e) Die Topscorer-Tabelle entfällt „überall“ – sicher auf der Eingabeseite (alle Geräte, beide Ligen). Offen: auch im
-         Fenster „Ergebnis/Siegerehrung“ der Anzeigetafel und im Protokoll?
+      e) Die Topscorer-Tabelle entfällt auf der Eingabeseite – auf allen Geräten, beide Ligen. Im Fenster
+         „Ergebnis/Siegerehrung“ der Anzeigetafel und im Protokoll bleiben die Topscorer.
       f) Handy-Wettkampfliste: Namen höchstens zwei Zeilen, dann „…“.
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
