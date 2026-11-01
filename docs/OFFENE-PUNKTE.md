@@ -4,14 +4,14 @@
 
 Begonnen 01.11.2026. Noch keine Punkte.
 
-Noch offen aus Beta 78: Rückmeldung vom iPhone (Safari und installierte App) zu Punkt 6 – Felder antippen, kein Zoom,
-Seite dahinter bleibt stehen, Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
+Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
+Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
 
 ## Fehlerkorrekturen nach Beta 77 – umgesetzt in Beta 78 (veröffentlicht 01.11.2026)
 
 Stand 01.11.2026: Punkte 1–9 umgesetzt und getestet (Laptop, iPad quer/hoch, Handy 360/375/390 px, auch mit den Höhen
 von Safari 390×664 und 375×548). Veröffentlicht nach Freigabe (Commit `3c82d54`). Am iPhone selbst (Safari und installierte App) ist
-nach dem Veröffentlichen noch zu prüfen: Antippen der Felder, kein Zoom, Seite dahinter bleibt stehen (Punkt 6).
+nach dem Veröffentlichen geprüft und bestätigt (01.11.2026): Antippen der Felder, kein Zoom, Seite dahinter bleibt stehen (Punkt 6).
 Rückkehrpunkt Beta 77: Stand von `main` vor der Veröffentlichung (Commit `5c73e9b`).
 
 
