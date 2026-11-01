@@ -259,18 +259,6 @@ body.board-mode:not(.board-light) .draw0 { color: #fff !important; }
 .sp-sep { color: #a3a3a3; margin: 0 .1em; }
 
 /* Timer */
-/* Statuszeile über dem Gerät: ein Rahmen für alle Zustände (frei, Einturnzeit, läuft, abgeschlossen, gesperrt) */
-.warmup-row { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .4rem .6rem; max-width: 100%; box-sizing: border-box;
-  margin-bottom: .75rem; padding: .4rem; border: 1px solid #cfcfcf; border-radius: 10px; background: #f5f5f5; }
-.status-row:empty { display: none; }
-.status-row > .st-text:first-child, .status-row > .st-lines:first-child { padding-left: .5rem; }
-.status-row > .st-text:last-child, .status-row > .st-lines:last-child { padding-right: .5rem; }
-.st-text { font-weight: 700; }
-.st-run { color: #b45309; }
-.st-done { color: #166534; }
-.st-lock { color: #525252; }
-.st-lines { display: flex; flex-direction: column; gap: .1rem; }
-.st-sub { font-size: .8rem; color: var(--muted); }
 .timer-btn { font-variant-numeric: tabular-nums; }
 /* Sturz-Timer im Knopf: wie das Fenster auf der hellen Tafel (hellgelb, dann hellrot; Zahl schwarz → ocker → rot) */
 .timer-btn.t-fall1 { background: #fef3c7; border-color: #d97706; font-weight: 700; }
@@ -427,6 +415,9 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
 /* ---------- Protokoll (DIN A4 Hochformat) ---------- */
 @page { size: A4 portrait; margin: 10mm; }
 .print-actions { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+/* „← zurück“ über Setup, Wettkämpfe, Mannschaften, Regeln und Anleitung – wie im Protokoll */
+.back-row { margin: 0 0 .5rem; }
+.back-row.narrow { max-width: 640px; margin-left: auto; margin-right: auto; }
 .print-page { overflow-x: auto; }
 .print-sheet {
   width: 190mm; margin: 0 auto; background: #fff; color: #000; padding: 0;
@@ -591,15 +582,12 @@ body.board-light .standby img { opacity: .8; }
 
 /* ---------- Landesliga: Eingabe je Übung ---------- */
 .cl-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
-.cl-head { margin-bottom: .4rem; font-weight: 600; }
 .cl-cell { display: flex; flex-direction: column; gap: .4rem; }
 /* Nachträgliche Änderung: wie in der Oberliga ein gelber Rahmen um die ganze Übung, unabhängig von der Mannschaftsfarbe */
 .cl-cell { padding: .35rem; border: 1px solid transparent; border-radius: 10px; }
 .cl-cell.pending { border-color: var(--warn); box-shadow: 0 0 0 2px #fde68a; }
 .cl-cell.blocked { opacity: .55; }
 .cl-cell .duel-actions { grid-row: auto; grid-column: auto; }
-.cl-sums { font-size: .95rem; }
-.cl-sum { padding: 0 .5rem; }
 /* Streichwertung: Endnote grau durchgestrichen mit Hinweis */
 .struck-tag { display: none; font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; }
 .side.struck .struck-tag { display: inline; }
@@ -745,16 +733,15 @@ body.board-light .fall-win.phase2 .fw-note, body.board-light .fall-win.ended .pw
 /* Große Zeitanzeigen: feste Breite je Ziffer, nichts verspringt */
 .pw-clock .dg { display: inline-block; width: .62em; text-align: center; }
 .pw-clock .dg-sep { display: inline-block; width: .32em; text-align: center; }
-/* Gerätereiter: Abzeichen in der Ecke – ✓ abgeschlossen (grün), ● läuft (orange), 🔒 gesperrt (grau, Reiter blass) */
+/* Gerätereiter: Abzeichen in der Ecke – ✓ alle Wertungen freigegeben (grün), ● Eingaben vorhanden (orange) */
 .tab { position: relative; }
 .tabs { padding-top: 10px; padding-right: 8px; }
 .tab-badge { display: none; position: absolute; top: -8px; right: -6px; width: 24px; height: 24px; border-radius: 50%; align-items: center; justify-content: center;
   font-size: 14px; font-weight: 900; line-height: 1; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
-.tab.st-done .tab-badge, .tab.st-run .tab-badge, .tab.st-locked .tab-badge { display: flex; }
+.tab.st-done .tab-badge, .tab.st-run .tab-badge { display: flex; }
 .tab.st-done .tab-badge { background: #16a34a; }
 .tab.st-run .tab-badge { background: #f59e0b; }
 .tab.st-run .tab-badge::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
-.tab.st-locked .tab-badge { background: #a3a3a3; font-size: 12px; }
 
 /* ---------- Anzeigetafel: feste Aufteilung des Bildschirms ----------
    Alle Größen hängen nur von der Fenstergröße ab (Einheit --u = 1 % der Höhe bei 16:9), nicht vom Inhalt.
@@ -838,10 +825,6 @@ body.board-light .fall-win.phase2 .fw-note, body.board-light .fall-win.ended .pw
 #score-flash.wide span.sf-num { font-size: min(44vh, 24vw); margin-top: 3vh; }
 body.board-light #score-flash .sf-who { color: #171717; }
 
-/* Aufgehobene Gerätesperre */
-.unlock-bar { display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap; padding: .55rem .9rem; border-radius: 10px; font-size: .95rem;
-  background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; margin: .25rem 0 .5rem; }
-.unlock-bar .btn { margin-left: auto; }
 .modal .linkish { background: none; border: 0; color: #737373; text-decoration: underline; font: inherit; font-size: .85rem; cursor: pointer; padding: 0; margin-right: auto; }
 
 /* Anzeigetafel Oberliga: rechte Wertung gespiegelt (linksbündig), gleicher Abstand zu den Scorepunkten wie links */
@@ -951,18 +934,11 @@ body.intro-open { overflow: hidden; }
 .board-ded { position: absolute; left: 0; right: 0; top: 100%; font-size: .42em; font-weight: 700; color: #f59e0b; white-space: nowrap; }
 body.board-light .board-ded { color: #c2410c; }
 
-/* Handy: Passen „Einturnzeit (6:40) starten“ und „Gerät direkt starten“ nicht nebeneinander, steht der zweite Knopf
-   darunter – beide gleich breit im Rahmen. */
-@media (max-width: 560px) {
-  .status-row .warmup-btn, .status-row .start-btn { flex: 1 1 12rem; }
-}
-
 /* Einturnzeit und Pause in der Detailkarte der Tafel: deckt nur die Karte ab, Liste und Tabelle bleiben sichtbar */
 .tm-card { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; overflow: hidden; text-align: center;
   border-radius: inherit; border: calc(var(--u, 10px) * .35) solid #a3a3a3; background: #262626; color: #fafafa; }
 body.board-light .tm-card { background: #fff; color: #171717; }
 .tm-card .tm-title { font-size: calc(var(--u, 10px) * 3.6); font-weight: 800; white-space: nowrap; }
-.tm-card .tm-ico { width: 1.2em; height: 1.2em; margin-right: .4em; vertical-align: -.2em; }
 .tm-card .tm-clock { font-size: calc(var(--u, 10px) * 15); font-weight: 900; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .tm-card .tm-clock .dg { display: inline-block; width: .62em; text-align: center; }
 .tm-card .tm-clock .dg-sep { display: inline-block; width: .32em; text-align: center; }
@@ -992,7 +968,7 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 @media (min-width: 1100px) {
   body.match-page main { max-width: none; padding: .6rem 1rem 1rem; }
   body.match-page .match-top { position: sticky; top: var(--topbar-h, 52px); z-index: 6; background: var(--bg); margin: -.6rem -1rem .5rem; padding: .6rem 1rem .1rem; }
-  body.match-page .match-top .banner, body.match-page .match-top .unlock-bar { margin-bottom: .4rem; }
+  body.match-page .match-top .banner { margin-bottom: .4rem; }
 
   /* Kopf: Datum · Status, Mannschaften mit Stand, Gerätepunkte in einer Zeile; darunter die Werkzeugzeile */
   body.match-page .match-head { display: flex; flex-wrap: wrap; align-items: center; column-gap: 1.5rem; row-gap: .35rem; padding: .45rem .9rem; margin-bottom: .45rem; }
@@ -1112,7 +1088,7 @@ html.sd-open, body.sd-open { overflow: hidden; }
 .sd-set label { display: inline-flex; flex-direction: row; align-items: center; gap: .4rem; font-size: .75rem; color: var(--muted); }
 .sd-set select { width: auto; padding: .1rem .3rem; font-size: 16px; }
 /* Zahlentastatur: rechts neben den Feldern (breite Bildschirme), sonst darunter */
-.sd-win.kp { width: min(1100px, 100%); }
+.sd-win.kp, .dc-win.kp { width: min(1100px, 100%); }
 .sd-pad { flex: 0 0 19rem; display: flex; flex-direction: column; border-left: 1px solid #e5e5e5; padding-left: 1rem; }
 .sd-disp { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 .2rem .35rem; height: 2.6rem; flex: none; }
 .sd-disp .w { font-size: .82rem; color: #525252; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1139,7 +1115,6 @@ html.sd-open, body.sd-open { overflow: hidden; }
   box-shadow: 0 10px 40px rgba(0,0,0,.3); border-left: 6px solid var(--team); display: flex; gap: 1.2rem; }
 /* Mit Zahlentastatur deckt der Rechner das Wertungsfenster genau ab (gleiche Breite), damit nur eine Tastatur zu sehen ist.
    Nebeneinander (iPad quer, PC) mit Abstand und mittig; untereinander (hochkant, Handy) ohne. */
-.dc-win.kp { width: min(1100px, 100%); }
 @media (min-width: 901px) and (orientation: landscape) {
   .dc-win.kp { justify-content: center; gap: 2.5rem; }
   .dc-win.kp .dc-main { flex: 0 1 30rem; }
@@ -1175,6 +1150,13 @@ html.sd-open, body.sd-open { overflow: hidden; }
   .sd-win.kp .sd-main { display: contents; }
   .sd-win.kp .sd-pad { order: 1; margin-top: auto; }
   .sd-win.kp .sd-set { order: 2; }
+  /* Tastatur etwas höher (besser mit dem Daumen erreichbar): darunter ein freier Streifen von etwa einer Zeilenhöhe,
+     im Rechner zusätzlich so hoch wie die Zeile „Zahlentastatur“ – die Tasten stehen in beiden Fenstern gleich hoch.
+     Der Streifen schrumpft, wenn der Platz nicht reicht. */
+  .sd-win.kp::after, .dc-win.kp::after { content: ''; order: 3; flex: 0 1 2.1rem; min-height: 0; }
+  .dc-win.kp::after { flex-basis: calc(2.1rem + var(--sd-set-h, 2.05rem)); }
+  /* Nur der Streifen gibt nach – die Inhalte selbst werden nie gestaucht (sonst überlappen Feld und Endnote). */
+  .sd-win.kp .sd-main > *, .sd-win.kp .sd-pad, .sd-win.kp .sd-set, .dc-win.kp .dc-main > *, .dc-win.kp .sd-pad { flex-shrink: 0; }
   .sd-head { min-height: 1.8rem; }
   /* Vereinsschild und Turnerauswahl untereinander, beide volle Breite */
   .sd-gym { margin: .1rem 0 .4rem; flex-direction: column; align-items: stretch; gap: .3rem; }
@@ -1211,6 +1193,9 @@ html.sd-open, body.sd-open { overflow: hidden; }
 }
 /* Kleine Handys (z. B. iPhone SE im Safari): etwas dichter, damit nichts verdeckt wird */
 @media (max-width: 560px) and (max-height: 600px) {
+  /* Hier kein freier Streifen unter der Tastatur – Aufteilung wie bisher (iPhone SE wird nicht mehr geprüft). */
+  .sd-win.kp::after, .dc-win.kp::after { display: none; }
+  .sd-win.kp .sd-main > *, .sd-win.kp .sd-pad, .sd-win.kp .sd-set, .dc-win.kp .dc-main > *, .dc-win.kp .sd-pad { flex-shrink: 1; }
   .sd-head { min-height: 1.6rem; }
   .sd-gym { margin-bottom: .25rem; gap: .2rem; }
   .sd-gsel { height: 2.2rem; }
@@ -1308,6 +1293,8 @@ body.scorers-open { overflow: hidden; }
   /* iPad hoch: kurze Beschriftungen, damit die Leiste einzeilig bleibt (auch mit einem weiteren Timer-Knopf) */
   .tb-ribbon .menu-pop .ml { display: none; }
   .tb-ribbon .menu-pop .ms { display: inline; }
+  /* „Design“ entfällt hier (Hell/Dunkel erklärt sich selbst) – Platz für die laufende Einturnzeit bzw. Pause */
+  .tb-ribbon .menu-pop .mi-lbl { display: none; }
 }
 @media (min-width: 1100px) and (min-height: 500px) {
   /* Laptop: Leiste und fixierter oberer Bereich schließen lückenlos aneinander an */

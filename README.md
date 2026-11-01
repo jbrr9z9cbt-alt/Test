@@ -7,11 +7,16 @@ Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätt
 ## Seiten
 
 Kopfzeile je Liga: Menü unter dem Liganamen („WTB-Oberliga ▾“) mit Wettkämpfe · Mannschaften · Regeln · Anleitung (Kurzanleitung
-für den Wettkampftag, Texte je Liga) · Startseite. Auf der Wettkampfseite zusätzlich „Anzeigetafel“ und „Wettkampf“:
+für den Wettkampftag, Texte je Liga). Zur Startseite (Liga wechseln) führt das Logo links in der Kopfzeile.
+**„← zurück“** oben links (wie im Protokoll): im Wettkampf Setup und im Protokoll immer zum Wettkampf; auf Wettkämpfe,
+Mannschaften, Regeln und Anleitung nur, wenn man von einem Wettkampf kommt – auch über mehrere Seiten hinweg (gemerkt je
+Fenster; vergessen auf der Startseite, beim Öffnen eines anderen Wettkampfs und in der anderen Liga). Im Setup gilt er wie
+„Abbrechen“ (bei ungespeicherten Änderungen die Frage „speichern oder verwerfen“). Auf der Wettkampfseite zusätzlich „Anzeigetafel“ und „Wettkampf“:
 am Laptop und iPad (ab 700 × 500 px) als **Menüband** – Reiter in der grauen Zeile, darunter immer (nicht einklappbar) eine Leiste
 mit den Knöpfen des gewählten Reiters (gemerkt je Gerät; iPad hoch mit kurzen Beschriftungen; läuft die Pause, trägt der Reiter
-„Anzeigetafel“ die Restzeit); am Handy als **Aufklappmenüs** („Oberliga ▾ | Tafel ▾ | Wettkampf ▾“, schließen nach der Auswahl
-bzw. beim Tipp daneben, ohne darunter etwas auszulösen; laufende Pause orange am Menüknopf). „✓ gespeichert“ steht in der Kopfzeile.
+„Anzeigetafel“ die Restzeit, ebenso die Einturnzeit); am Handy als **Aufklappmenüs** („Oberliga ▾ | Tafel ▾ | Wettkampf ▾“, schließen nach der Auswahl
+bzw. beim Tipp daneben, ohne darunter etwas auszulösen; laufende Pause bzw. Einturnzeit orange am Menüknopf, z. B. „Pause 4:12“, „Einturnen 4:12“).
+Menü „Anzeigetafel“: Anzeigetafel öffnen · Hell/Dunkel · Turnervorstellung · Einturnzeit · Wettkampfpause · Ergebnis/Siegerehrung. „✓ gespeichert“ steht in der Kopfzeile.
 Von der Startseite aus: „Installation und Datensicherung“ (`#/info`) mit Installation, empfohlenen Geräten, Datensicherung und Updates für beide Ligen.
 Adressen: `#/oberliga/…` bzw. `#/landesliga/…`; ein Wettkampf (`#/match/<id>`) gehört fest zu seiner Liga.
 
@@ -25,7 +30,9 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
 
 - Je Gerät bis zu 4 Turner pro Mannschaft, **abwechselnd** (A1, B1, A2, B2 …); die beginnende Mannschaft
   wird ausgelost und wechselt an jedem Gerät.
-- Eingabe: links die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen, mit Startposition 1–8.
+- Eingabe: links die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen, mit Startposition 1–8 (Kachel 1 =
+  beginnende Mannschaft). Keine Kopfzeile mit den Vereinsnamen und keine Zeile „Summe (beste 3)“ unter den Kacheln (Beta 82):
+  Der Verein steht an jeder Kachel, die Gerätesumme im Gerätereiter und in der Gerätezeile über den Kacheln.
 - Jede Übung wird **einzeln freigegeben** und auf der Tafel gezeigt (Endnote 10 s groß in Mannschaftsfarbe, darüber Startnummer, Name und Mannschaft des Turners).
 - Je Mannschaft und Gerät zählen die **3 höchsten Wertungen**; die niedrigste ist die **Streichwertung**
   (bei Gleichstand die später geturnte) und wird in Eingabe, Tafel und Protokoll durchgestrichen gekennzeichnet.
@@ -36,34 +43,31 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
 
 ## Funktionen (Oberliga)
 
-- **Einturnzeit und Gerätestart** (beide Ligen): Turner sind an jedem Gerät jederzeit wählbar (auch Vorauswahl). Nach Ablauf der
-  Einturnzeit (6:40) und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch: erst dann Wertungen und
-  „Wertung 0,00“, und die Anzeigetafel wechselt auf das Gerät (bis dahin bleibt das vorige Gerät mit allen Werten stehen).
-  Vorzeitig gestoppte Einturnzeit → Rückfrage „Gerät jetzt starten?“; ohne Einturnzeit „Gerät direkt starten“ mit Rückfrage.
-  „Start zurücknehmen“ bis zur ersten Freigabe (eingetragene Noten werden nach Rückfrage gelöscht, Turnerauswahl bleibt).
-  Ältere Wettkämpfe: ein Gerät mit eingetragener Wertung gilt als gestartet.
-- **Statuszeile je Gerät** (ein Rahmen für alle Zustände): frei („Einturnzeit (6:40) starten“ · „Gerät direkt starten“, am Handy
-  untereinander), Einturnzeit läuft, „Gerät startet gleich …“, „● Gerät läuft“ (+ „Start zurücknehmen“), „✓ Gerät abgeschlossen“
-  (+ „Bearbeiten“, solange gesperrt), „🔒 Gerät gesperrt – <Gerät> läuft“ mit „Turner können schon gewählt werden.“ und
-  „Sperre aufheben …“. Beim abgeschlossenen Wettkampf keine Statuszeile.
-- **Gerätereiter mit Abzeichen** (beide Ligen): ✓ abgeschlossen, ● läuft (ab „Gerät starten“), 🔒 gesperrt.
+- **Geräte ohne Start und Sperre** (beide Ligen, seit Beta 82): Alle Gerätereiter sind jederzeit wählbar, Turner jederzeit
+  änderbar, Wertungen jederzeit eintragbar – auch an abgeschlossenen Geräten (freigegebene Wertungen ändert man über die
+  Korrektur). Es gibt kein „Gerät starten“, keine Gerätesperre, keine Statuszeile über dem Gerät mehr.
+- **Anzeigetafel folgt dem Reiter** (`boardApparatus`): Ist an einem Gerät schon freigegeben, aber noch nicht alles, steht die
+  Tafel fest auf diesem Gerät (Oberliga ab dem ersten Duell auf der Tafel – der erste Turner eines Duells wird nur gespeichert;
+  Landesliga ab der ersten freigegebenen Wertung), egal welcher Reiter gewählt ist; bei mehreren solchen Geräten (vergessene
+  Freigabe) auf dem mit der letzten Freigabe. Nach der letzten Freigabe eines Geräts bleibt es mindestens 10 Sekunden stehen
+  (Dauer der großen Einblendung). Sonst zeigt die Tafel das Gerät des zuletzt gewählten Reiters (gespeichert im Wettkampf als
+  `display.tab`, damit das Tafelfenster es kennt). Korrekturen verschieben die Tafel nicht. Ältere Wettkämpfe: der frühere
+  Gerätestart (`started`) wird nicht mehr beachtet; ohne gemerkten Reiter zeigt die Tafel das Gerät mit der letzten Freigabe.
+- **Gerätereiter mit Abzeichen** (beide Ligen): ● Eingaben vorhanden (ab der ersten eingetragenen Wertung – Turnerauswahl und
+  „kein Turner“ zählen nicht; Oberliga auch beim gespeicherten ersten Turner eines Duells), ✓ alle Wertungen freigegeben.
   Am Handy nur Logo und Abzeichen (ohne Summen); am Laptop (ab 1100 px) flach in einer Zeile und zusammen mit Menüband und
-  Kopf beim Scrollen fixiert (am iPad bleibt das Menüband stehen).
-  Solange ein Gerät läuft oder irgendwo die Einturnzeit läuft, lassen sich an keinem anderen Gerät Einturnzeit oder Start beginnen (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
-  Abgeschlossene Geräte öffnen sich gesperrt (nur ansehen); „Bearbeiten“ mit Bestätigung gibt sie frei, bis das Gerät verlassen wird.
-  Gesperrte Reiter sind nicht ausgegraut, sie tragen nur das Schloss.
-  Notausgang: „Sperre aufheben …“ in der Statuszeile eines gesperrten Geräts (doppelt bestätigt, gilt für alle Geräte); solange steht über den
-  Geräten ein Hinweis mit „Sperre wieder aktivieren“.
+  Kopf beim Scrollen fixiert (am iPad bleibt das Menüband stehen). Ohne Auswahl öffnet die Wettkampfseite das Gerät der Tafel.
 - **Wettkampfseite am Laptop** (ab 1100 px): Ergebniszeile immer einzeilig – Datum · Status | Heim (rechtsbündig) Stand
   Gast (linksbündig) | Gerätepunkte; Liga, „Beginn: …“ und „Sieger: …“ stehen dort nicht mehr. Die Knöpfe stehen im Menüband. Die Wertungskacheln nutzen die volle Breite;
   E-Note und Endnote stehen in der Zeile der Werte. Keine Überschriften „E-/D-Kampfgericht“ mehr (auch nicht am Handy).
 - **Wertungsfenster** (beide Ligen): Die Kachel zeigt die Werte nur als Text (E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote)
   mit Turnerauswahl, Sturz-Timer und Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“ (dann ist die
   Turnerauswahl der Kachel gesperrt – grau hinterlegt, Name schwarz; der Turner lässt sich im Fenster korrigieren).
-  „Wertung eingeben“ geht auch ohne gewählten Turner; gesperrt nur vor dem Gerätestart, an gesperrten bzw. abgeschlossenen
-  Geräten und im abgeschlossenen Wettkampf.
+  „Wertung eingeben“ geht auch ohne gewählten Turner; gesperrt nur im abgeschlossenen Wettkampf und solange an einer anderen
+  Übung eine Korrektur offen ist.
   - **Fester Aufbau** von oben nach unten (nichts erscheint oder verschwindet; iPad und PC: Fenster senkrecht mittig;
-    Handy: bildschirmfüllend, Zahlentastatur immer ganz unten, darunter nur die Einstellung – auch mit den Leisten des
+    Handy: bildschirmfüllend, Zahlentastatur unten, darunter die Einstellung und ein freier Streifen von etwa einer Zeile
+    (Daumen; schrumpft bei wenig Platz, unter 600 px Höhe entfällt er) – auch mit den Leisten des
     Safari-Browsers ganz sichtbar): Kopfzeile einzeilig (z. B. „Ringe · Duell 1 · 2.“, rechts Sturz-Timer-Knopf) ·
     Mannschaft und **Turnerauswahl** · Felder E1, E2, (E3), D-Note, Stand, NA – alle gleich breit, Schrift passend zur Breite
     („10,0“ auch bei sechs Feldern auf 360 px) – darunter „berechnen“ · „Wertung 0,00“, Oberliga-Vorschau, E-Note, Endnote ·
@@ -85,8 +89,9 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
     Die Felder sind dabei Schaltflächen (zuverlässiges Antippen am iPhone). Rechte Tastenspalte: ⌫ – „◀ Zurück“ –
     „Weiter ▶“ (doppelt hoch); Weiter/Zurück laufen im Kreis (E1 → E2 → (E3) → D-Note → Stand → NA → E1), freigegeben wird
     durch Antippen. **Standbonus** über die Tastatur: 1 = +0,1, 0 oder ⌫ = nein (2–9 und Komma ausgegraut). Die Anzeigezeile über der Tastatur hat eine feste Höhe – die Tastatur
-    bewegt sich nie. Handy: Tastatur ganz unten, Platz dazwischen bleibt frei (Höhen passen sich kleinen Bildschirmen an);
-    iPad quer: Tastatur rechts daneben, hochkant darunter.
+    bewegt sich nie. Handy: Tastatur unten mit freiem Streifen darunter, Platz dazwischen bleibt frei (Höhen passen sich kleinen
+    Bildschirmen an); im D-Note-Rechner stehen die Tasten auf derselben Höhe. iPad quer: Tastatur rechts daneben, hochkant
+    darunter. Zoomen mit zwei Fingern geht auch bei offenem Fenster (Wischen mit einem Finger verschiebt die Seite dahinter nicht).
   - **Hardware-Tastatur**: Tab nur über Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“ (nicht über
     Sturz-Timer, „berechnen“, „Wertung 0,00“, „Abbrechen“ = Esc, Einstellung). → und Enter vorwärts, ← rückwärts im Kreis
     E1 → … → NA → „Wertung freigeben“ (nur wenn aktiv) → E1; Enter auf „Wertung freigeben“ gibt frei. Kein ±0,1 mehr:
@@ -147,10 +152,15 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
 - **Nicht angetreten** löscht Turner und bereits eingegebene Wertungen dieser Übung (nach Rückfrage).
 - **Wertung 0,00** (nur mit ausgewähltem Turner) gibt einem angetretenen Turner die Endnote 0; eine D-Note 0 wird dagegen ganz normal
   mit den Abzügen berechnet.
-- **Sturz-Timer** an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“.
-  **Einturn-Timer** je Gerät: 6:40 (8 Turner × 50 Sekunden, grün). Beide laufen im Knopf und in der Anzeigetafel und lassen sich mit
-  erneutem Druck jederzeit beenden. Nach Ablauf zeigt die Tafel „Einturnen beendet“ (10 s) bzw.
-  „Übung beendet“ (5 s), leicht blinkend.
+- **Sturz-Timer** an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“. Der Knopf (Kachel und
+  Wertungsfenster) ist wie die Turnerauswahl nach der Freigabe und bei „kein Turner“ gesperrt – ein noch laufender Timer bleibt
+  bis zum Stopp bzw. Ablauf bedienbar.
+  **Einturnzeit** (seit Beta 82 im Menü „Anzeigetafel“ zwischen Turnervorstellung und Wettkampfpause): ein einziger Timer 6:40
+  (8 Turner × 50 Sekunden) ohne Zuordnung zu einem Gerät – Reiterwechsel, Turner und Wertungen ändern nichts an ihm; kein
+  automatischer Gerätestart mehr. Laufende Wettkampfpause und Einturnzeit schließen sich gegenseitig aus (Knopf grau).
+  Tafel-Überschriften: „Einturnen“ bzw. „Wettkampfpause und Einturnen“ (in der Pause wird schon das nächste Gerät eingeturnt).
+  Timer laufen im Knopf und in der Anzeigetafel und lassen sich mit erneutem Druck jederzeit beenden. Nach Ablauf zeigt die
+  Tafel „Einturnen beendet“ bzw. „Übung beendet“ (5 s), leicht blinkend.
 - **Akustische Signale** (im Eingabefenster): Ende der Einturnzeit = Schelle 5 Sekunden; Sturz-Timer nach
   30 s = kurzer Doppelton, nach 60 s = kurzer Fehlerton. Nach manuellem Stopp ertönt nichts.
 - **Scorepunkte** werden überall in der Farbe der jeweiligen Mannschaft angezeigt; eine Notensumme gibt es nicht.
@@ -255,6 +265,14 @@ Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ zusam
 
 **Empfehlung:** Nach jedem Wettkampf eine Sicherung auf einen USB-Stick o. Ä. exportieren,
 denn wenn das Gerät verloren geht oder die Browserdaten gelöscht werden, sind auch die lokalen Daten weg.
+
+## Zielgeräte (Grundsatz, festgelegt in Beta 82)
+
+Die App muss auf Handys **ab 6,1 Zoll** funktionieren: iPhone ab 6,1 Zoll (z. B. iPhone 13–16: 390 × 844 px, in Safari mit
+Leisten sichtbar ca. 390 × 664 px) und entsprechende Android-Handys (6,1 Zoll sind dort oft nur 360 px breit, z. B. Galaxy S:
+360 × 780 px – die Breite 360 bleibt also wichtig). **iPhone SE und iPhone mini** (375 × 667 bzw. 375 × 812 px) müssen nicht
+mehr berücksichtigt werden; bisherige Anpassungen für sie bleiben, werden aber nicht mehr geprüft. Dazu Tablets (iPad hoch und
+quer) und Laptops/PCs; die Anzeigetafel läuft am besten in Chrome oder Edge.
 
 ## Starten
 

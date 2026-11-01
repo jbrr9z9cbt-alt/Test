@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '81';
+  var APP_BUILD = '82';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -42,7 +42,7 @@
     settings: { key: 'settings', rules: S.clone(S.DEFAULT_RULES) },
     legacyTeamNames: {},
     persistent: false,
-    ui: { tab: {}, editDone: {}, openedDone: {} },
+    ui: { tab: {} },
     board: { matchId: null, lastReveal: '' }
   };
 
@@ -487,16 +487,38 @@
 
   var keepScroll = false;
 
+  // „← zurück“ auf den Seiten, die man vom Wettkampf aus öffnet: der Wettkampf, von dem man kommt (je Fenster).
+  var BACK_KEY = 'wtb-zurueck';
+  var backMatch = (function () { try { return JSON.parse(sessionStorage.getItem(BACK_KEY) || 'null'); } catch (e) { return null; } })();
+
+  function setBackMatch(v) {
+    backMatch = v;
+    try { if (v) sessionStorage.setItem(BACK_KEY, JSON.stringify(v)); else sessionStorage.removeItem(BACK_KEY); } catch (e) { /* nur im Speicher */ }
+  }
+
+  /**
+   * Knopf „← zurück“ (wie im Protokoll): im Wettkampf Setup immer zum Wettkampf; auf Wettkämpfe, Mannschaften, Regeln
+   * und Anleitung nur, wenn man von einem Wettkampf dieser Liga kommt. Vergessen wird er auf der Startseite, beim Öffnen
+   * eines anderen Wettkampfs und in einer anderen Liga.
+   */
+  function backRowHtml(r) {
+    var id = null;
+    if (r.name === 'edit' && match(r.id)) id = r.id;
+    else if (['home', 'data', 'teams', 'rules', 'help'].indexOf(r.name) >= 0 && backMatch && backMatch.league === r.league && match(backMatch.id)) id = backMatch.id;
+    return id ? '<div class="back-row' + (r.name === 'edit' ? ' narrow' : '') + '"><a class="btn ghost" href="#/match/' + id + '">← zurück</a></div>' : '';
+  }
+
   function render() {
     var r = route();
     document.body.classList.toggle('board-mode', r.name === 'match' && r.sub === 'board');
     document.body.classList.toggle('match-page', r.name === 'match' && !r.sub);
     document.body.classList.toggle('board-light', r.name === 'match' && r.sub === 'board' && boardLight(match(r.id)));
     if (r.league) currentLeague = r.league;
+    if (r.name === 'match' && !r.sub && match(r.id)) setBackMatch({ league: matchLeague(match(r.id)).key, id: r.id });
+    else if (r.name === 'start' || r.name === 'info' || (r.league && backMatch && backMatch.league !== r.league)) setBackMatch(null);
     var ready = !!r.league && leagueReady(r.league);
     document.querySelectorAll('.topbar nav a').forEach(function (a) {
       var page = a.getAttribute('data-route');
-      if (page === 'start') return;
       a.setAttribute('href', leagueHref(page));
       a.classList.toggle('active', page === r.name);
     });
@@ -533,7 +555,7 @@
       case 'info': html = viewInfo(); break;
       default: html = viewStart();
     }
-    $app.innerHTML = (state.persistent ? '' : warningBanner()) + html;
+    $app.innerHTML = (state.persistent ? '' : warningBanner()) + (ready ? backRowHtml(r) : '') + html;
     if ((r.name === 'home' || r.name === 'data') && ready) refreshDataView();
     var mf = $app.querySelector('form[data-form="match"]');
     if (mf) { syncJudgeFields(mf); syncLineup(mf); setupGuard.initial = formState(mf); setupGuard.leaveOk = false; }
@@ -956,102 +978,37 @@
   // ---------- Ansicht: Wettkampf (Erfassung) ----------
 
   function currentTab(m) {
-    // Ohne Auswahl das laufende Gerät, sonst das erste. Gesperrte Geräte lassen sich öffnen (nur Turner änderbar).
-    var run = runningApparatus(m);
-    return state.ui.tab[m.id] || (run ? run.key : S.APPARATUS[0].key);
+    // Ohne Auswahl das Gerät, das gerade auf der Anzeigetafel steht (siehe boardApparatus).
+    return state.ui.tab[m.id] || boardApparatus(m).key;
   }
 
   /**
-   * Status je Gerät nach freigegebenen Wertungen: done (abgeschlossen), run (läuft), open (offen)
-   * bzw. locked, solange ein anderes Gerät läuft – außer bei aufgehobener Gerätesperre.
+   * Am Gerät ist schon eine Teilwertung eingetragen oder etwas freigegeben – dann trägt der Reiter den gelben Punkt.
+   * Turnerauswahl und „kein Turner“ zählen nicht (sie können vorab gewählt werden).
    */
-  /**
-   * Gerät gestartet? Über „Gerät starten“ (m.started) – bei älteren Wettkämpfen ohne diesen Knopf
-   * gilt ein Gerät mit eingetragener oder freigegebener Wertung als gestartet.
-   */
-  function appStarted(m, key) {
-    if (m.started && m.started[key]) return true;
+  function appHasInput(m, key) {
     return m.apparatus[key].duels.some(function (d) {
       return rowAnyRevealed(m, d) || ['home', 'guest'].some(function (k) {
         var x = d[k];
-        // „kein Turner“ (dns) zählt nicht: es kann vorab gewählt werden.
         return x.d !== null || x.e1 !== null || x.e2 !== null || x.e3 !== null || x.nd || x.bonus || x.zero;
       });
     });
   }
 
-  /** Wertungen dürfen erst nach „Gerät starten“ eingetragen werden (Turner jederzeit). */
-  function scoresAllowed(m, key) {
-    return appStarted(m, key) || appStatus(m)[key] === 'done';
-  }
-
-  /** Start zurücknehmen geht bis zur ersten Freigabe an diesem Gerät (eingetragene Noten werden dabei nach Rückfrage gelöscht). */
-  function canUnstart(m, key) {
-    if (!(m.started && m.started[key])) return false;
-    return !m.apparatus[key].duels.some(function (d) { return rowAnyRevealed(m, d); });
-  }
-
-  /** Eingetragene, noch nicht freigegebene Noten am Gerät? (Turnerauswahl und „kein Turner“ zählen nicht.) */
-  function hasEnteredScores(m, key) {
-    var copy = Object.assign({}, m, { started: {} });
-    return appStarted(copy, key);
-  }
-
-  /** Noten des Geräts löschen; Turnerauswahl und „kein Turner“ bleiben. */
-  function clearEnteredScores(m, key) {
-    m.apparatus[key].duels.forEach(function (d) {
-      ['home', 'guest'].forEach(function (k) {
-        var x = d[k];
-        x.d = null; x.e1 = null; x.e2 = null; x.e3 = null; x.nd = 0; x.bonus = false; x.zero = false;
-        if (x.dparts) x.dparts = null;
-        delete x.dnsReleased;
-      });
-    });
-    if (m.timers && m.timers.fall && m.timers.fall.appKey === key) m.timers.fall = null;
-  }
-
+  /**
+   * Status je Gerät für die Reiter: done (alle Wertungen freigegeben, grüner Haken), run (Eingaben vorhanden, gelber Punkt)
+   * oder open. Gesperrt wird kein Gerät: Reiter, Turner und Wertungen sind jederzeit bedienbar.
+   */
   function appStatus(m) {
     var r = S.matchResult(S.revealedView(m)), st = {};
     S.APPARATUS.forEach(function (a) {
       var ar = r.apparatus[a.key];
-      st[a.key] = ar.complete ? 'done' : (ar.started || appStarted(m, a.key)) ? 'run' : 'open';
+      st[a.key] = ar.complete ? 'done' : (ar.started || appHasInput(m, a.key)) ? 'run' : 'open';
     });
-    // Gesperrt wird auch, solange an einem Gerät die Einturnzeit läuft (bis zu dessen automatischem Start).
-    var warming = warmingApparatus(m);
-    var running = S.APPARATUS.some(function (a) { return st[a.key] === 'run'; }) || !!warming;
-    if (running && !m.unlockApparatus && m.status !== 'final') {
-      S.APPARATUS.forEach(function (a) { if (st[a.key] === 'open' && a.key !== warming) st[a.key] = 'locked'; });
-    }
     return st;
   }
 
-  /** Gerät, an dem gerade die Einturnzeit läuft oder das gleich danach startet (noch nicht gestartet). */
-  function warmingApparatus(m) {
-    var w = m.timers && m.timers.warmup;
-    if (!w || w.autoStarted || appStarted(m, w.appKey)) return null;
-    return Date.now() - w.start < WARMUP_MS + WARMUP_END_MS ? w.appKey : null;
-  }
-
-  /** „Sperre aufheben …“ in der Statuszeile: nur für den Notfall, doppelt bestätigt; gilt für alle Geräte. */
-  function unlockDialog(m) {
-    askChoice('⚠ Gerätesperre aufheben?', 'Die Gerätesperre ist nur für den Notfall gedacht, z. B. wenn die App ein Gerät fälschlich nicht als abgeschlossen erkennt. Danach sind alle Geräte frei wählbar.', null,
-      [{ label: 'Abbrechen', value: false, cancel: true, focus: true }, { label: 'Weiter', value: true, primary: true }]).then(function (go) {
-      if (!go) return null;
-      return askChoice('Wirklich aufheben?', 'Alle Geräte sind dann frei wählbar, bis die Sperre wieder aktiviert wird.', null,
-        [{ label: 'Nein', value: false, cancel: true, focus: true }, { label: 'Ja, Sperre aufheben', value: true, primary: true }]);
-    }).then(function (yes) {
-      if (!yes) return;
-      m.unlockApparatus = true;
-      save('matches', m).then(function () { render(); toast('Gerätesperre aufgehoben'); });
-    });
-  }
-
-  function runningApparatus(m) {
-    var st = appStatus(m);
-    return S.APPARATUS.filter(function (a) { return st[a.key] === 'run'; })[0];
-  }
-
-  var TAB_BADGE = { done: '✓', run: '', locked: '🔒', open: '' };
+  var TAB_BADGE = { done: '✓', run: '', open: '' };
 
   function tabStatusClass(st) {
     return st === 'open' ? '' : ' st-' + st;
@@ -1060,7 +1017,6 @@
   function viewMatch(m) {
     var r = S.matchResult(m);
     var tab = currentTab(m);
-    if (!(m.id in state.ui.openedDone)) state.ui.openedDone[m.id] = appStatus(m)[tab] === 'done' ? tab : '';
     var locked = m.status === 'final';
     var st = appStatus(m);
     var tabs = S.APPARATUS.map(function (a) {
@@ -1077,8 +1033,9 @@
       '<span class="mi-design"><span class="mi-lbl">Design</span><span class="bs-theme" role="group" aria-label="Design der Anzeigetafel">' +
       '<button class="toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
       '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span></span><hr>' +
-      // Reihenfolge wie im Ablauf: Turnervorstellung, Wettkampfpause, Ergebnis/Siegerehrung (Platz für einen weiteren Timer)
-      '<span data-out="intro">' + introControls(m) + '</span>' + pauseControls() +
+      // Reihenfolge wie im Ablauf: Turnervorstellung, Einturnzeit, Wettkampfpause, Ergebnis/Siegerehrung
+      '<span data-out="intro">' + introControls(m) + '</span>' +
+      '<button class="btn timer-btn" data-action="warmup-timer">' + warmupLabel(null) + '</button>' + pauseControls() +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' + scorersLabel() + '</button></div>' +
       '<div class="menu-pop" id="menu-match" role="group" aria-label="Wettkampf">' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '"><span class="ml">Wettkampf Setup</span><span class="ms">Setup</span></a>') +
@@ -1104,8 +1061,6 @@
       '</section>' +
       (locked ? '<div class="banner info">Dieser Wettkampf ist abgeschlossen und schreibgeschützt.</div>' : '') +
       '<div data-out="pending">' + pendingBanner(m) + '</div>' +
-      (m.unlockApparatus && m.status !== 'final' ? '<div class="unlock-bar">⚠ <b>Gerätesperre aufgehoben</b> – alle Geräte sind frei wählbar. ' +
-        '<button type="button" class="btn" data-action="relock">Sperre wieder aktivieren</button></div>' : '') +
       '<nav class="tabs">' + tabs + '</nav></div>' +
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
       '<div id="app-intro"></div><div id="app-scorers"></div><div id="score-dlg"></div>';
@@ -1128,25 +1083,19 @@
   /** Gleiche Beschriftung in beiden Zuständen; eingeblendet zeigt der Knopf dunkel hinterlegt (wie Hell/Dunkel). */
   function scorersLabel() { return '<span class="ml">Ergebnis/Siegerehrung</span><span class="ms">Ergebnis</span>'; }
 
+  /** Beschriftung des Einturn-Knopfs: „Einturnzeit“ bzw. mit Restzeit „Einturnzeit 4:12 – beenden“ (schmal: „Einturnen …“). */
+  function warmupLabel(w) {
+    return '<span class="ml">Einturnzeit</span><span class="ms">Einturnen</span>' + (w ? ' ' + clock(w.remaining) + ' – beenden' : '');
+  }
+
   /** Beschriftung des Pause-Knopfs: „Wettkampfpause“ bzw. mit Restzeit „Wettkampfpause 4:12 – beenden“ (schmal: „Pause …“). */
   function pauseLabel(pause) {
     return '<span class="ml">Wettkampfpause</span><span class="ms">Pause</span>' + (pause ? ' ' + clock(pause.remaining) + ' – beenden' : '');
   }
 
-  /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
-  /**
-   * Abgeschlossenes Gerät: nur ansehen, bis „Bearbeiten“ bestätigt wurde (gilt, bis das Gerät verlassen wird).
-   * Eine offene Korrektur an diesem Gerät bleibt immer bearbeitbar.
-   */
-  function doneLocked(m, appKey) {
-    if (m.status === 'final' || state.ui.editDone[m.id] === appKey || appStatus(m)[appKey] !== 'done') return false;
-    // Erst während der Anzeige abgeschlossen (letzte Freigabe): bis zum Verlassen weiter bearbeitbar.
-    if (appKey === currentTab(m) && state.ui.openedDone[m.id] !== appKey) return false;
-    return !S.pendingCorrections(m).some(function (p) { return p.appKey === appKey; });
-  }
-
+  /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt (sonst nichts). */
   function duelBlocked(m, appKey, idx, sideKey) {
-    if (m.status === 'final' || doneLocked(m, appKey)) return true;
+    if (m.status === 'final') return true;
     var pending = S.pendingCorrections(m);
     // Im klassischen Modell bleibt nur die geänderte Übung selbst bearbeitbar.
     return pending.length > 0 && !pending.some(function (p) { return p.appKey === appKey && p.idx === idx && (!p.side || p.side === sideKey); });
@@ -1250,14 +1199,14 @@
 
   /**
    * Knopf zum Wertungsfenster: „Wertung eingeben“ bzw. – schon freigegeben (Oberliga: schon erfasst) – „Wertung ändern“.
-   * Gesperrt vor dem Gerätestart, an gesperrten bzw. abgeschlossenen Geräten und im abgeschlossenen Wettkampf –
-   * ohne Turner aber anklickbar (der Turner wird dann im Fenster gewählt).
+   * Gesperrt nur im abgeschlossenen Wettkampf und solange eine andere Korrektur offen ist –
+   * ohne Turner anklickbar (der Turner wird dann im Fenster gewählt).
    */
-  function scoreButton(m, appKey, idx, sideKey, side, locked, noScores) {
+  function scoreButton(m, appKey, idx, sideKey, side, locked) {
     var shown = sideShown(m, appKey, idx, sideKey);
     var entered = !side.dns && S.sideFinal(side, m.rules) !== null;
     var change = shown || (!isClassic(m) && (entered || (side.dns && side.dnsReleased)));
-    var off = locked || noScores;
+    var off = locked;
     var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"' + (off ? ' disabled' : '');
     // „kein Turner“: nichts einzutippen – direkt in der Kachel freigeben (ohne Fenster).
     if (side.dns && !change) return '<button type="button" class="btn primary score-btn" data-action="dns-release"' + attrs + '>Wertung freigeben</button>';
@@ -1270,7 +1219,7 @@
    */
   function releaseDns(m, appKey, idx, sideKey) {
     var d = m.apparatus[appKey].duels[idx], live = d[sideKey];
-    if (!live.dns || m.status === 'final' || duelBlocked(m, appKey, idx, sideKey) || !scoresAllowed(m, appKey)) return;
+    if (!live.dns || m.status === 'final' || duelBlocked(m, appKey, idx, sideKey)) return;
     if (!isClassic(m)) live.dnsReleased = true;
     var kind = isClassic(m) ? revealSideNow(m, appKey, idx, sideKey)
       : duelReady(S.duelResult(d, m.rules), d) ? revealDuelNow(m, appKey, idx) : 'stored';
@@ -1283,11 +1232,21 @@
     });
   }
 
-  function sideHtml(m, appKey, idx, sideKey, side, locked, position, struck, noScores) {
+  /**
+   * Knopf „Sturz-Timer“ (Kachel und Wertungsfenster). Gesperrt wie die Turnerauswahl – nach der Freigabe, bei „kein Turner“
+   * und im abgeschlossenen Wettkampf –, außer sein Timer läuft gerade: dann bleibt er bis zum Stopp bzw. Ablauf bedienbar.
+   */
+  function fallButton(m, appKey, idx, sideKey, off) {
+    var f = fallState(m);
+    var running = !!f && f.t.appKey === appKey && f.t.idx === idx && f.t.side === sideKey;
+    return '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer" data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"' +
+      (off ? ' data-off="1"' + (running ? '' : ' disabled') : '') + '>Sturz-Timer</button>';
+  }
+
+  function sideHtml(m, appKey, idx, sideKey, side, locked, position, struck) {
     var classic = isClassic(m);
     var color = sideColor(m, sideKey);
     var key = appKey + '-' + idx + '-' + sideKey;
-    var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"';
     var d = m.apparatus[appKey].duels[idx];
     return '<div class="side ' + sideKey + (classic ? '' : position === 1 ? ' first' : ' second') + (side.dns ? ' dns' : '') + (struck ? ' struck' : '') +
       '" data-key="' + key + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
@@ -1302,8 +1261,8 @@
       '<span class="final">Endnote <strong data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</strong></span></div>' +
       '<div class="side-foot">' +
       (classic ? '<span class="side-status" data-out="sideact-' + key + '">' + sideActions(m, d, appKey, idx, sideKey) + '</span>' : '') +
-      (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer"' + attrs + (locked || noScores ? ' disabled' : '') + '>Sturz-Timer</button>' : '') +
-      scoreButton(m, appKey, idx, sideKey, side, locked, noScores) +
+      (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? fallButton(m, appKey, idx, sideKey, locked || side.dns || sideShown(m, appKey, idx, sideKey)) : '') +
+      scoreButton(m, appKey, idx, sideKey, side, locked) +
       '</div></div>';
   }
 
@@ -1332,100 +1291,25 @@
     return duel.revealedAt ? '<span class="revealed">✓ freigegeben</span>' : '';
   }
 
-  /**
-   * Statuszeile über dem Gerät – ein Rahmen für alle Zustände: frei (Einturnzeit / Gerät direkt starten),
-   * Einturnzeit läuft, „Gerät startet gleich …“, „● Gerät läuft“ (mit „Start zurücknehmen“ bis zur ersten Freigabe),
-   * „✓ Gerät abgeschlossen“ (mit „Bearbeiten“, solange gesperrt) und „🔒 Gerät gesperrt“ (mit „Sperre aufheben …“).
-   * Beim abgeschlossenen Wettkampf bleibt die Zeile leer.
-   */
-  function statusRowHtml(m, appKey) {
-    if (m.status === 'final') return '';
-    var st = appStatus(m)[appKey];
-    if (st === 'done') {
-      return '<span class="st-text st-done">✓ Gerät abgeschlossen</span>' +
-        (doneLocked(m, appKey) ? '<button type="button" class="btn" tabindex="-1" data-action="edit-done" data-app="' + appKey + '">Bearbeiten</button>' : '');
-    }
-    if (st === 'locked') {
-      var run = runningApparatus(m);
-      var why = run ? run.name + ' läuft' : 'Einturnzeit an ' + apparatusName(warmingApparatus(m)) + ' läuft';
-      return '<span class="st-lines"><span class="st-text st-lock">🔒 Gerät gesperrt – ' + why + '</span>' +
-        '<span class="st-sub">Turner können schon gewählt werden.</span></span>' +
-        '<button type="button" class="btn" tabindex="-1" data-action="unlock">Sperre aufheben …</button>';
-    }
-    var w = warmupState(m);
-    if (w && w.t.appKey === appKey) return warmupButton(appKey);
-    if (warmupEnding(m, appKey)) return '<span class="st-text st-run">Gerät startet gleich …</span>';
-    if (st === 'run') {
-      return '<span class="st-text st-run">● Gerät läuft</span>' +
-        (canUnstart(m, appKey) ? '<button type="button" class="btn" tabindex="-1" data-action="app-unstart" data-app="' + appKey + '">Start zurücknehmen</button>' : '');
-    }
-    return warmupButton(appKey) +
-      '<button type="button" class="btn start-btn" tabindex="-1" data-action="app-start" data-app="' + appKey + '">Gerät direkt starten</button>';
-  }
-
-  /** Einturnzeit-Knopf; läuft sie, zeigt der Takt darin die Restzeit mit „– Stopp“. Nach Ablauf startet das Gerät automatisch. */
-  function warmupButton(appKey) {
-    return '<button type="button" class="btn primary timer-btn warmup-btn" tabindex="-1" data-action="warmup-timer" data-app="' + appKey + '">Einturnzeit (6:40) starten</button>';
-  }
-
-  /** Einturnzeit dieses Geräts ist abgelaufen, der automatische Start steht noch aus („Einturnen beendet“). */
-  function warmupEnding(m, appKey) {
-    var w = m.timers && m.timers.warmup;
-    return !!(w && w.appKey === appKey && !w.autoStarted && Date.now() - w.start >= WARMUP_MS && !appStarted(m, appKey));
-  }
-
-  /** Statuszeile nachziehen (z. B. „Start zurücknehmen“ entfällt mit der ersten Freigabe, „✓ abgeschlossen“ nach der letzten). */
-  function refreshStartRow(m) {
-    var wr = $app.querySelector('.warmup-row');
-    if (!wr) return;
-    var html = statusRowHtml(m, currentTab(m));
-    if (wr.getAttribute('data-sig') === html) return;
-    wr.setAttribute('data-sig', html);
-    wr.innerHTML = html;
-  }
-
-  function startApparatus(m, key) {
-    m.started = m.started || {};
-    m.started[key] = Date.now();
-    save('matches', m).then(function () { keepScroll = true; render(); });
-  }
-
-  /**
-   * Nach Ablauf der Einturnzeit (und der Anzeige „Einturnen beendet“) startet das Gerät von selbst.
-   * Nur im Eingabefenster; war es im Hintergrund, wird der Start beim nächsten Takt nachgeholt.
-   */
-  function autoStartAfterWarmup() {
-    if (document.body.classList.contains('board-mode')) return;
-    state.matches.forEach(function (m) {
-      var w = m.timers && m.timers.warmup;
-      if (!w || w.autoStarted || m.status === 'final' || Date.now() - w.start < WARMUP_MS + WARMUP_END_MS) return;
-      w.autoStarted = true;
-      if (appStatus(m)[w.appKey] === 'open') { startApparatus(m, w.appKey); toast(apparatusName(w.appKey) + ' gestartet'); }
-      else save('matches', m);
-    });
-  }
-
   function apparatusPanel(m, appKey) {
     if (isClassic(m)) return classicPanel(m, appKey);
     var a = S.APPARATUS.filter(function (x) { return x.key === appKey; })[0];
     var app = m.apparatus[appKey];
     var ar = S.apparatusResult(app, m.rules);
-    var noScores = !scoresAllowed(m, appKey);
     var duels = app.duels.map(function (d, i) {
       var locked = duelBlocked(m, appKey, i);
       var order = S.startOrder(m, appKey, i);
-      var cls = 'duel' + (S.hasPendingCorrection(d) ? ' pending' : '') + (locked && m.status !== 'final' && !doneLocked(m, appKey) ? ' blocked' : '');
+      var cls = 'duel' + (S.hasPendingCorrection(d) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '');
       // DOM-Reihenfolge = Startreihenfolge, damit die Tabulatortaste der Wettkampfreihenfolge folgt.
       return '<div class="' + cls + '">' +
         '<div class="duel-no">Duell ' + (i + 1) + '</div>' +
-        sideHtml(m, appKey, i, order[0], d[order[0]], locked, 1, false, noScores) +
-        sideHtml(m, appKey, i, order[1], d[order[1]], locked, 2, false, noScores) +
+        sideHtml(m, appKey, i, order[0], d[order[0]], locked, 1, false) +
+        sideHtml(m, appKey, i, order[1], d[order[1]], locked, 2, false) +
         '<div class="duel-result" data-out="duel-' + appKey + '-' + i + '">' + duelPoints(m, ar.duels[i]) + '</div>' +
         '<div class="duel-actions" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d) + '</div>' +
         '</div>';
     }).join('');
-    return '<div class="warmup-row status-row">' + statusRowHtml(m, appKey) + '</div>' +
-      '<div class="card-head"><h3>' + a.name + '</h3>' +
+    return '<div class="card-head"><h3>' + a.name + '</h3>' +
       '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels;
   }
 
@@ -1442,10 +1326,6 @@
     return S.revOf(d, sideKey).revealedAt ? '<span class="revealed">✓ freigegeben</span>' : '';
   }
 
-  function classicSumHtml(m, ar, sideKey) {
-    return 'Summe (beste ' + m.rules.counting + ') <strong>' + teamValue(m, ar, sideKey) + '</strong>';
-  }
-
   /**
    * Landesliga: links die Turner der am Gerät beginnenden Mannschaft, rechts die der
    * anderen; jede Zeile ist ein Startpaar (A1/B1 …). DOM-Reihenfolge = Startreihenfolge.
@@ -1455,23 +1335,17 @@
     var app = m.apparatus[appKey];
     var ar = S.apparatusResult(app, m.rules);
     var order = S.classicOrder(m, appKey);
-    var noScores = !scoresAllowed(m, appKey);
     var rows = app.duels.map(function (d, i) {
       return '<div class="cl-row">' + order.map(function (k) {
         var locked = duelBlocked(m, appKey, i, k);
-        return '<div class="cl-cell' + (S.sidePending(d, k) ? ' pending' : '') + (locked && m.status !== 'final' && !doneLocked(m, appKey) ? ' blocked' : '') + '">' +
-          sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0, noScores) + '</div>';
+        return '<div class="cl-cell' + (S.sidePending(d, k) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '') + '">' +
+          sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0) + '</div>';
       }).join('') + '</div>';
     }).join('');
-    var sums = '<div class="cl-row cl-sums">' + order.map(function (k) {
-      return '<div class="cl-sum" data-out="clsum-' + appKey + '-' + k + '">' + classicSumHtml(m, ar, k) + '</div>';
-    }).join('') + '</div>';
-    return '<div class="warmup-row status-row">' + statusRowHtml(m, appKey) + '</div>' +
-      '<div class="card-head"><h3>' + a.name + '</h3>' +
-      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' +
-      '<div class="cl-row cl-head">' + order.map(function (k, n) {
-        return '<div>' + teamTag(m, k) + (n === 0 ? ' <span class="muted small">beginnt</span>' : '') + '</div>';
-      }).join('') + '</div>' + rows + sums +
+    // Ohne Kopfzeile mit den Vereinsnamen und ohne Zeile „Summe (beste 3)“: Verein steht an jeder Kachel,
+    // die beginnende Mannschaft hat Kachel 1, die Summen stehen im Reiter und in der Gerätezeile.
+    return '<div class="card-head"><h3>' + a.name + '</h3>' +
+      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + rows +
       deductionLinks(m);
   }
 
@@ -1527,14 +1401,13 @@
       out('tab-' + a.key, totalPair(m, ar));
       var tabBtn = $app.querySelector('.tab[data-tab="' + a.key + '"]');
       if (!tabBtn) return;
-      ['done', 'run', 'locked'].forEach(function (k) { tabBtn.classList.toggle('st-' + k, st[a.key] === k); });
+      ['done', 'run'].forEach(function (k) { tabBtn.classList.toggle('st-' + k, st[a.key] === k); });
       tabBtn.querySelector('.tab-badge').textContent = TAB_BADGE[st[a.key]];
     });
     var tab = currentTab(m);
     var ar = r.apparatus[tab];
     out('app-sum', appSumHtml(m, ar));
     out('pending', pendingBanner(m));
-    refreshStartRow(m);
     if (isClassic(m)) {
       m.apparatus[tab].duels.forEach(function (d, i) {
         ['home', 'guest'].forEach(function (k) {
@@ -1550,7 +1423,6 @@
           if (sideEl) sideEl.classList.toggle('struck', ar[k].struck.indexOf(i) >= 0);
         });
       });
-      ['home', 'guest'].forEach(function (k) { out('clsum-' + tab + '-' + k, classicSumHtml(m, ar, k)); });
       return;
     }
     m.apparatus[tab].duels.forEach(function (d, i) {
@@ -1574,7 +1446,7 @@
     var idx = parseInt(el.getAttribute('data-duel'), 10);
     var sideKey = el.getAttribute('data-side');
     var field = el.getAttribute('data-field');
-    if (duelBlocked(m, appKey, idx, sideKey)) { toast(doneLocked(m, appKey) ? 'Das Gerät ist abgeschlossen – zum Ändern „Bearbeiten“ wählen.' : 'Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
+    if (duelBlocked(m, appKey, idx, sideKey)) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); render(); return; }
 
     if (field !== 'gymnast') return;
     var none = el.value === NO_GYMNAST;
@@ -1648,32 +1520,43 @@
     return isClassic(m) ? !!(S.revOf(d, 'home').revealedAt || S.revOf(d, 'guest').revealedAt) : !!d.revealedAt;
   }
 
-  /**
-   * Gerät der Anzeigetafel: das zuletzt mit „Gerät starten“ gestartete – es bleibt nach dem Abschluss stehen,
-   * bis das nächste gestartet wird. Ältere Wettkämpfe ohne Start: das erste mit Eintragungen, das noch nicht fertig ist.
-   */
-  function boardApparatus(m) {
-    var last = null, lastTs = 0;
-    S.APPARATUS.forEach(function (a) {
-      var ts = m.started && m.started[a.key];
-      if (ts && ts > lastTs) { last = a; lastTs = ts; }
+  /** Nach der letzten Freigabe eines Geräts bleibt es so lange auf der Tafel (mindestens), wie die große Einblendung läuft. */
+  var BOARD_HOLD_MS = FLASH_MS;
+
+  /** Zeitpunkt der letzten (ersten) Freigabe am Gerät – Korrekturen zählen nicht. */
+  function appLastPerformed(m, key) {
+    var at = '';
+    m.apparatus[key].duels.forEach(function (d) {
+      (isClassic(m) ? [S.revOf(d, 'home'), S.revOf(d, 'guest')] : [d]).forEach(function (u) {
+        var t = u.firstRevealedAt || u.revealedAt;
+        if (t && t > at) at = t;
+      });
     });
-    return last || legacyBoardApparatus(m);
+    return at;
   }
 
-  function legacyBoardApparatus(m) {
-    var current = null;
-    var lastRevealed = null;
+  /**
+   * Gerät der Anzeigetafel:
+   * 1. Ist an einem Gerät schon freigegeben, aber noch nicht alles, steht die Tafel fest auf diesem Gerät
+   *    (bei mehreren – etwa einer vergessenen Freigabe – auf dem mit der letzten Freigabe).
+   * 2. Nach der letzten Freigabe eines Geräts bleibt es mindestens BOARD_HOLD_MS stehen (Zeit zum Lesen).
+   * 3. Sonst folgt die Tafel dem zuletzt gewählten Gerätereiter (m.display.tab), ohne Auswahl dem ersten Gerät.
+   *    Gesperrt wird dabei nichts; der frühere Gerätestart (m.started) wird nicht mehr beachtet.
+   */
+  function boardApparatus(m) {
+    var open = null, openAt = '', last = null, lastAt = '';
     S.APPARATUS.forEach(function (a) {
-      var duels = m.apparatus[a.key].duels;
-      var touched = duels.some(function (d) {
-        return rowAnyRevealed(m, d) || d.home.gymnastId || d.guest.gymnastId || S.sideFinal(d.home, m.rules) !== null || S.sideFinal(d.guest, m.rules) !== null;
-      });
-      var allRevealed = duels.every(function (d) { return rowRevealed(m, d); });
-      if (!current && touched && !allRevealed) current = a;
-      if (duels.some(function (d) { return rowAnyRevealed(m, d); })) lastRevealed = a;
+      var at = appLastPerformed(m, a.key);
+      if (!at) return;
+      var done = m.apparatus[a.key].duels.every(function (d) { return rowRevealed(m, d); });
+      if (!done && at > openAt) { open = a; openAt = at; }
+      if (at > lastAt) { last = a; lastAt = at; }
     });
-    return current || lastRevealed;
+    if (open) return open;
+    if (last && Date.now() - Date.parse(lastAt) < BOARD_HOLD_MS) return last;
+    // Ältere Wettkämpfe ohne gemerkten Reiter: das Gerät mit der letzten Freigabe.
+    var key = m.display && m.display.tab;
+    return S.APPARATUS.filter(function (a) { return a.key === key; })[0] || last || S.APPARATUS[0];
   }
 
   /**
@@ -1801,8 +1684,7 @@
     }
     var view = S.revealedView(m);
     var r = S.matchResult(view);
-    // Vor der ersten Wertung steht schon das erste Gerät da, damit die Aufteilung immer gleich bleibt.
-    var current = boardApparatus(m) || S.APPARATUS[0];
+    var current = boardApparatus(m);
     var homeColor = boardTone(m, 'home'), guestColor = boardTone(m, 'guest');
     var rows = S.APPARATUS.map(function (a) {
       var ar = r.apparatus[a.key];
@@ -1829,7 +1711,7 @@
         '</table></div>';
     }
 
-    return '<div class="board">' +
+    return '<div class="board" data-app="' + current.key + '">' +
       '<div class="board-title">' + esc([matchLeague(m).name, fmtDate(m.date)].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="board-score">' +
       '<div class="board-team" style="color:' + homeColor + '">' + teamHtml(m.homeTeamId) + boardDeduction(m, 'home') + '</div>' +
@@ -1849,11 +1731,12 @@
   function timerCardInner(m) {
     var warm = warmupState(m), p = pauseState(m), t = m.timers || {};
     function card(title, body) { return '<div class="tm-title">' + title + '</div>' + body; }
-    function warmTitle(key) { return appIcon(key, 'tm-ico') + 'Einturnzeit ' + apparatusName(key); }
-    if (warm) return card(warmTitle(warm.t.appKey), '<div class="tm-clock">' + fixedDigits(clock(warm.remaining)) + '</div>');
-    if (p) return card('Pause', '<div class="tm-clock">' + fixedDigits(clock(p.remaining)) + '</div>');
-    if (timerEnded(t.warmup, WARMUP_MS, WARMUP_END_MS)) return card(warmTitle(t.warmup.appKey), '<div class="tm-clock tm-end">Einturnen beendet</div>');
-    if (t.pause && timerEnded(t.pause, t.pause.ms, PAUSE_END_MS)) return card('Pause', '<div class="tm-clock tm-end">Zeit abgelaufen</div>');
+    // Während der Wettkampfpause wird schon das nächste Gerät eingeturnt – daher „Wettkampfpause und Einturnen“.
+    var PT = 'Wettkampfpause und Einturnen';
+    if (warm) return card('Einturnen', '<div class="tm-clock">' + fixedDigits(clock(warm.remaining)) + '</div>');
+    if (p) return card(PT, '<div class="tm-clock">' + fixedDigits(clock(p.remaining)) + '</div>');
+    if (timerEnded(t.warmup, WARMUP_MS, WARMUP_END_MS)) return card('Einturnen', '<div class="tm-clock tm-end">Einturnen beendet</div>');
+    if (t.pause && timerEnded(t.pause, t.pause.ms, PAUSE_END_MS)) return card(PT, '<div class="tm-clock tm-end">Zeit abgelaufen</div>');
     return '';
   }
 
@@ -2338,21 +2221,23 @@
       btn.classList.toggle('t-fall1', on && fall.phase === 1);
       btn.classList.toggle('t-fall2', on && fall.phase === 2);
       ['fz-0', 'fz-1', 'fz-2', 'fz-pulse'].forEach(function (c) { btn.classList.toggle(c, on && fallTone(fall).split(' ').indexOf(c) >= 0); });
+      if (btn.hasAttribute('data-off')) btn.disabled = !on;
     });
-    if (r.name === 'match' && !r.sub) refreshStartRow(m);
+    // Einturnzeit und Wettkampfpause schließen sich gegenseitig aus: läuft einer der Timer, ist der andere Knopf gesperrt.
+    var pause = pauseState(m);
     var wb = $app.querySelector('[data-action="warmup-timer"]');
     if (wb) {
-      var won = !!warm && warm.t.appKey === wb.getAttribute('data-app');
-      var wl = won ? '⏱ Einturnzeit ' + clock(warm.remaining) + ' – Stopp' : 'Einturnzeit (6:40) starten';
-      if (wb.textContent !== wl) wb.textContent = wl;
-      wb.classList.toggle('t-running', won);
+      var wl = warmupLabel(warm);
+      if (wb.innerHTML !== wl) wb.innerHTML = wl;
+      wb.classList.toggle('t-running', !!warm);
+      wb.disabled = !!pause;
     }
-    var pause = pauseState(m);
     var pb = $app.querySelector('[data-action="pause-timer"]');
     if (pb) {
       var pl = pauseLabel(pause);
       if (pb.innerHTML !== pl) pb.innerHTML = pl;
       pb.classList.toggle('t-running', !!pause);
+      pb.disabled = !!warm;
     }
     if (r.name === 'match' && !r.sub) refreshTopMenus(m);
     var cd = document.querySelector('.board .cur-duel');
@@ -2497,7 +2382,15 @@
     setKeepAlive(active);
   }
 
-  setInterval(function () { tickTimers(); checkTimerSounds(); autoStartAfterWarmup(); }, 250);
+  /** Anzeigetafel: nach Ablauf der Haltezeit (letzte Freigabe eines Geräts) auf das nun gültige Gerät umschalten. */
+  function checkBoardApparatus() {
+    if (!document.body.classList.contains('board-mode')) return;
+    var b = document.querySelector('.board[data-app]');
+    var m = b && match(route().id);
+    if (m && boardApparatus(m).key !== b.getAttribute('data-app')) render();
+  }
+
+  setInterval(function () { tickTimers(); checkTimerSounds(); checkBoardApparatus(); }, 250);
 
   // ---------- Ansicht: Protokoll ----------
 
@@ -2780,8 +2673,12 @@
         classic
           ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
           : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „legt vor“ markiert.',
-        '<b>Einturnzeit und Gerätestart</b>: Turner lassen sich an jedem Gerät jederzeit auswählen (auch vorab). Mit „Einturnzeit (6:40) starten“ beginnt das Einturnen; nach Ablauf und 5 Sekunden „Einturnen beendet“ startet das Gerät automatisch – erst dann sind Wertungen und „Wertung 0,00“ möglich, und die Anzeigetafel wechselt auf dieses Gerät. Bis dahin bleibt dort das vorige Gerät mit allen Werten stehen. Wird die Einturnzeit vorzeitig gestoppt, fragt die App, ob das Gerät jetzt starten soll. Ohne Einturnzeit: „Gerät direkt starten“ (mit Rückfrage). Über jedem Gerät zeigt eine Statuszeile den Stand: „● Gerät läuft“, „✓ Gerät abgeschlossen“ oder „🔒 Gerät gesperrt“ mit dem Grund. Ein versehentlicher Start lässt sich mit „Start zurücknehmen“ bis zur ersten Freigabe zurücknehmen; bereits eingetragene Noten werden dabei nach Rückfrage gelöscht, die Turnerauswahl bleibt.',
-        'Die Gerätereiter zeigen den Stand: ✓ abgeschlossen, ● läuft, 🔒 gesperrt (am Handy nur Logo und Abzeichen, die Ergebnisse stehen im Gerätebereich). Am Laptop bleibt der obere Bereich mit den Gerätereitern beim Scrollen stehen. Solange ein Gerät läuft oder an einem Gerät die Einturnzeit läuft, kann an keinem anderen Gerät die Einturnzeit oder der Start begonnen werden; gesperrte Geräte lassen sich trotzdem öffnen, um Turner zu ändern. Abgeschlossene Geräte öffnen sich gesperrt; zum Ändern in der Statuszeile „Bearbeiten“ wählen und bestätigen. Im Notfall lässt sich die Sperre mit „Sperre aufheben …“ in der Statuszeile eines gesperrten Geräts (doppelt bestätigt) für alle Geräte aufheben und über den Hinweis oberhalb der Geräte wieder aktivieren.',
+        '<b>Geräte und Anzeigetafel</b>: Gesperrt wird nichts – jeder Gerätereiter ist jederzeit wählbar, Turner lassen sich jederzeit ändern und Wertungen jederzeit eintragen. ' +
+          'Die Anzeigetafel folgt dem gewählten Gerätereiter, solange an keinem Gerät eine Wertung offen ist. ' +
+          (classic ? 'Mit der ersten freigegebenen Wertung eines Geräts' : 'Sobald an einem Gerät das erste Duell freigegeben ist,') +
+          ' bleibt die Tafel auf diesem Gerät, bis dort alle Wertungen freigegeben sind – egal, welcher Reiter gewählt ist. Nach der letzten Freigabe bleibt sie noch mindestens 10 Sekunden stehen (so lange wie die große Einblendung) und wechselt dann zum gewählten Reiter. ' +
+          'Sind an mehreren Geräten Wertungen offen (z. B. bei einer vergessenen Freigabe), zeigt die Tafel das Gerät mit der letzten Freigabe.',
+        'Die Gerätereiter zeigen den Stand: ● an diesem Gerät ist schon eine Wertung eingetragen' + (classic ? '' : ' (auch der gespeicherte erste Turner eines Duells)') + ', ✓ alle Wertungen freigegeben (am Handy nur Logo und Abzeichen, die Ergebnisse stehen im Gerätebereich). Am Laptop bleibt der obere Bereich mit den Gerätereitern beim Scrollen stehen.',
 
         'Je Turner: <b>Wertung eingeben</b> – es öffnet sich das Wertungsfenster: oben der Turner (Auswahl wie in der Kachel), darunter Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutraler Abzug. ' +
           'Den Turner kann man vorab in der Kachel oder erst im Fenster wählen; vor der Freigabe ist er sofort gespeichert (auch bei „Abbrechen“). Ohne Turner sind die Notenfelder gesperrt. ' +
@@ -2791,7 +2688,7 @@
         '<b>Wertung freigeben</b> im Fenster übernimmt die Werte; <b>Abbrechen</b> verwirft sie ohne Rückfrage. In der Kachel stehen die Werte danach als Text, der Knopf heißt dann „Wertung ändern“.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.' : 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.') +
           ' Im Fenster führt Tab nur über Turner, Notenfelder, Stand und „Wertung freigeben“ (Umschalt+Tab rückwärts). → und Enter gehen ins nächste Feld, ← ins vorige – im Kreis E1 → … → Stand → NA → „Wertung freigeben“ (nur wenn vollständig) → E1; Enter auf „Wertung freigeben“ gibt frei. Den <b>Standbonus</b> schalten ↑ / ↓ (oder 1 = ja, 0 = nein); auf der D-Note wählt ↓ den Knopf „berechnen“ (Enter öffnet den Rechner, ↑ zurück). Esc bricht ab. Was mit der Tastatur ausgewählt ist, hat eine gelbe Umrandung. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
-        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0); ein Feld antippen macht es zum aktiven Feld. „Weiter ▶“ springt ins nächste Feld, „◀ Zurück“ ins vorige (im Kreis E1 → … → Stand → NA → E1); freigegeben wird durch Antippen von „Wertung freigeben“. Auch der <b>Standbonus</b> gehört zur Reihenfolge: Taste 1 = +0,1, Taste 0 oder ⌫ = kein Standbonus (die übrigen Tasten sind dann ausgegraut). Am Handy steht die Zahlentastatur immer ganz unten. ' +
+        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0); ein Feld antippen macht es zum aktiven Feld. „Weiter ▶“ springt ins nächste Feld, „◀ Zurück“ ins vorige (im Kreis E1 → … → Stand → NA → E1); freigegeben wird durch Antippen von „Wertung freigeben“. Auch der <b>Standbonus</b> gehört zur Reihenfolge: Taste 1 = +0,1, Taste 0 oder ⌫ = kein Standbonus (die übrigen Tasten sind dann ausgegraut). Am Handy steht die Zahlentastatur unten – mit etwas Abstand zum Rand, damit der Daumen sie gut erreicht. ' +
           'Mit angeschlossener Tastatur verschwindet sie beim ersten Tastendruck. Einstellung unten im Fenster: automatisch, immer oder nie (gilt für dieses Gerät).',
         '<b>kein Turner</b> (ganz oben in der Turnerauswahl, in der Kachel oder im Fenster, auch vorab wählbar): Die Übung zählt 0 Punkte. Der Knopf in der Kachel heißt dann „Wertung freigeben“ und gibt direkt frei, ohne Fenster (danach „Wertung ändern“). Bereits erfasste Werte werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0.',
         classic
@@ -2809,17 +2706,17 @@
       ]) +
 
       sec('4. Timer', [
-        '<b>Einturnzeit (6:40)</b> – 8 Turner × 50 Sekunden – über dem jeweiligen Gerät starten. Nach Ablauf ertönt 5 Sekunden lang eine Schelle.',
-        '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: Die Sekunden erscheinen zuerst schwarz, ab 10 Sekunden ocker, ab 20 Sekunden rot. Nach 30 Sekunden ertönt ein kurzer Doppelton, die Anzeige wird rot und zeigt „Abzug 0,3“; in den letzten 10 Sekunden blinkt die Zahl leicht. Nach weiteren 30 Sekunden ertönt ein Fehlerton und „Übung beendet“ erscheint.',
+        '<b>Einturnzeit (6:40)</b> – 8 Turner × 50 Sekunden – im Menü <b>Anzeigetafel</b> starten (zwischen Turnervorstellung und Wettkampfpause). Es gibt nur einen Einturn-Timer, unabhängig vom Gerät: Reiterwechsel, Turner und Wertungen ändern nichts an ihm. Die Restzeit steht im Knopf, ein Klick darauf beendet die Einturnzeit vorzeitig. Auf der Tafel steht „Einturnen“; nach Ablauf ertönt 5 Sekunden lang eine Schelle. Während einer Wettkampfpause wird schon eingeturnt – solange sie läuft, lässt sich die Einturnzeit nicht starten (und umgekehrt).',
+        '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: Die Sekunden erscheinen zuerst schwarz, ab 10 Sekunden ocker, ab 20 Sekunden rot. Nach 30 Sekunden ertönt ein kurzer Doppelton, die Anzeige wird rot und zeigt „Abzug 0,3“; in den letzten 10 Sekunden blinkt die Zahl leicht. Nach weiteren 30 Sekunden ertönt ein Fehlerton und „Übung beendet“ erscheint. Wie die Turnerauswahl ist der Knopf nach der Freigabe und bei „kein Turner“ gesperrt; ein noch laufender Timer lässt sich aber immer stoppen.',
         'Ein erneuter Klick auf den laufenden Timer stoppt ihn. Die Lautstärke wird am Gerät eingestellt.'
       ]) +
 
       sec('5. Anzeigetafel', [
-        'Alle Knöpfe zur Tafel stehen unter <b>„Anzeigetafel“</b> in der grauen Kopfzeile, die zum Wettkampf (Setup, Protokoll / Drucken, Wettkampf abschließen) unter <b>„Wettkampf“</b>. Am Laptop und iPad sind das Reiter eines Menübands: Die Leiste darunter zeigt immer die Knöpfe des gewählten Reiters (die App merkt sich die Wahl). Am Handy sind es Aufklappmenüs („Tafel ▾“, „Wettkampf ▾“), die nach der Auswahl schließen; eine laufende Wettkampfpause steht dann am Menüknopf. Wettkämpfe, Mannschaften, Regeln und Anleitung stehen im Menü unter dem Liganamen.',
+        'Alle Knöpfe zur Tafel stehen unter <b>„Anzeigetafel“</b> in der grauen Kopfzeile, die zum Wettkampf (Setup, Protokoll / Drucken, Wettkampf abschließen) unter <b>„Wettkampf“</b>. Am Laptop und iPad sind das Reiter eines Menübands: Die Leiste darunter zeigt immer die Knöpfe des gewählten Reiters (die App merkt sich die Wahl). Am Handy sind es Aufklappmenüs („Tafel ▾“, „Wettkampf ▾“), die nach der Auswahl schließen; eine laufende Wettkampfpause bzw. Einturnzeit steht dann am Menüknopf. Wettkämpfe, Mannschaften, Regeln und Anleitung stehen im Menü unter dem Liganamen. Von Wettkampf Setup und Protokoll – und von diesen Seiten, wenn man vom Wettkampf kommt – führt „← zurück“ oben links wieder zum Wettkampf; zur Startseite (Liga wechseln) führt das Logo links oben.',
         '<b>Anzeigetafel öffnen</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort doppelt auf die Tafel klicken – das schaltet das Vollbild ein und aus.',
         '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Ergebnis/Siegerehrung</b> blendet ein bzw. aus (eingeblendet ist der Knopf dunkel hinterlegt) und zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Dasselbe Fenster liegt dann auch über der App, damit man die Siegerehrung am Gerät mitlesen kann; „Schließen“ (oder Esc) blendet es auch auf der Tafel aus. Beim Öffnen der Tafel ist es immer ausgeblendet. ' +
         '<b>Turnervorstellung</b> zeigt nacheinander die Gastmannschaft (Titelseite, dann die anwesenden Turner nach Startnummer), die Heimmannschaft und zum Schluss das Kampfgericht. Solange sie läuft, erscheint auch in der App dasselbe Fenster wie auf der Tafel, unten mit ◀ ▶ ■ (zurück, weiter, beenden); weiterschalten damit oder per Tastatur – Pfeil rechts, Leertaste oder Bild ab (auch mit einem Presenter), zurück mit Pfeil links oder Bild auf, Esc beendet. Während der Vorstellung sind keine anderen Fenster auf der Tafel möglich.',
-        '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
+        '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel unter der Überschrift „Wettkampfpause und Einturnen“ (in der Pause wird schon das nächste Gerät eingeturnt); am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         (classic ? 'Nach jeder Freigabe erscheint 10 Sekunden groß auf der Tafel die Endnote der Übung mit dem Turner darüber' : 'Nach jeder Freigabe erscheinen 10 Sekunden groß auf der Tafel die Scorepunkte des Duells mit dem Sieger darüber') +
           ', Korrekturen 10 Sekunden. Der Sturz-Timer erscheint groß als Fenster über der Tafel; Einturnzeit und Wettkampfpause laufen groß in der Karte oben rechts, Liste und Wertungen bleiben dabei sichtbar.'
       ]) +
@@ -3121,9 +3018,8 @@
   function scoreDlgHtml(m) {
     var g = scoreDlg, a = g.appKey, classic = isClassic(m), kp = keypadOn(), edit = dlgEditable();
     var color = sideColor(m, g.sideKey);
-    var attrs = ' data-app="' + a + '" data-duel="' + g.idx + '" data-side="' + g.sideKey + '"';
     // Per Tab erreichbar sind nur Turner, Notenfelder, Stand und „Wertung freigeben“ (Esc = Abbrechen).
-    var timer = FALL_TIMER_APPARATUS.indexOf(a) >= 0 ? '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer"' + attrs + '>Sturz-Timer</button>' : '';
+    var timer = FALL_TIMER_APPARATUS.indexOf(a) >= 0 ? fallButton(m, a, g.idx, g.sideKey, sideShown(m, a, g.idx, g.sideKey) || !!g.draft.dns) : '';
     // Mit Zahlentastatur sind die Felder Schaltflächen (iOS behandelt Tipps auf schreibgeschützte Eingabefelder unzuverlässig).
     var field = function (f) {
       var v = g.text[f] || '';
@@ -3756,11 +3652,13 @@
   function refreshTopMenus(m) {
     var b = document.getElementById('tb-board');
     if (!b || !m) return;
-    var p = pauseState(m), t = p ? clock(p.remaining) : '';
+    // Laufende Wettkampfpause bzw. Einturnzeit steht am Menüknopf: im Menüband als Zeit neben „Anzeigetafel“, am Handy
+    // statt „Tafel“ nur die Restzeit auf Orange (mit „Pause …“ bzw. „Einturnen …“ wäre die Kopfzeile bei 360 px zu breit).
+    var p = pauseState(m), w = p ? null : warmupState(m), t = p ? clock(p.remaining) : w ? clock(w.remaining) : '';
     var html = '<span class="tl"><span class="ml">Anzeigetafel</span><span class="ms">Tafel</span></span>' +
-      (p ? '<span class="bdg">' + t + '</span><span class="tp">Pause ' + t + '</span>' : '') + '<span class="car" aria-hidden="true">▾</span>';
+      (t ? '<span class="bdg">' + t + '</span><span class="tp">' + t + '</span>' : '') + '<span class="car" aria-hidden="true">▾</span>';
     if (b.innerHTML !== html) b.innerHTML = html;
-    b.classList.toggle('live', !!p);
+    b.classList.toggle('live', !!t);
   }
 
   function menuPop(name) { return document.getElementById('menu-' + name); }
@@ -4053,8 +3951,10 @@
   }, true);
 
   // iPhone/iPad: Die Seite hinter dem Fenster darf sich nicht verschieben (nur ein Fenster, das nicht ganz passt, scrollt selbst).
+  // Zwei Finger (Zoomen) bleiben erlaubt – etwa um nach dem Drehen des iPads die Zoomstufe anzupassen.
   document.addEventListener('touchmove', function (ev) {
     if (!scoreDlg) return;
+    if (ev.touches && ev.touches.length > 1) return;
     var win = ev.target.closest && ev.target.closest('.sd-win, .dc-win');
     if (win && win.scrollHeight > win.clientHeight + 1) return;
     if (ev.cancelable) ev.preventDefault();
@@ -4128,12 +4028,14 @@
 
     switch (action) {
       case 'tab':
-        if (state.ui.editDone[m.id] && state.ui.editDone[m.id] !== btn.getAttribute('data-tab')) delete state.ui.editDone[m.id];
-        if (currentTab(m) !== btn.getAttribute('data-tab')) state.ui.openedDone[m.id] = appStatus(m)[btn.getAttribute('data-tab')] === 'done' ? btn.getAttribute('data-tab') : '';
-        state.ui.tab[m.id] = btn.getAttribute('data-tab');
+        var tKey = btn.getAttribute('data-tab');
+        state.ui.tab[m.id] = tKey;
         $app.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b === btn); });
         document.getElementById('apparatus-panel').innerHTML = apparatusPanel(m, currentTab(m));
         tickTimers();
+        // Die Anzeigetafel folgt dem gewählten Reiter, solange an keinem Gerät eine Wertung offen ist (siehe boardApparatus).
+        m.display = m.display || {};
+        if (m.display.tab !== tKey) { m.display.tab = tKey; save('matches', m); }
         break;
       case 'finalize':
         if (S.pendingCorrections(m).length) { toast('Erst die nachträgliche Änderung freigeben oder verwerfen.', 'error'); return; }
@@ -4233,29 +4135,6 @@
           refreshDisplayButtons(m);
         }
         break;
-      case 'app-start':
-        var sKey = btn.getAttribute('data-app');
-        if (appStatus(m)[sKey] === 'locked') { keepScroll = true; render(); return; }
-        askYesNo('Gerät ohne Anzeige der Einturnzeit starten?', '')
-          .then(function (yes) { if (yes) startApparatus(m, sKey); });
-        break;
-      case 'app-unstart':
-        var uKey = btn.getAttribute('data-app');
-        if (!canUnstart(m, uKey)) { toast('Am Gerät ist bereits eine Wertung freigegeben.', 'error'); keepScroll = true; render(); return; }
-        var unstart = function () {
-          clearEnteredScores(m, uKey);
-          delete m.started[uKey];
-          save('matches', m).then(function () { keepScroll = true; render(); });
-        };
-        if (!hasEnteredScores(m, uKey)) { unstart(); break; }
-        askChoice('Start zurücknehmen?', 'An ' + apparatusName(uKey) + ' sind schon Noten eingetragen. Sie werden gelöscht; die Turnerauswahl bleibt erhalten.', null,
-          [{ label: 'Abbrechen', value: false, cancel: true, focus: true }, { label: 'Start zurücknehmen', value: true, primary: true }]).then(function (yes) {
-          if (yes && canUnstart(m, uKey)) unstart();
-        });
-        break;
-      case 'unlock':
-        unlockDialog(m);
-        break;
       case 'deduction':
         var dSide = btn.getAttribute('data-side');
         var dCur = deductionOf(m, dSide);
@@ -4281,6 +4160,7 @@
         introSet(m, null);
         break;
       case 'pause-timer':
+        if (!pauseState(m) && warmupState(m)) { toast('Erst die Einturnzeit beenden.', 'error'); return; }
         if (!pauseState(m) && introBlocks(m)) return;
         // Läuft eine Pause, beendet der Knopf sie; sonst öffnet bzw. schließt er die Auswahl der Dauer.
         if (pauseState(m)) {
@@ -4295,6 +4175,7 @@
         break;
       case 'pause-start':
         closePauseMenu();
+        if (warmupState(m)) { toast('Erst die Einturnzeit beenden.', 'error'); return; }
         m.timers = m.timers || {};
         m.timers.pause = { start: Date.now(), ms: parseInt(btn.getAttribute('data-min'), 10) * 60000 };
         save('matches', m).then(tickTimers);
@@ -4320,7 +4201,7 @@
         refreshDisplayButtons(m);
         break;
       case 'fall-timer':
-        if (!m || m.status === 'final') return;
+        if (!m || m.status === 'final' || btn.disabled) return;
         if (!fallState(m) && introBlocks(m)) return;
         var cur = fallState(m);
         var tgt = { appKey: btn.getAttribute('data-app'), idx: parseInt(btn.getAttribute('data-duel'), 10), side: btn.getAttribute('data-side') };
@@ -4331,36 +4212,19 @@
         tickTimers();
         break;
       case 'warmup-timer':
-        if (!m || m.status === 'final') return;
-        var wapp = btn.getAttribute('data-app');
-        var wcur = warmupState(m);
-        if (!(wcur && wcur.t.appKey === wapp) && appStatus(m)[wapp] === 'locked') { keepScroll = true; render(); return; }
-        if (!wcur && introBlocks(m)) return;
+        if (!m) return;
+        // Ein einziger Einturn-Timer ohne Gerät: Reiterwechsel, Turner und Wertungen ändern nichts an ihm.
         m.timers = m.timers || {};
-        if (wcur && wcur.t.appKey === wapp) {
-          // Vorzeitig gestoppt: nachfragen, ob das Gerät jetzt starten soll.
+        if (warmupState(m)) {
           m.timers.warmup = null;
-          save('matches', m).then(function () { tickTimers(); keepScroll = true; render(); });
-          askYesNo('Gerät jetzt starten?', 'Die Einturnzeit wurde vorzeitig beendet. Soll ' + apparatusName(wapp) + ' jetzt gestartet werden?')
-            .then(function (yes) { if (yes) startApparatus(m, wapp); });
-          return;
+        } else {
+          if (pauseState(m)) { toast('Erst die Wettkampfpause beenden.', 'error'); return; }
+          if (introBlocks(m)) return;
+          closePauseMenu();
+          m.timers.warmup = { start: Date.now() };
         }
-        m.timers.warmup = { appKey: wapp, start: Date.now() };
-        save('matches', m).then(function () { tickTimers(); keepScroll = true; render(); });
+        save('matches', m).then(tickTimers);
         tickTimers();
-        break;
-      case 'edit-done':
-        var eKey = btn.getAttribute('data-app');
-        askChoice(apparatusName(eKey) + ' ist bereits abgeschlossen', 'Wirklich bearbeiten? Jede Änderung muss anschließend mit „Korrektur freigeben“ bestätigt werden.', null,
-          [{ label: 'Abbrechen', value: false, cancel: true }, { label: 'Bearbeiten', value: true, primary: true, focus: true }]).then(function (ok) {
-          if (!ok) return;
-          state.ui.editDone[m.id] = eKey;
-          rerenderPanel(m);
-        });
-        break;
-      case 'relock':
-        m.unlockApparatus = false;
-        save('matches', m).then(function () { render(); toast('Gerätesperre wieder aktiv'); });
         break;
       case 'start-team':
         var sf = btn.closest('form');

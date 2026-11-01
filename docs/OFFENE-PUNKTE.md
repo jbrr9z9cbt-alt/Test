@@ -1,6 +1,14 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Nächste Liste (nach Beta 81 – wird gesammelt und dann auf einmal umgesetzt)
+## Liste nach Beta 81 – umgesetzt in Beta 82 (noch nicht veröffentlicht)
+
+Umgesetzt 01.11.2026 (Punkte 1, 2, 4–11; Punkt 3 entfällt). Rückkehrpunkt: Beta 81 (Commit `b102b5c`).
+Hinweise zur Umsetzung:
+- Punkt 4: Werte im offenen Wertungsfenster werden erst mit „Wertung freigeben“ gespeichert – der gelbe Punkt kommt daher mit
+  der ersten Freigabe im Fenster (Oberliga: schon beim gespeicherten ersten Turner eines Duells; die Tafel wird erst mit dem
+  ganzen Duell fixiert). Ohne gemerkten Reiter (ältere Wettkämpfe) zeigt die Tafel das Gerät mit der letzten Freigabe.
+- Punkt 7: Unter 600 px Fensterhöhe (iPhone SE) entfällt der freie Streifen – dort bleibt alles wie in Beta 81.
+
 
 1. **Knopf „← zurück“ auf den Seiten, die man vom Wettkampf aus öffnet – statt eines Eintrags im Ligamenü** (beschlossen
    01.11.2026; ersetzt die frühere Fassung „Zurück zum Wettkampf“ im Ligamenü, zuletzt geöffneter Wettkampf je Liga):
