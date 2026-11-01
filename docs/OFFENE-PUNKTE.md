@@ -27,7 +27,7 @@ Begonnen 01.11.2026.
      von „Wertung freigeben“. Ebenso im D-Note-Rechner: nach EG wieder ≥ D, „Übernehmen“ wird angetippt.
    - Mit echter Tastatur (Laptop) bleibt es wie bisher: Enter nach dem letzten Feld springt auf „Wertung freigeben“
      bzw. „Übernehmen“, ein weiteres Enter gibt frei.
-5. **Standbonus über die Zahlentastatur** (Vorschlag 01.11.2026, noch zu bestätigen): „Stand“ wird ein Feld in der
+5. **Standbonus über die Zahlentastatur** (beschlossen 01.11.2026): „Stand“ wird ein Feld in der
    Reihenfolge von „Weiter ▶“ – E1 → E2 → (E3) → D-Note → Stand → NA → E1 (am Pauschenpferd ohne Stand). Ist Stand aktiv,
    zeigt die Anzeige über der Tastatur „Standbonus · Turner“ und „+0,1“ bzw. „–“; Taste **1** = Standbonus ja (+0,1),
    **0** oder **⌫** = nein, das Komma ist dort gesperrt. Antippen des Kästchens schaltet wie bisher direkt um.
