@@ -257,6 +257,16 @@ Ergänzungen bei der Umsetzung:
 
 ## Weitere offene Punkte
 
+- **Später, noch nicht beschlossen: ganzes Gerät ohne Scrollen auf Laptop und iPad quer** (Vorschaubilder 01.11.2026,
+  nachgestellt mit scratchpad mock101): einzeilige Kacheln, nur so breit wie nötig (ca. 1000 px, mittig), Spaltenköpfe
+  einmal oben; Zeile: Nr., Verein, Turnerauswahl, E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote, ⏱ (Sturz-Timer),
+  „Wertung eingeben/ändern“. Oberliga: je Duell zwei Zeilen, rechts „Duell n“ und Scorepunkte; Landesliga: eine Spalte in
+  Wettkampfreihenfolge (abwechselnd Heim/Gast), ✓ für freigegeben, Mannschafts- und Summenzeilen entfallen.
+  Oben sparen: Liganame im Kopf weg, App-Leiste/Knöpfe/Reiter flacher, Statuszeile neben dem Gerätenamen, Topscorer weg.
+  Gemessen: passt bei 1366×768 im Browser, 1536, Full HD, iPad 10./11./Air/Pro quer; nicht bei 1280×720 im Browser
+  (40/10 px) und älterem iPad 10,2" (zu schmal). Offene Frage: Vereinsspalte behalten (lange Turnernamen in der Auswahl
+  abgeschnitten) oder weglassen (Mannschaft am farbigen Rand, volle Namen, passt auch aufs ältere iPad).
+
 - **Bekanntes Verhalten, vorerst bewusst unverändert:** Ein eingetippter Wert wird erst beim Verlassen des Felds übernommen.
   Steht der Cursor noch im letzten Feld eines Duells bzw. einer Übung, bleibt „Wertung freigeben“ gesperrt (am Handy
   besonders spürbar: erst Feld verlassen, dann freigeben). Mögliche Lösung: Noten und Freigabe schon beim Tippen aktualisieren.
