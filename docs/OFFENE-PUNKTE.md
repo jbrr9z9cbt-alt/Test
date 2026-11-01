@@ -40,6 +40,11 @@ Gefunden mit Beta 77 auf dem iPhone in Safari (Bildschirmfotos 31.10.2026):
 7. **Turnername in der gesperrten Auswahl schwarz** (gemeldet 01.11.2026): In Kacheln mit freigegebener Wertung (und
    sonst gesperrter Turnerauswahl) bleibt das Feld grau hinterlegt, die Schrift wird aber normal schwarz – so gut lesbar
    wie die Wertungen. Auch auf iPhone/iPad (Safari blasst gesperrte Auswahlfelder zusätzlich ab; das wird mit abgeschaltet).
+8. **Drei E-Kampfrichter am iPhone: Zahlen passen nicht in die Felder des Wertungsfensters** (gemeldet 01.11.2026,
+   nachgemessen): Die drei E-Felder sind nur ca. 40–44 px breit (D-Note, Stand, NA ca. 61–67 px), „10,0“, „1,5“, „9,5“
+   werden abgeschnitten. Abhilfe: alle Felder gleich breit (bei E3 sechs gleiche Spalten), Schrift und Innenabstand der
+   Felder an die verfügbare Breite anpassen, sodass „10,0“ auch bei 360 px Bildschirmbreite ganz zu sehen ist.
+   Prüfen: 360/375/390 px, Oberliga und Landesliga mit E3, auch Sprung (ohne Standbonus).
 
 
 ## Beschlossen und in Beta 77 umgesetzt (veröffentlicht): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
