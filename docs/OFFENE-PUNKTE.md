@@ -2,11 +2,17 @@
 
 ## Nächste Liste (nach Beta 81 – wird gesammelt und dann auf einmal umgesetzt)
 
-1. **Ligamenü: „Zurück zum Wettkampf“ statt „Startseite (Liga wechseln)“** (beschlossen 01.11.2026, zuletzt geöffneter Wettkampf): Im Menü „WTB-Oberliga ▾“ bzw.
-   „WTB-Landesliga ▾“ ersetzt ein Link zum zuletzt geöffneten Wettkampf dieser Liga den Eintrag „Startseite (Liga wechseln)“,
-   z. B. „← Zurück zum Wettkampf · TG Geisweid/Eichen – KTS Mettingen“ (lange Namen mit „…“). Gemerkt je Liga auf diesem Gerät
-   beim Öffnen eines Wettkampfs; auf der Wettkampfseite selbst und wenn der Wettkampf gelöscht wurde, entfällt der Eintrag.
-   Zur Startseite (Liga wechseln) führt weiterhin das Logo links in der Kopfzeile.
+1. **Knopf „← zurück“ auf den Seiten, die man vom Wettkampf aus öffnet – statt eines Eintrags im Ligamenü** (beschlossen
+   01.11.2026; ersetzt die frühere Fassung „Zurück zum Wettkampf“ im Ligamenü, zuletzt geöffneter Wettkampf je Liga):
+   - Überall derselbe Knopf wie heute im Protokoll: „← zurück“ oben links über der Seite.
+   - **Wettkampf Setup und Protokoll:** immer (gehören zum Wettkampf). Im Setup wirkt er wie „Abbrechen“ – bei ungespeicherten
+     Änderungen kommt die bekannte Frage „speichern oder verwerfen“.
+   - **Wettkämpfe, Mannschaften, Regeln, Anleitung:** nur, wenn man von einem Wettkampf kommt – auch über mehrere Seiten
+     hinweg (Wettkampf → Mannschaften → Regeln → „← zurück“ führt zum Wettkampf). Von der Startseite aus kein Zurück-Knopf.
+     Die App vergisst den Wettkampf, sobald die Startseite oder ein anderer Wettkampf geöffnet wird (oder er gelöscht ist).
+   - **Ligamenü:** Der Eintrag „Startseite (Liga wechseln)“ entfällt ganz; das Menü enthält nur noch Wettkämpfe,
+     Mannschaften, Regeln, Anleitung und die Versionszeile. Zur Startseite führt das Logo links in der Kopfzeile (allgemein
+     bekanntes Prinzip, reicht so).
 2. **Fehler in Beta 81 behoben (auf dem Arbeitszweig, kommt mit dem nächsten Update): Gerätereiter am Laptop/iPad quer wieder
    fixiert** (gemeldet 01.11.2026):
    Seit Beta 81 scrollten die Gerätereiter (und Hinweise) am Laptop und iPad quer weg, nur Menüband und Kopf blieben stehen.
