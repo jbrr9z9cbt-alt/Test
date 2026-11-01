@@ -1,5 +1,12 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## Liste für das nächste Update (nach Beta 78 – wird gesammelt und dann auf einmal umgesetzt)
+
+Begonnen 01.11.2026. Noch keine Punkte.
+
+Noch offen aus Beta 78: Rückmeldung vom iPhone (Safari und installierte App) zu Punkt 6 – Felder antippen, kein Zoom,
+Seite dahinter bleibt stehen, Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
+
 ## Fehlerkorrekturen nach Beta 77 – umgesetzt in Beta 78 (veröffentlicht 01.11.2026)
 
 Stand 01.11.2026: Punkte 1–9 umgesetzt und getestet (Laptop, iPad quer/hoch, Handy 360/375/390 px, auch mit den Höhen
