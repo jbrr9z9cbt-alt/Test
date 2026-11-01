@@ -8,8 +8,15 @@
    Menüknopf) und „Wettkampf ▾“ (Setup, Protokoll/Drucken, Wettkampf abschließen); am iPhone „Oberliga ▾ | Tafel ▾ |
    Wettkampf ▾“, „online“ als Punkt, „Beta“ im Ligamenü. Die Werkzeugzeile entfällt; Gerätereiter beginnen dann am Laptop
    bei ca. 126 statt 168 px, iPad quer 126 statt 215, iPad hoch 267 statt 475, iPhone 224 statt 764 px.
+   **Variante Menüband (wie Office, „Menüband immer anzeigen“)** – Vorschaubilder gezeigt 01.11.2026: In der grauen Zeile
+   „WTB-Oberliga ▾“ (Aufklappmenü der Liga) und die Reiter „Anzeigetafel“ / „Wettkampf“; darunter immer eine schmale Leiste
+   mit den Knöpfen des gewählten Reiters (nicht einklappbar, damit nichts springt). Läuft die Pause, zeigt der Pause-Knopf
+   die Restzeit (orange), bei Reiter „Wettkampf“ der Reiter „Anzeigetafel“ ein „4:12“-Abzeichen. Handy: „Oberliga ▾ | Tafel |
+   Wettkampf“, Knöpfe kurz („Öffnen“, „Hell“/„Dunkel“, „Vorstellung“, „Pause“, „Ergebnis“ bzw. „Setup“, „Protokoll“,
+   „Abschließen“). Nachgemessen: Laptop Gerätereiter ab 159 statt 174 px, beim Scrollen fest 199 statt 215 px; iPad quer
+   159 statt 221, fest 199 statt 262; iPhone 249 statt 640, beim Scrollen fest 91 statt heute 139 px.
 2. **Einheitliche Tastaturbedienung im Wertungsfenster und im D-Note-Rechner** (beschlossen 01.11.2026; umgesetzt in Beta 80,
-   auf dem Arbeitszweig, noch nicht veröffentlicht):
+   veröffentlicht 01.11.2026, Commit `8f145eb`):
    - Hardware-Tastatur: Tab/Umschalt+Tab wie bisher (Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“).
      → und Enter vorwärts im Kreis E1 → … → NA → „Wertung freigeben“ (nur wenn aktiv, sonst übersprungen) → E1, ← rückwärts.
      Enter auf „Wertung freigeben“ gibt frei. ↑/↓: kein ±0,1 mehr; auf dem Stand schalten ↑/↓ den Standbonus um (auch 1 = ja,
