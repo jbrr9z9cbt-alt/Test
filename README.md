@@ -14,6 +14,7 @@ Adressen: `#/oberliga/…` bzw. `#/landesliga/…`; ein Wettkampf (`#/match/<id>
 
 Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen denselben Kern
 (Eingabe, Timer, Anzeigetafel, Protokoll, Datensicherung); nur Wertungsmodell und Darstellung unterscheiden sich.
+Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menüzeile im Kopf, flachere Kacheln).
 
 ## Landesliga (klassisches Modell)
 
@@ -48,16 +49,18 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   Gesperrte Reiter sind nicht ausgegraut, sie tragen nur das Schloss.
   Notausgang: „Sperre aufheben …“ in der Statuszeile eines gesperrten Geräts (doppelt bestätigt, gilt für alle Geräte); solange steht über den
   Geräten ein Hinweis mit „Sperre wieder aktivieren“.
-- **Wettkampfseite am Laptop** (ab 1100 px): Kopf in einer Zeile (Liga, Datum, Beginn, Status, Mannschaften mit Stand,
-  Gerätepunkte), darunter die Werkzeugzeile (Anzeigetafel links, Wettkampf rechts). Die Wertungskacheln nutzen die volle Breite;
+- **Wettkampfseite am Laptop** (ab 1100 px): Ergebniszeile immer einzeilig – Datum · Status | Heim (rechtsbündig) Stand
+  Gast (linksbündig) | Gerätepunkte; Liga, „Beginn: …“ und „Sieger: …“ stehen dort nicht mehr. Darunter die Werkzeugzeile
+  (Anzeigetafel links, Wettkampf rechts). Die Wertungskacheln nutzen die volle Breite;
   E-Note und Endnote stehen in der Zeile der Werte. Keine Überschriften „E-/D-Kampfgericht“ mehr (auch nicht am Handy).
 - **Wertungsfenster** (beide Ligen): Die Kachel zeigt die Werte nur als Text (E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote)
   mit Turnerauswahl, Sturz-Timer und Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“ (dann ist die
   Turnerauswahl der Kachel gesperrt – grau hinterlegt, Name schwarz; der Turner lässt sich im Fenster korrigieren).
   „Wertung eingeben“ geht auch ohne gewählten Turner; gesperrt nur vor dem Gerätestart, an gesperrten bzw. abgeschlossenen
   Geräten und im abgeschlossenen Wettkampf.
-  - **Fester Aufbau** von oben nach unten (nichts erscheint oder verschwindet; das Fenster beginnt oben und ist auch mit den
-    Leisten des Safari-Browsers ganz sichtbar): Kopfzeile einzeilig (z. B. „Ringe · Duell 1 · 2.“, rechts Sturz-Timer-Knopf) ·
+  - **Fester Aufbau** von oben nach unten (nichts erscheint oder verschwindet; iPad und PC: Fenster senkrecht mittig;
+    Handy: bildschirmfüllend, Zahlentastatur immer ganz unten, darunter nur die Einstellung – auch mit den Leisten des
+    Safari-Browsers ganz sichtbar): Kopfzeile einzeilig (z. B. „Ringe · Duell 1 · 2.“, rechts Sturz-Timer-Knopf) ·
     Mannschaft und **Turnerauswahl** · Felder E1, E2, (E3), D-Note, Stand, NA – alle gleich breit, Schrift passend zur Breite
     („10,0“ auch bei sechs Feldern auf 360 px) – darunter „berechnen“ · „Wertung 0,00“, Oberliga-Vorschau, E-Note, Endnote ·
     Hinweiszeile · „Abbrechen“ / „Wertung freigeben“ bzw. „Korrektur freigeben“ · Einstellung Zahlentastatur.
@@ -75,22 +78,37 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   - **Zahlentastatur** (Touch-Geräte): eigene Tastatur im Fenster – 7 8 9 ⌫ / 4 5 6 ⌫ / 1 2 3 Weiter / 0 0 , Weiter
     (0 doppelt breit, ⌫ und „Weiter ▶“ doppelt hoch) – mit großer Anzeige des aktiven Felds; die Tastatur des Geräts bleibt zu.
     Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0 beim Verlassen des Felds), kein automatisches Komma.
-    Die Felder sind dabei Schaltflächen (zuverlässiges Antippen am iPhone). „Weiter ▶“ nach dem letzten Feld markiert
-    „Wertung freigeben“. Handy: Fenster bildschirmfüllend von oben, Tastatur direkt unter den Knöpfen (Höhen passen sich
-    kleinen Bildschirmen an); iPad quer: Tastatur rechts daneben, hochkant darunter.
+    Die Felder sind dabei Schaltflächen (zuverlässiges Antippen am iPhone). „Weiter ▶“ läuft im Kreis
+    (E1 → E2 → (E3) → D-Note → Stand → NA → E1); freigegeben wird durch Antippen. **Standbonus** über die Tastatur:
+    1 = +0,1, 0 oder ⌫ = nein (Komma gesperrt). Die Anzeigezeile über der Tastatur hat eine feste Höhe – die Tastatur
+    bewegt sich nie. Handy: Tastatur ganz unten, Platz dazwischen bleibt frei (Höhen passen sich kleinen Bildschirmen an);
+    iPad quer: Tastatur rechts daneben, hochkant darunter.
+  - **Hardware-Tastatur**: Tab nur über Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“ (nicht über
+    Sturz-Timer, „berechnen“, „Wertung 0,00“, „Abbrechen“ = Esc, Einstellung); ← / → wechseln zwischen den Feldern im Kreis,
+    ↑ / ↓ = ±0,1; in der geschlossenen Turnerauswahl ändern Pfeiltasten den Turner nicht.
     Einstellung im Fenster: automatisch (Touch-Geräte; verschwindet beim ersten Druck einer echten Taste) / immer / nie,
     gespeichert je Gerät.
   - **iPhone/iPad**: Doppeltipp-Zoom im Fenster aus, Auswahllisten mit mindestens 16 px Schrift (kein Zoom beim Antippen),
     die Seite hinter dem Fenster verschiebt sich nicht; die Scroll-Position bleibt beim Schließen erhalten.
   - **D-Note-Rechner** (Knopf „berechnen“ unter der D-Note, nicht am Sprung): eigenes Fenster über dem Wertungsfenster mit
-    getippten Anzahlen ≥ D (je 0,8), C (je 0,6), B (je 0,4), A (je 0,2) samt Teilsummen, „Elemente x von 8“, Summe,
-    EG (Elementgruppen, eine Nachkommastelle, höchstens 2,3) und D-Note. Mehr als 8 Elemente oder EG über 2,3: rot,
+    getippten Anzahlen ≥ D (je 0,8), C (je 0,6), B (je 0,4), A (je 0,2) samt Teilsummen, „noch x Elemente möglich“
+    („keine Elemente mehr möglich“, rot „x Elemente zu viel“), Summe, EG (Elementgruppen, eine Nachkommastelle,
+    höchstens 2,3 – zu hoch: rot) und D-Note. Mehr als 8 Elemente oder EG über 2,3: rot,
     „Übernehmen“ gesperrt. „Übernehmen“ trägt die D-Note ins Wertungsfenster ein (freigegeben wird dort); die Anzahlen
     werden mit der Wertung gespeichert (`dparts`, auch in der Datensicherung) – nur wenn sie zur freigegebenen D-Note
-    passen – und stehen beim erneuten Öffnen wieder da. Handy: bildschirmfüllend mit Zahlentastatur („Weiter“:
-    ≥ D → C → B → A → EG → „Übernehmen“, Komma nur bei EG); Laptop: Enter/Tab, ↑/↓ = ±1 bzw. ±0,1, Esc = Abbrechen.
-- **Lange Vereinsnamen** brechen nach Leerzeichen, „/“ und „-“ um. Am Handy stehen im Kopf beide Namen nebeneinander und der
-  Stand mittig darunter; in den Wertungskacheln rutscht die Turnerauswahl bei Bedarf in eine eigene Zeile.
+    passen – und stehen beim erneuten Öffnen wieder da (wurde die D-Note von Hand geändert, beginnt der Rechner leer).
+    Handy: bildschirmfüllend, Kopf oben, Tastatur unten („Weiter“ im Kreis ≥ D → C → B → A → EG → ≥ D, Komma nur bei EG);
+    Laptop: Tab ≥ D … EG → „Übernehmen“, Enter/← /→, ↑/↓ = ±1 bzw. ±0,1, Esc = Abbrechen.
+  - **„kein Turner“ direkt freigeben**: Ist in der Kachel „kein Turner“ gewählt, heißt der Knopf „Wertung freigeben“ und gibt
+    ohne Fenster frei (Oberliga: Duell frei, wenn beide Turner fertig sind; sonst vermerkt, `dnsReleased`); danach
+    „Wertung ändern“.
+- **Grundsatz Namen**: Vereins- und Turnernamen haben in jeder Ansicht einen festen Platz. Durchschnittliche Namen (Vereine bis
+  ca. 19 Zeichen, alle Turner der vorgegebenen Listen) passen ungekürzt; längere brechen innerhalb des Platzes um
+  (Mannschaftsschild der Kachel) oder enden mit „…“ – sie machen nichts höher. Im Kopf der Wettkampfseite stehen die Namen
+  einzeilig (voller Name im Tooltip). Am Handy: Kopf als zwei Zeilen „● Verein … Punkte“ unter „Datum · Status |
+  Gerätepunkte“; in den Kacheln und im Wertungsfenster steht die Turnerauswahl in eigener Zeile über die volle Breite;
+  in der Wettkampfliste höchstens zwei Zeilen. Die Topscorer-Tabelle auf der Eingabeseite entfällt (auf der Tafel unter
+  „Ergebnis/Siegerehrung“ und im Protokoll bleiben die Topscorer).
 - **7 feste Mannschaften** mit vorgegebenen Turnern (Startnummern 1–20) aus `js/config.js`
 - Der Ausrichter kann Turnernamen korrigieren und freie Startnummern belegen. Wird die vorgegebene
   Turnerliste mit einem Update geändert (`rosterVersion`), gilt wieder der vorgegebene Stand –
@@ -126,7 +144,7 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
 - **Akustische Signale** (im Eingabefenster): Ende der Einturnzeit = Schelle 5 Sekunden; Sturz-Timer nach
   30 s = kurzer Doppelton, nach 60 s = kurzer Fehlerton. Nach manuellem Stopp ertönt nichts.
 - **Scorepunkte** werden überall in der Farbe der jeweiligen Mannschaft angezeigt; eine Notensumme gibt es nicht.
-- **Topscorer** (App und Protokoll): die ersten drei Plätze, bei Gleichstand entsprechend mehr (z. B. 1., 1., 3.).
+- **Topscorer** (Tafel „Ergebnis/Siegerehrung“ und Protokoll): die ersten drei Plätze, bei Gleichstand entsprechend mehr (z. B. 1., 1., 3.).
 - **Duell-Erfassung** je Gerät: D-Note, E-Abzüge, neutraler Abzug, Standbonus → Endnote; „kein Turner“ (ganz oben in der Turnerauswahl, auch vorab) = nicht angetreten, zählt 0,000; „Wertung 0,00“ nur mit ausgewähltem Turner
   - **E-Note mit neutralem E2: 10 − Mittelwert von E1 und E2**
   - **E-Note mit drei E-Kampfrichtern: höchster und niedrigster Abzug gestrichen, 10 − mittlerer Abzug**

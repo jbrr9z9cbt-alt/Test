@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '78';
+  var APP_BUILD = '79';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -559,8 +559,6 @@
     return '<section class="start">' +
       '<img src="icons/icon.svg" alt="" width="96" height="96" class="start-logo">' +
       '<h1>' + esc(APP_NAME) + '</h1>' +
-      '<div class="start-apparatus">' + S.APPARATUS.map(function (a) { return appIcon(a.key); }).join('') + '</div>' +
-      '<p class="muted">Bitte die Liga wählen</p>' +
       '<div class="start-grid">' +
       '<a class="start-tile" href="#/oberliga"><span class="st-title">Oberliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
       '<a class="start-tile" href="#/landesliga"><span class="st-title">Landesliga</span><span class="st-sub">Wettkämpfe, Mannschaften, Anzeigetafel</span></a>' +
@@ -991,6 +989,7 @@
         var x = d[k];
         x.d = null; x.e1 = null; x.e2 = null; x.e3 = null; x.nd = 0; x.bonus = false; x.zero = false;
         if (x.dparts) x.dparts = null;
+        delete x.dnsReleased;
       });
     });
     if (m.timers && m.timers.fall && m.timers.fall.appKey === key) m.timers.fall = null;
@@ -1058,16 +1057,17 @@
 
     // Kopf, Hinweise und Gerätereiter bilden den oberen Bereich (am Laptop beim Scrollen fixiert).
     return '<div class="match-top"><section class="card match-head">' +
-      '<div class="match-meta"><h2>' + esc(matchLeague(m).name) + '</h2>' +
-      '<div class="muted">' + esc(fmtDate(m.date)) + ' · Beginn: ' + teamHtml(m.startTeam === 'guest' ? m.guestTeamId : m.homeTeamId) +
-      ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
+      // Kopf: Datum und Status · Mannschaften mit Stand · Gerätepunkte. Liga, „Beginn: …“ und (im Querformat) „Sieger: …“
+      // stehen hier nicht mehr, damit die Ergebniszeile einzeilig bleibt; Namen haben einen festen Platz (sonst „…“).
+      '<div class="match-meta"><div class="muted">' + esc(fmtDate(m.date)) + ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
       '<div class="scoreline' + (isClassic(m) ? ' sums' : '') + '">' +
-      '<div class="team home"><div class="label">Heim</div><div class="name">' + teamTag(m, 'home') + '</div></div>' +
+      '<div class="team home"><div class="label">Heim</div><div class="name" title="' + esc(teamName(m.homeTeamId)) + '">' + teamTag(m, 'home') + '</div>' +
+      '<div class="tv' + (isClassic(m) ? ' sums' : '') + '" data-out="score-home">' + teamValue(m, r, 'home') + '</div></div>' +
       '<div class="big' + (isClassic(m) ? ' sums' : '') + '" data-out="score">' + totalPair(m, r, false, ' : ') + '</div>' +
-      '<div class="team guest"><div class="label">Gast</div><div class="name">' + teamTag(m, 'guest') + '</div></div>' +
+      '<div class="team guest"><div class="label">Gast</div><div class="name" title="' + esc(teamName(m.guestTeamId)) + '">' + teamTag(m, 'guest') + '</div>' +
+      '<div class="tv' + (isClassic(m) ? ' sums' : '') + '" data-out="score-guest">' + teamValue(m, r, 'guest') + '</div></div>' +
       '</div>' +
-      '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong>' +
-      '<span data-out="winner">' + winnerText(m, r) + '</span></div>' +
+      '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong></div>' +
       (deductionsText(m) ? '<div class="deduct-note">' + esc(deductionsText(m)) + '</div>' : '') +
       '<div class="actions wrap">' +
       // Alles, was die Anzeigetafel betrifft, als eine Gruppe
@@ -1095,7 +1095,6 @@
         '<button type="button" class="btn" data-action="relock">Sperre wieder aktivieren</button></div>' : '') +
       '<nav class="tabs">' + tabs + '</nav></div>' +
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
-      '<section class="card"><h3>Topscorer</h3><div data-out="scorers">' + scorersHtml(m) + '</div></section>' +
       '<div id="app-intro"></div><div id="score-dlg"></div>';
   }
 
@@ -1152,12 +1151,6 @@
     return '<div class="banner warn-banner">⚠ Nachträgliche Änderung: ' + pending.map(function (p) {
       return apparatusName(p.appKey) + (p.side ? ', ' + S.classicPosition(m, p.appKey, p.idx, p.side) + '. Übung' : ', Duell ' + (p.idx + 1));
     }).join('; ') + '. Bitte über <strong>„Wertung ändern“</strong> die Korrektur freigeben (oder dort mit „Abbrechen“ verwerfen) – bis dahin sind alle anderen ' + unitWord(m) + ' gesperrt.</div>';
-  }
-
-  function winnerText(m, r) {
-    if (!r.complete) return '';
-    if (r.winner === 'draw') return ' · <strong>Unentschieden</strong>';
-    return ' · Sieger: <strong>' + esc(teamName(r.winner === 'home' ? m.homeTeamId : m.guestTeamId)) + '</strong>';
   }
 
   var NO_GYMNAST = '__none';
@@ -1245,10 +1238,31 @@
   function scoreButton(m, appKey, idx, sideKey, side, locked, noScores) {
     var shown = sideShown(m, appKey, idx, sideKey);
     var entered = !side.dns && S.sideFinal(side, m.rules) !== null;
-    var change = shown || (!isClassic(m) && entered);
+    var change = shown || (!isClassic(m) && (entered || (side.dns && side.dnsReleased)));
     var off = locked || noScores;
-    return '<button type="button" class="btn ' + (change ? '' : 'primary ') + 'score-btn" data-action="score-open" data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"' +
-      (off ? ' disabled' : '') + '>' + (change ? 'Wertung ändern' : 'Wertung eingeben') + '</button>';
+    var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"' + (off ? ' disabled' : '');
+    // „kein Turner“: nichts einzutippen – direkt in der Kachel freigeben (ohne Fenster).
+    if (side.dns && !change) return '<button type="button" class="btn primary score-btn" data-action="dns-release"' + attrs + '>Wertung freigeben</button>';
+    return '<button type="button" class="btn ' + (change ? '' : 'primary ') + 'score-btn" data-action="score-open"' + attrs + '>' + (change ? 'Wertung ändern' : 'Wertung eingeben') + '</button>';
+  }
+
+  /**
+   * „kein Turner“ ohne Fenster freigeben – wie „Wertung freigeben“ im Fenster: Landesliga auf die Tafel; Oberliga gibt das
+   * Duell frei, wenn beide Turner fertig sind, sonst wird nur vermerkt (dnsReleased), dass diese Seite freigegeben ist.
+   */
+  function releaseDns(m, appKey, idx, sideKey) {
+    var d = m.apparatus[appKey].duels[idx], live = d[sideKey];
+    if (!live.dns || m.status === 'final' || duelBlocked(m, appKey, idx, sideKey) || !scoresAllowed(m, appKey)) return;
+    if (!isClassic(m)) live.dnsReleased = true;
+    var kind = isClassic(m) ? revealSideNow(m, appKey, idx, sideKey)
+      : duelReady(S.duelResult(d, m.rules), d) ? revealDuelNow(m, appKey, idx) : 'stored';
+    var viaKeyboard = lastInputKeyboard;
+    var key = appKey + '-' + idx + '-' + sideKey;
+    save('matches', m).then(function () {
+      rerenderPanel(m);
+      if (viaKeyboard) focusNextScoreBtn(key, true);
+      toast(kind === 'correction' ? 'Korrektur freigegeben' : kind === 'stored' ? 'Wertung erfasst – erscheint mit dem Duell auf der Tafel' : kind === 'none' ? 'Keine Änderung' : 'Wertung freigegeben');
+    });
   }
 
   function sideHtml(m, appKey, idx, sideKey, side, locked, position, struck, noScores) {
@@ -1477,18 +1491,6 @@
       (ar.complete ? ' · Gerätepunkte <strong>' + ar.homeApp + ':' + ar.guestApp + '</strong>' : ' · <span class="muted">noch nicht vollständig</span>');
   }
 
-  /** Topscorer: die ersten drei Plätze, bei Gleichstand entsprechend mehr. */
-  function scorersHtml(m) {
-    var list = S.topScorers(m, 3);
-    var classic = isClassic(m);
-    if (!list.length) return '<p class="muted">' + (classic ? 'Noch keine Wertungen.' : 'Noch keine Scorepunkte vergeben.') + '</p>';
-    return '<div class="table-wrap"><table class="table compact"><thead><tr><th>Platz</th><th>Turner</th><th>Mannschaft</th><th class="num">Geräte</th><th class="num">' + (classic ? 'Summe' : 'Scorepunkte') + '</th></tr></thead><tbody>' +
-      list.map(function (s) {
-        return '<tr><td>' + s.rank + '.</td><td>' + esc(gymnastLabel(s.number, s.name) || '–') + '</td><td>' + teamHtml(s.team === 'home' ? m.homeTeamId : m.guestTeamId) + '</td><td class="num">' + s.starts + '</td>' +
-          '<td class="num"><strong>' + pts(m, s.team, classic ? fmt(s.points) : s.points) + '</strong></td></tr>';
-      }).join('') + '</tbody></table></div>';
-  }
-
   /** Aktualisiert berechnete Werte, ohne Eingabefelder neu aufzubauen (Fokus bleibt erhalten). */
   function refreshComputed(m) {
     var r = S.matchResult(m);
@@ -1497,8 +1499,9 @@
       if (el) el.innerHTML = html;
     }
     out('score', totalPair(m, r, false, ' : '));
+    out('score-home', teamValue(m, r, 'home'));
+    out('score-guest', teamValue(m, r, 'guest'));
     out('app', r.homeApp + ':' + r.guestApp);
-    out('winner', winnerText(m, r));
     out('status', statusBadge(m, r));
     var st = appStatus(m);
     S.APPARATUS.forEach(function (a) {
@@ -1530,7 +1533,6 @@
         });
       });
       ['home', 'guest'].forEach(function (k) { out('clsum-' + tab + '-' + k, classicSumHtml(m, ar, k)); });
-      out('scorers', scorersHtml(m));
       return;
     }
     m.apparatus[tab].duels.forEach(function (d, i) {
@@ -1544,7 +1546,6 @@
         out('final-' + tab + '-' + i + '-' + k, fmt(S.sideFinal(d[k], m.rules)));
       });
     });
-    out('scorers', scorersHtml(m));
   }
 
   /** Turnerauswahl in der Kachel (Noten werden im Wertungsfenster eingegeben). */
@@ -2760,13 +2761,13 @@
           'Den Turner kann man vorab in der Kachel oder erst im Fenster wählen; vor der Freigabe ist er sofort gespeichert (auch bei „Abbrechen“). Ohne Turner sind die Notenfelder gesperrt. ' +
           'Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. 4,8 oder 1.3; E-Note und Endnote rechnet die App schon beim Tippen: E-Note = 10 − Mittelwert der Abzüge E1 und E2 (bei drei E-Kampfrichtern 10 − mittlerer Abzug, höchster und niedrigster gestrichen); Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. ' +
           'Bei wenig Platz stehen über allen Feldern Kurzformen: E1–E3 = Abzüge der E-Kampfrichter, Stand = Standbonus, NA = neutraler Abzug. Der Sturz-Timer ist auch im Fenster bedienbar (Knopf oben rechts).',
-        '<b>D-Note berechnen</b> (Knopf „berechnen“ unter der D-Note, nicht am Sprung): Anzahl der Elemente je Wertigkeit eintippen – ≥ D je 0,8, C je 0,6, B je 0,4, A je 0,2, höchstens 8 Elemente insgesamt – und die Elementgruppen (EG, höchstens 2,3). „Übernehmen“ trägt die D-Note ins Fenster ein; die Anzahlen werden mit der Wertung gespeichert und stehen beim erneuten Öffnen wieder da. Bei mehr als 8 Elementen oder EG über 2,3 wird rot markiert, „Übernehmen“ geht dann nicht.',
+        '<b>D-Note berechnen</b> (Knopf „berechnen“ unter der D-Note, nicht am Sprung): Anzahl der Elemente je Wertigkeit eintippen – ≥ D je 0,8, C je 0,6, B je 0,4, A je 0,2, höchstens 8 Elemente insgesamt – und die Elementgruppen (EG, höchstens 2,3). „Übernehmen“ trägt die D-Note ins Fenster ein; die Anzahlen werden mit der Wertung gespeichert und stehen beim erneuten Öffnen wieder da. Über den Feldern steht, wie viele Elemente noch möglich sind; bei mehr als 8 Elementen oder EG über 2,3 wird rot markiert, „Übernehmen“ geht dann nicht. Wurde die D-Note danach von Hand geändert, beginnt der Rechner wieder leer.',
         '<b>Wertung freigeben</b> im Fenster übernimmt die Werte; <b>Abbrechen</b> verwirft sie ohne Rückfrage. In der Kachel stehen die Werte danach als Text, der Knopf heißt dann „Wertung ändern“.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.' : 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.') +
-          ' Im Fenster springt Enter ins nächste Feld und nach dem letzten auf „Wertung freigeben“, die Pfeiltasten ändern Noten in 0,1-Schritten (im Rechner Anzahlen um 1), Esc bricht ab. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
-        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0); ein Feld antippen macht es zum aktiven Feld. „Weiter ▶“ springt ins nächste Feld, nach dem letzten auf „Wertung freigeben“. Am Handy beginnt das Fenster oben, „Abbrechen“ und „Wertung freigeben“ stehen direkt über der Zahlentastatur. ' +
+          ' Im Fenster führt Tab nur über Turner, Notenfelder, Stand und „Wertung freigeben“ (Umschalt+Tab rückwärts); ← / → wechseln zwischen den Feldern (im Kreis), ↑ / ↓ ändern Noten in 0,1-Schritten (im Rechner Anzahlen um 1). Enter springt ins nächste Feld und nach dem letzten auf „Wertung freigeben“, Esc bricht ab. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
+        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0); ein Feld antippen macht es zum aktiven Feld. „Weiter ▶“ springt ins nächste Feld, nach dem letzten wieder auf E1 (im Kreis); freigegeben wird durch Antippen von „Wertung freigeben“. Auch der <b>Standbonus</b> gehört zur Reihenfolge: Taste 1 = +0,1, Taste 0 oder ⌫ = kein Standbonus. Am Handy steht die Zahlentastatur immer ganz unten. ' +
           'Mit angeschlossener Tastatur verschwindet sie beim ersten Tastendruck. Einstellung unten im Fenster: automatisch, immer oder nie (gilt für dieses Gerät).',
-        '<b>kein Turner</b> (ganz oben in der Turnerauswahl, in der Kachel oder im Fenster, auch vorab wählbar): Die Übung zählt 0 Punkte; auch sie wird über „Wertung eingeben“ freigegeben. Bereits erfasste Werte werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0.',
+        '<b>kein Turner</b> (ganz oben in der Turnerauswahl, in der Kachel oder im Fenster, auch vorab wählbar): Die Übung zählt 0 Punkte. Der Knopf in der Kachel heißt dann „Wertung freigeben“ und gibt direkt frei, ohne Fenster (danach „Wertung ändern“). Bereits erfasste Werte werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0.',
         classic
           ? '<b>Mannschaftsabzug</b>: Die Links „Mannschaftsabzug Heim“ bzw. „Gast“ ganz unten im Gerätebereich öffnen die Eingabe des Abzugs in Punkten. Es gibt je Mannschaft nur einen Abzug für den ganzen Wettkampf – die Links unter allen Geräten sind dieselben. Der Abzug mindert nur die Gesamtpunktzahl, nicht die Geräteergebnisse; 0 oder leer entfernt ihn. Er erscheint auf der Anzeigetafel und – nur wenn eingetragen – im Protokoll.'
           : '<b>Mannschaftsabzüge</b> werden beim Turner als <b>neutraler Abzug</b> eingetragen, der zuletzt am Gerät war bzw. bei dem der Abzug zuerst aufgefallen ist.'
@@ -3026,6 +3027,16 @@
     return S.SHOWN_FIELDS.every(function (f) { return norm(f, side[f]) === norm(f, shown[f]); });
   }
 
+  /**
+   * Reihenfolge für „Weiter ▶“ (Zahlentastatur, im Kreis) und ← / → (Tastatur): E1 → E2 → (E3) → D-Note → Stand → NA
+   * (Pauschenpferd ohne Stand).
+   */
+  function kpOrder(m, appKey) {
+    var fs = dlgFields(m).filter(function (f) { return f !== 'nd'; });
+    if (appKey !== S.NO_BONUS_APPARATUS) fs.push('bonus');
+    return fs.concat('nd');
+  }
+
   /** Erstes leeres Notenfeld (sonst E1); ohne Turner keins. */
   function firstEmptyField(m) {
     if (!dlgEditable()) return null;
@@ -3076,7 +3087,7 @@
       '<div class="sd-keys">' + ['7', '8', '9', 'back', '4', '5', '6', '1', '2', '3', 'next', '0', ','].map(function (k) {
         var label = { back: '⌫', next: 'Weiter ▶' }[k] || k;
         var area = { back: 'kb', next: 'kn', ',': 'kc' }[k] || 'k' + k;
-        return '<button type="button" class="' + (k === 'next' ? 'k-next' : k === 'back' ? 'k-fn' : '') + '" style="grid-area:' + area + '" data-action="' + prefix + '-key" data-k="' + k + '" aria-label="' + label + '">' + label + '</button>';
+        return '<button type="button" tabindex="-1" class="' + (k === 'next' ? 'k-next' : k === 'back' ? 'k-fn' : '') + '" style="grid-area:' + area + '" data-action="' + prefix + '-key" data-k="' + k + '" aria-label="' + label + '">' + label + '</button>';
       }).join('') + '</div></div>';
   }
 
@@ -3084,14 +3095,15 @@
     var g = scoreDlg, a = g.appKey, classic = isClassic(m), kp = keypadOn(), edit = dlgEditable();
     var color = sideColor(m, g.sideKey);
     var attrs = ' data-app="' + a + '" data-duel="' + g.idx + '" data-side="' + g.sideKey + '"';
-    var timer = FALL_TIMER_APPARATUS.indexOf(a) >= 0 ? '<button type="button" class="btn small timer-btn" data-action="fall-timer"' + attrs + '>Sturz-Timer</button>' : '';
+    // Per Tab erreichbar sind nur Turner, Notenfelder, Stand und „Wertung freigeben“ (Esc = Abbrechen).
+    var timer = FALL_TIMER_APPARATUS.indexOf(a) >= 0 ? '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer"' + attrs + '>Sturz-Timer</button>' : '';
     // Mit Zahlentastatur sind die Felder Schaltflächen (iOS behandelt Tipps auf schreibgeschützte Eingabefelder unzuverlässig).
     var field = function (f) {
       var v = g.text[f] || '';
       var ctl = kp
-        ? '<button type="button" class="sd-in' + (v ? '' : ' empty') + '" data-action="sd-field" data-dlg="' + f + '" aria-label="' + DLG_LABEL[f] + '"' + (edit ? '' : ' disabled') + '>' + (v ? esc(v) : f === 'nd' ? '0,0' : '') + '</button>'
+        ? '<button type="button" class="sd-in' + (v ? '' : ' empty') + '" tabindex="-1" data-action="sd-field" data-dlg="' + f + '" aria-label="' + DLG_LABEL[f] + '"' + (edit ? '' : ' disabled') + '>' + (v ? esc(v) : f === 'nd' ? '0,0' : '') + '</button>'
         : '<input type="text" data-dlg="' + f + '" value="' + esc(v) + '" autocomplete="off" inputmode="decimal" aria-label="' + DLG_LABEL[f] + '"' + (f === 'nd' ? ' placeholder="0,0"' : '') + (edit ? '' : ' disabled') + '>';
-      var calc = f === 'd' && a !== VAULT ? '<button type="button" class="btn sd-dcalc" data-action="dc-open"' + (edit ? '' : ' disabled') + '>berechnen</button>' : '';
+      var calc = f === 'd' && a !== VAULT ? '<button type="button" class="btn sd-dcalc" tabindex="-1" data-action="dc-open"' + (edit ? '' : ' disabled') + '>berechnen</button>' : '';
       return '<div class="sd-f">' + fieldLabel(DLG_LABEL[f]) + ctl + calc + '</div>';
     };
     var fs = dlgFields(m).filter(function (f) { return f !== 'nd'; });
@@ -3105,13 +3117,13 @@
       '<div class="sd-gym"><span class="sd-tag">' + teamHtml(g.sideKey === 'home' ? m.homeTeamId : m.guestTeamId) + '</span>' +
       '<select class="sd-gsel" data-dlg="gymnast" aria-label="Turner">' + gymnastOptions(m, a, g.idx, g.sideKey, g.draft) + '</select></div>' +
       '<div class="sd-fields" style="--n:' + n + '">' + fs.map(field).join('') + bonus + field('nd') + '</div>' +
-      '<div class="sd-res"><label class="check"><input type="checkbox" data-dlg="zero"' + (g.draft.zero ? ' checked' : '') + (g.draft.gymnastId && !g.draft.dns ? '' : ' disabled') + '> Wertung 0,00</label>' +
+      '<div class="sd-res"><label class="check"><input type="checkbox" tabindex="-1" data-dlg="zero"' + (g.draft.zero ? ' checked' : '') + (g.draft.gymnastId && !g.draft.dns ? '' : ' disabled') + '> Wertung 0,00</label>' +
       '<span class="sd-n">' + (classic ? '' : '<span class="pv" data-dlg-out="pvbox" title="Vorschau: Scorepunkte des Duells">Duell <b data-dlg-out="prev"></b></span>') +
       '<span>E-Note <b data-dlg-out="enote"></b></span><span class="fin">Endnote <b data-dlg-out="final"></b></span></span></div>' +
       '<div class="sd-hint" data-dlg-out="hint"></div>' +
-      '<div class="sd-btns"><button type="button" class="btn" data-action="sd-cancel">Abbrechen</button>' +
+      '<div class="sd-btns"><button type="button" class="btn" tabindex="-1" data-action="sd-cancel">Abbrechen</button>' +
       '<button type="button" class="btn primary" data-action="sd-release">' + (g.correction ? 'Korrektur freigeben' : 'Wertung freigeben') + '</button></div>' +
-      '<div class="sd-set"><label>Zahlentastatur <select data-dlg="keypad">' + opt('auto', 'automatisch') + opt('on', 'immer') + opt('off', 'nie') + '</select></label></div>' +
+      '<div class="sd-set"><label>Zahlentastatur <select tabindex="-1" data-dlg="keypad">' + opt('auto', 'automatisch') + opt('on', 'immer') + opt('off', 'nie') + '</select></label></div>' +
       '</div>' + (kp ? keypadHtml('sd') : '') + '</div></div>' + (g.calc ? calcHtml(m) : '');
   }
 
@@ -3214,8 +3226,12 @@
     }
     if (kp) {
       var f = g.active;
-      out('kpwhat', noGym ? 'Erst den Turner wählen' : f ? esc(DLG_LABEL[f]) + ' · <b>' + esc(gymnastLabel(g.draft.number, g.draft.name)) + '</b>' : dlgEditable() ? 'Feld antippen' : '');
-      out('kpval', f ? esc(g.text[f] || '–') : '');
+      var sbox = box.querySelector('.sd-box');
+      if (sbox) sbox.classList.toggle('active', f === 'bonus');
+      out('kpwhat', noGym ? 'Erst den Turner wählen' : f ? esc(f === 'bonus' ? 'Standbonus' : DLG_LABEL[f]) + ' · <b>' + esc(gymnastLabel(g.draft.number, g.draft.name)) + '</b>' : '');
+      out('kpval', f === 'bonus' ? (g.draft.bonus ? '+0,1' : '–') : f ? esc(g.text[f] || '–') : '');
+      var comma = box.querySelector('[data-action="sd-key"][data-k=","]');
+      if (comma) comma.disabled = f === 'bonus';
     }
   }
 
@@ -3241,6 +3257,15 @@
     if (k === 'next') { moveDlgActive(m); return; }
     var f = g.active;
     if (!f) return;
+    if (f === 'bonus') {
+      // Standbonus: 1 = ja (+0,1), 0 oder ⌫ = nein
+      if (k !== '1' && k !== '0' && k !== 'back') return;
+      g.draft.bonus = k === '1';
+      var cb = document.querySelector('#score-dlg input[data-dlg="bonus"]');
+      if (cb) cb.checked = g.draft.bonus;
+      refreshScoreDlg();
+      return;
+    }
     var nb = typeKey(g.buf === null ? '' : g.buf, k, 2);
     if (nb === null) return;
     g.buf = nb;
@@ -3258,10 +3283,20 @@
     if (el) el.value = g.text[f];
   }
 
-  /** „Weiter ▶“ bzw. Enter: zum nächsten Feld; nach dem letzten auf „Wertung freigeben“. */
+  /**
+   * „Weiter ▶“ (Zahlentastatur): nächstes Feld im Kreis, einschließlich Stand – freigegeben wird durch Antippen.
+   * Enter (echte Tastatur): nächstes Notenfeld, nach dem letzten auf „Wertung freigeben“.
+   */
   function moveDlgActive(m) {
     var g = scoreDlg, fs = dlgFields(m);
     commitDlgField();
+    if (keypadOn()) {
+      var ko = kpOrder(m, g.appKey);
+      g.active = ko[(ko.indexOf(g.active) + 1) % ko.length];
+      g.buf = null;
+      refreshScoreDlg();
+      return;
+    }
     g.active = fs[fs.indexOf(g.active) + 1] || null;
     g.buf = null;
     refreshScoreDlg();
@@ -3282,6 +3317,7 @@
     var parts = g.draft.dparts;
     live.dparts = parts && side.d !== null && !side.zero && !side.dns && dpartsValue(parts) === side.d ? parts : null;
     if (g.correction) { live.gymnastId = side.gymnastId; live.number = side.number; live.name = side.name; live.dns = side.dns; }
+    if (live.dns && !isClassic(m)) live.dnsReleased = true; else delete live.dnsReleased;
     var kind = isClassic(m) ? revealSideNow(m, g.appKey, g.idx, g.sideKey)
       : duelReady(S.duelResult(d, m.rules), d) ? revealDuelNow(m, g.appKey, g.idx) : 'stored';
     var viaKeyboard = lastInputKeyboard;
@@ -3320,7 +3356,7 @@
     var pos = sides.map(function (sd) { return sd.getAttribute('data-key'); }).indexOf(key);
     var list = next ? sides.slice(pos + 1) : sides.slice(pos, pos + 1);
     for (var i = 0; i < list.length; i++) {
-      var el = list[i].querySelector('[data-action="score-open"]:not([disabled])');
+      var el = list[i].querySelector('.score-btn:not([disabled])');
       if (el) { el.focus(); return; }
     }
   }
@@ -3337,6 +3373,7 @@
       var setNone = function () {
         Object.assign(side, S.emptySide(), { dns: true });
         if (side.dparts) side.dparts = null;
+        delete side.dnsReleased;
         return save('matches', m).then(function () { return true; });
       };
       if (!hasScores && !askAlso) return setNone();
@@ -3345,6 +3382,7 @@
       });
     }
     side.dns = false;
+    delete side.dnsReleased;
     var tm = team(sideKey === 'home' ? m.homeTeamId : m.guestTeamId);
     var gy = tm && tm.gymnasts.filter(function (x) { return x.id === value; })[0];
     side.gymnastId = value || null;
@@ -3361,7 +3399,12 @@
     if (!m) return;
     var f = el.getAttribute('data-dlg');
     if (f === 'keypad') { setKeypadSetting(el.value); if (el.value !== 'auto') hwKeySeen = false; showScoreDlg(true); return; }
-    if (f === 'bonus') { g.draft.bonus = el.checked; refreshScoreDlg(); return; }
+    if (f === 'bonus') {
+      g.draft.bonus = el.checked;
+      if (keypadOn()) { commitDlgField(); g.active = 'bonus'; g.buf = null; }
+      refreshScoreDlg();
+      return;
+    }
     if (f === 'zero') {
       g.draft.zero = el.checked;
       if (el.checked) { DLG_FIELDS.forEach(function (x) { g.text[x] = ''; }); g.draft.bonus = false; }
@@ -3432,7 +3475,9 @@
     var g = scoreDlg;
     if (!g || !dlgEditable() || g.appKey === VAULT) return;
     commitDlgField();
+    // Gespeicherte Anzahlen nur, wenn sie genau die D-Note im Feld ergeben (sonst wurde sie von Hand geändert: leer beginnen).
     var p = g.draft.dparts, t = {};
+    if (p && dpartsValue(p) !== dlgValue('d', g.text.d || '')) p = null;
     DC_FIELDS.forEach(function (f) { t[f] = p && p[f] ? (f === 'EG' ? fmt1(p[f]) : String(p[f])) : ''; });
     g.calc = { text: t, active: 'D', buf: null, last: null };
     showScoreDlg(true);
@@ -3465,7 +3510,7 @@
     var g = scoreDlg, c = g.calc, kp = keypadOn(), color = sideColor(m, g.sideKey);
     var inp = function (f) {
       var v = c.text[f] || '', lbl = f === 'EG' ? 'Elementgruppen' : 'Anzahl ' + dcLabel(f);
-      return kp ? '<button type="button" class="dc-in" data-action="dc-field" data-dc="' + f + '" aria-label="' + lbl + '">' + esc(v) + '</button>'
+      return kp ? '<button type="button" class="dc-in" tabindex="-1" data-action="dc-field" data-dc="' + f + '" aria-label="' + lbl + '">' + esc(v) + '</button>'
         : '<input type="text" data-dc="' + f + '" value="' + esc(v) + '" autocomplete="off" inputmode="' + (f === 'EG' ? 'decimal' : 'numeric') + '" aria-label="' + lbl + '">';
     };
     var rows = DC_ROWS.map(function (r) {
@@ -3475,9 +3520,9 @@
       '<div class="dc-main"><div class="dc-where">D-Note berechnen · ' + dlgWhere(m, g) + '</div>' +
       '<div class="dc-title">' + esc(gymnastLabel(g.draft.number, g.draft.name)) + '</div>' +
       '<div class="dc-grid">' + rows + '<div class="dc-sum" data-dc-out="sum"></div>' +
-      '<span class="l">EG</span><span class="v">Elementgruppen,<br>höchstens 2,3</span>' + inp('EG') + '<span class="s" data-dc-out="sEG"></span></div>' +
+      '<span class="l">EG</span><span class="v">Elementgruppen</span>' + inp('EG') + '<span class="s" data-dc-out="sEG"></span></div>' +
       '<div class="dc-res"><span>D-Note</span><b data-dc-out="val"></b></div>' +
-      '<div class="dc-btns"><button type="button" class="btn" data-action="dc-cancel">Abbrechen</button>' +
+      '<div class="dc-btns"><button type="button" class="btn" tabindex="-1" data-action="dc-cancel">Abbrechen</button>' +
       '<button type="button" class="btn primary" data-action="dc-ok">Übernehmen</button></div></div>' +
       (kp ? keypadHtml('dc') : '') + '</div></div>';
   }
@@ -3491,8 +3536,9 @@
     out('sEG', c.text.EG && st.bad.indexOf('EG') < 0 ? fmt1(st.eg) : '–');
     var sum = box.querySelector('[data-dc-out="sum"]');
     if (sum) sum.classList.toggle('bad', st.over);
-    out('sum', '<span>Elemente <b>' + st.total + '</b> von ' + DC_MAX_ELEMENTS +
-      (st.over ? ' <span class="full">· zu viele</span>' : st.total === DC_MAX_ELEMENTS ? ' <span class="full">· voll</span>' : '') +
+    var left = DC_MAX_ELEMENTS - st.total;
+    var elw = function (n) { return '<b>' + n + '</b> ' + (n === 1 ? 'Element' : 'Elemente'); };
+    out('sum', '<span' + (left === 0 ? ' class="full"' : '') + '>' + (st.over ? elw(-left) + ' zu viel' : left === 0 ? 'keine Elemente mehr möglich' : 'noch ' + elw(left) + ' möglich') +
       '</span><span>Summe <b>' + fmt1(st.sum) + '</b></span>');
     out('val', st.value === null ? '–' : fmt1(st.value));
     DC_FIELDS.forEach(function (f) {
@@ -3550,10 +3596,16 @@
     if (el) el.value = c.text.EG;
   }
 
-  /** „Weiter ▶“ bzw. Enter: ≥ D → C → B → A → EG → „Übernehmen“ (bleibt bei EG, solange etwas nicht stimmt). */
+  /** „Weiter ▶“: ≥ D → C → B → A → EG → wieder ≥ D. Enter: bis EG, dann „Übernehmen“ (bleibt bei EG, solange etwas nicht stimmt). */
   function moveCalcActive() {
     var c = scoreDlg.calc;
     commitCalcField();
+    if (keypadOn()) {
+      c.active = DC_FIELDS[(DC_FIELDS.indexOf(c.active) + 1) % DC_FIELDS.length];
+      c.buf = null;
+      refreshCalc();
+      return;
+    }
     var next = DC_FIELDS[DC_FIELDS.indexOf(c.active) + 1] || null;
     if (!next && !dcState().ok) { refreshCalc(); return; }
     c.active = next;
@@ -3594,6 +3646,16 @@
     if (!el.matches || !el.matches('#score-dlg input[data-dc]')) return;
     var f = el.getAttribute('data-dc');
     if (ev.key === 'Enter') { ev.preventDefault(); c.active = f; moveCalcActive(); return; }
+    if ((ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey) {
+      ev.preventDefault();
+      c.active = f;
+      commitCalcField();
+      c.active = DC_FIELDS[(DC_FIELDS.indexOf(f) + (ev.key === 'ArrowRight' ? 1 : DC_FIELDS.length - 1)) % DC_FIELDS.length];
+      c.buf = null;
+      refreshCalc();
+      focusCalcField();
+      return;
+    }
     if ((ev.key === 'ArrowUp' || ev.key === 'ArrowDown') && !keypadOn()) {
       ev.preventDefault();
       var up = ev.key === 'ArrowUp';
@@ -3617,7 +3679,7 @@
   /** Tab-Taste: Fokus bleibt im Fenster (win). */
   function trapTab(ev, win) {
     if (!win) return;
-    var foc = Array.prototype.slice.call(win.querySelectorAll('input:not([disabled]), select:not([disabled]), button:not([disabled])'));
+    var foc = Array.prototype.slice.call(win.querySelectorAll('input:not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), button:not([disabled]):not([tabindex="-1"])'));
     if (!foc.length) return;
     var at = foc.indexOf(ev.target);
     if (ev.shiftKey && at <= 0) { ev.preventDefault(); foc[foc.length - 1].focus(); }
@@ -3737,7 +3799,7 @@
       }
       if (ev.key === 'Enter') { ev.preventDefault(); openPicker(el); return; }
       // Geschlossenes Feld nicht versehentlich per Pfeiltaste umstellen.
-      if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') ev.preventDefault();
+      if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown' || ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') ev.preventDefault();
       return;
     }
   });
@@ -3761,7 +3823,7 @@
       hwKeySeen = true;
       var c0 = scoreDlg.calc;
       var f0 = c0 ? c0.active : scoreDlg.active;
-      var typed = !!f0 && /^[0-9.,]$/.test(ev.key) && (c0 ? (f0 === 'EG' || /^\d$/.test(ev.key)) : dlgEditable());
+      var typed = !!f0 && f0 !== 'bonus' && /^[0-9.,]$/.test(ev.key) && (c0 ? (f0 === 'EG' || /^\d$/.test(ev.key)) : dlgEditable());
       if (typed) { (c0 ? c0.text : scoreDlg.text)[f0] = ev.key; ev.preventDefault(); }
       showScoreDlg(true);
       if (typed) {
@@ -3775,6 +3837,17 @@
     if (ev.key === 'Tab') { trapTab(ev, box.querySelector('.sd-win')); return; }
     if (!el.matches || !el.matches('#score-dlg input[data-dlg]')) return;
     var field = el.getAttribute('data-dlg');
+    if ((ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && !keypadOn() && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey) {
+      var ko = kpOrder(m, scoreDlg.appKey), at = ko.indexOf(field);
+      if (at < 0) return;
+      ev.preventDefault();
+      scoreDlg.active = field;
+      commitDlgField();
+      scoreDlg.active = ko[(at + (ev.key === 'ArrowRight' ? 1 : ko.length - 1)) % ko.length];
+      refreshScoreDlg();
+      focusDlgField();
+      return;
+    }
     if (ev.key === 'Enter') {
       ev.preventDefault();
       if (field === 'bonus' || field === 'zero') { el.click(); return; }
@@ -3936,6 +4009,10 @@
         scoreDlg.active = btn.getAttribute('data-dlg');
         scoreDlg.buf = null;
         refreshScoreDlg();
+        break;
+      case 'dns-release':
+        if (!m || btn.disabled) return;
+        releaseDns(m, btn.getAttribute('data-app'), parseInt(btn.getAttribute('data-duel'), 10), btn.getAttribute('data-side'));
         break;
       case 'dc-open':
         if (!btn.disabled) openCalc();

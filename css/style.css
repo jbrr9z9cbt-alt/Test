@@ -498,6 +498,8 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
 
 /* Startseite */
 body.no-league .topbar nav { visibility: hidden; }
+/* Handy: Startseite ohne Scrollen – keine leere Menüzeile im Kopf, flachere Kacheln, kleineres Logo */
+@media (max-width: 700px) { body.no-league .topbar nav { display: none; } }
 .start { max-width: 720px; margin: 2rem auto; text-align: center; }
 .start h1 { margin: .5rem 0 .25rem; font-size: 2rem; }
 .start-logo { border-radius: 20px; }
@@ -509,7 +511,13 @@ body.no-league .topbar nav { visibility: hidden; }
 .st-sub { color: var(--muted); font-size: .9rem; }
 .start-tile.wide { grid-column: 1 / -1; padding: 1.1rem 1rem; }
 .start-tile.wide .st-title { font-size: 1.15rem; }
-@media (max-width: 560px) { .start-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) {
+  .start { margin: 1rem auto; }
+  .start-logo { width: 64px; height: 64px; }
+  .start-tile, .start-tile.wide { padding: 1.1rem 1rem; }
+  .start-grid { grid-template-columns: 1fr; }
+  .match-link .match-teams { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}
 
 /* ---------- Anwesende Turner (Wettkampf anlegen) ---------- */
 .lineup-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
@@ -618,19 +626,32 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 .print-table td.ps-s { text-decoration: line-through; color: #777; }
 .ps-struck { font-style: normal; color: #555; }
 
-/* Lange Vereinsnamen dürfen umbrechen – nach Leerzeichen, „/“ und „-“, notfalls auch mitten im Wort. */
+/* Vereinsnamen im Kopf: fester Platz, einzeilig; zu lange Namen enden mit „…“ (der volle Name steht im Tooltip). */
 .scoreline .team { min-width: 0; }
-.scoreline .team .name { overflow-wrap: break-word; }
+.scoreline .team .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Punkt als Teil der ersten Zeile, damit er beim Umbruch direkt vor dem Namen bleibt */
 .scoreline .team-tag { display: inline; }
 .scoreline .team-tag .dot { margin-right: .35rem; vertical-align: -.02em; }
-/* Handy: beide Vereinsnamen nebeneinander, der Spielstand mittig darunter (beide Ligen) */
+/* Stand je Mannschaft – nur am Handy sichtbar (dort stehen die Mannschaften untereinander) */
+.scoreline .team .tv { display: none; }
+/* Handy: Kopf als „Datum · Status | Gerätepunkte“, darunter je Mannschaft eine Zeile „● Verein … Punkte“ (beide Ligen) */
 @media (max-width: 560px) {
-  .match-head .scoreline { grid-template-columns: 1fr 1fr; column-gap: .75rem; row-gap: .15rem; }
-  .match-head .scoreline .big { grid-column: 1 / -1; grid-row: 2; text-align: center; }
-  /* Wertungskachel: Bei langem Vereinsnamen rutscht die Turnerauswahl in eine eigene Zeile, statt zu schmal zu werden. */
+  .match-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: .75rem; align-items: center; }
+  .match-head > * { grid-column: 1 / -1; }
+  .match-head > .match-meta { grid-column: 1; }
+  .match-head > .subscore { grid-column: 2; grid-row: 1; font-size: .85rem; white-space: nowrap; }
+  .match-head > .subscore [data-out=winner] { display: none; }
+  .match-head .match-meta .muted { font-size: .85rem; }
+  .match-head .scoreline { display: flex; flex-direction: column; align-items: stretch; gap: .1rem; margin: .45rem 0 .2rem; }
+  .match-head .scoreline .big { display: none; }
+  .match-head .scoreline .team { display: flex; align-items: center; gap: .6rem; text-align: left; }
+  .match-head .scoreline .team .label { display: none; }
+  .match-head .scoreline .team .name { flex: 1 1 auto; min-width: 0; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .match-head .scoreline .team .tv { display: block; flex: none; font-size: 1.6rem; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .match-head .scoreline .team .tv.sums { font-size: 1.25rem; }
+  /* Wertungskachel: Turnerauswahl immer in eigener Zeile über die volle Breite */
   .side-head { flex-wrap: wrap; row-gap: .4rem; }
-  .side-head select { flex: 1 1 7rem; }
+  .side-head select { flex: 1 1 100%; }
 }
 
 /* Knöpfe zur Anzeigetafel als Gruppe */
@@ -668,8 +689,6 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 /* 4: Protokoll */
 .pa-head .pa-ico { width: 6mm; height: 6mm; margin-right: 2mm; vertical-align: middle; }
 /* 5: Startseite */
-.start-apparatus { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: .4rem 0 1.4rem; }
-.start-apparatus .app-ico { width: 56px; height: 56px; }
 
 /* Wettkampfpause: ein Knopf in der Gruppe der Anzeigetafel, Dauer im aufklappenden Menü */
 .pause-ctl { position: relative; display: inline-flex; }
@@ -973,20 +992,21 @@ body.board-light .tm-card { background: #fff; color: #171717; }
   body.match-page .match-top { position: sticky; top: var(--topbar-h, 52px); z-index: 6; background: var(--bg); margin: -.6rem -1rem .5rem; padding: .6rem 1rem .1rem; }
   body.match-page .match-top .banner, body.match-page .match-top .unlock-bar { margin-bottom: .4rem; }
 
-  /* Kopf: Liga · Datum · Beginn · Status, Mannschaften mit Stand, Gerätepunkte in einer Zeile; darunter die Werkzeugzeile */
+  /* Kopf: Datum · Status, Mannschaften mit Stand, Gerätepunkte in einer Zeile; darunter die Werkzeugzeile */
   body.match-page .match-head { display: flex; flex-wrap: wrap; align-items: center; column-gap: 1.5rem; row-gap: .35rem; padding: .45rem .9rem; margin-bottom: .45rem; }
   body.match-page .match-meta { display: flex; align-items: baseline; gap: .6rem; }
   body.match-page .match-meta h2 { font-size: 1rem; margin: 0; white-space: nowrap; }
-  /* Bei langem Vereinsnamen bricht „Beginn: …“ um, damit die Mannschaftsnamen daneben mehr Platz haben. */
-  body.match-page .match-meta .muted { font-size: .85rem; max-width: 30vw; }
-  body.match-page .match-head .scoreline { flex: 1; margin: 0; gap: .8rem; grid-template-columns: 1fr auto 1fr; }
+  /* Ergebniszeile immer einzeilig: Datum · Status | Heim (rechtsbündig) Stand Gast (linksbündig) | Gerätepunkte */
+  body.match-page .match-meta .muted { font-size: .85rem; white-space: nowrap; }
+  body.match-page .match-head .scoreline { flex: 1 1 0; min-width: 0; margin: 0; gap: .8rem; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
   body.match-page .scoreline .team .label { display: none; }
-  /* Namen nie mitten im Wort trennen: Reicht der Platz nicht, rutscht die Spielstandzeile unter Liga und Datum. */
-  body.match-page .scoreline .team { min-width: min-content; }
+  body.match-page .scoreline .team.home { text-align: right; }
+  body.match-page .scoreline .team.guest { text-align: left; }
+  body.match-page .scoreline .team { min-width: 0; }
   body.match-page .scoreline .team .name { font-size: 1.05rem; }
   body.match-page .scoreline .big, body.match-page .scoreline .big.sums { font-size: 1.6rem; line-height: 1.1; white-space: nowrap; }
   body.match-page .subscore { font-size: .9rem; white-space: nowrap; }
-  body.match-page .deduct-note { margin: 0; }
+  body.match-page .deduct-note { margin: 0; flex-basis: 100%; }
   body.match-page .match-head > .actions { flex-basis: 100%; margin: 0; gap: .5rem; }
   body.match-page .match-head .board-group { padding: .15rem; gap: .3rem; }
   /* Wettkampf-Knöpfe und „gespeichert“ bleiben rechts zusammen; wird es zu eng, rutscht nur „gespeichert“ rechtsbündig darunter. */
@@ -1032,8 +1052,8 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 
 /* ---------- Wertungsfenster: Eingabe und Freigabe einer Übung (mit Bildschirm-Zahlentastatur auf Touch-Geräten) ---------- */
 /* Fester Aufbau von oben nach unten: Kopf · Turner · Felder (darunter „berechnen“) · Endnote · Hinweis · Knöpfe · Einstellung.
-   Nichts erscheint oder verschwindet; das Fenster beginnt oben (auch mit den Leisten von Safari ganz sichtbar). */
-.sd-backdrop, .dc-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-start; justify-content: center;
+   Nichts erscheint oder verschwindet. iPad und PC: Fenster senkrecht mittig; Handy: bildschirmfüllend, Tastatur unten. */
+.sd-backdrop, .dc-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center;
   padding: 1rem; touch-action: manipulation; overscroll-behavior: contain; }
 .sd-backdrop { z-index: 280; }
 .dc-backdrop { z-index: 290; background: rgba(0,0,0,.3); }
@@ -1067,6 +1087,7 @@ html.sd-open, body.sd-open { overflow: hidden; }
   min-width: 0; overflow: hidden; white-space: nowrap; cursor: pointer; margin: 0; flex-direction: row; }
 .sd-box input { width: 1.3rem; height: 1.3rem; margin: 0; flex: none; }
 .sd-box.off { background: #e2e2e2; color: #737373; cursor: default; }
+.sd-box.active { outline: 3px solid #f59e0b; outline-offset: 0; border-color: #f59e0b; }
 /* „berechnen“ so breit wie die D-Note; ist die Spalte schmaler als das Wort (Handy mit drei E-Feldern), ragt der Knopf mittig etwas über */
 .sd-dcalc { align-self: center; width: max-content; min-width: 100%; height: 1.9rem; padding: 0 .35rem; font-size: .8rem; white-space: nowrap; }
 .sd-res { display: flex; align-items: flex-end; gap: 1rem; margin: .7rem 0 0; min-height: 3rem; }
@@ -1087,7 +1108,7 @@ html.sd-open, body.sd-open { overflow: hidden; }
 /* Zahlentastatur: rechts neben den Feldern (breite Bildschirme), sonst darunter */
 .sd-win.kp { width: min(1100px, 100%); }
 .sd-pad { flex: 0 0 19rem; display: flex; flex-direction: column; border-left: 1px solid #e5e5e5; padding-left: 1rem; }
-.sd-disp { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .1rem .2rem .45rem; min-height: 2.5rem; }
+.sd-disp { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 .2rem .35rem; height: 2.6rem; flex: none; }
 .sd-disp .w { font-size: .82rem; color: #525252; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sd-disp .val { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sd-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem;
@@ -1109,9 +1130,13 @@ html.sd-open, body.sd-open { overflow: hidden; }
 /* ---------- D-Note-Rechner (über dem Wertungsfenster) ---------- */
 .dc-win { background: #fff; border-radius: 14px; width: min(440px, 100%); max-height: 100%; overflow: auto; overscroll-behavior: contain; padding: .9rem 1.2rem;
   box-shadow: 0 10px 40px rgba(0,0,0,.3); border-left: 6px solid var(--team); display: flex; gap: 1.2rem; }
-/* Mit Zahlentastatur deckt der Rechner das Wertungsfenster genau ab (gleiche Breite), damit nur eine Tastatur zu sehen ist */
-.dc-win.kp { width: min(1100px, 100%); justify-content: center; gap: 2.5rem; }
-.dc-win.kp .dc-main { flex: 0 1 30rem; }
+/* Mit Zahlentastatur deckt der Rechner das Wertungsfenster genau ab (gleiche Breite), damit nur eine Tastatur zu sehen ist.
+   Nebeneinander (iPad quer, PC) mit Abstand und mittig; untereinander (hochkant, Handy) ohne. */
+.dc-win.kp { width: min(1100px, 100%); }
+@media (min-width: 901px) and (orientation: landscape) {
+  .dc-win.kp { justify-content: center; gap: 2.5rem; }
+  .dc-win.kp .dc-main { flex: 0 1 30rem; }
+}
 .dc-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
 .dc-where { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dc-title { font-size: 1.25rem; font-weight: 800; margin: .15rem 0 .6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1139,11 +1164,14 @@ html.sd-open, body.sd-open { overflow: hidden; }
   .sd-win, .dc-win { width: 100%; max-height: none; height: 100%; border-radius: 0; border-left-width: 5px; flex-direction: column; gap: 0;
     padding: calc(.45rem + env(safe-area-inset-top, 0px)) .75rem calc(.5rem + env(safe-area-inset-bottom, 0px)); }
   .sd-win.kp, .dc-win.kp { width: 100%; }
+  /* Tastatur immer ganz unten, darunter nur noch die Einstellung; der Platz dazwischen bleibt frei */
   .sd-win.kp .sd-main { display: contents; }
-  .sd-win.kp .sd-pad { order: 1; }
+  .sd-win.kp .sd-pad { order: 1; margin-top: auto; }
   .sd-win.kp .sd-set { order: 2; }
   .sd-head { min-height: 1.8rem; }
-  .sd-gym { margin: .15rem 0 .45rem; }
+  /* Vereinsschild und Turnerauswahl untereinander, beide volle Breite */
+  .sd-gym { margin: .1rem 0 .4rem; flex-direction: column; align-items: stretch; gap: .3rem; }
+  .sd-tag { max-width: 100%; align-self: flex-start; }
   .sd-fields { gap: .3rem; }
   .sd-f input[type=text], .sd-in, .sd-box { height: 3rem; height: min(3.1rem, 6.6svh); }
   .sd-f input[type=text], .sd-in { padding: .2rem .25rem; }
@@ -1158,12 +1186,13 @@ html.sd-open, body.sd-open { overflow: hidden; }
   .sd-btns { margin-top: .2rem; }
   .sd-btns .btn { flex: 1 1 0; }
   .sd-set { margin-top: .35rem; }
-  .sd-disp { min-height: 0; padding-bottom: .3rem; }
+  .sd-disp { height: 2.3rem; padding-bottom: .25rem; }
   .sd-disp .val { font-size: 1.6rem; }
   .sd-keys { gap: .3rem; }
   .sd-keys button { height: 3rem; height: min(3.1rem, 6.4svh); }
   .sd-keys .k-next, .sd-keys .k-fn { height: auto; }
   .dc-win.kp .dc-main { display: contents; }
+  .dc-win.kp .sd-pad { margin-top: auto; }
   .dc-title { font-size: 1.1rem; margin: .1rem 0 .4rem; }
   .dc-grid { grid-template-columns: 2.6rem minmax(0, 1fr) 5rem 3rem; gap: .3rem .6rem; }
   .dc-grid input, .dc-in { height: 2.6rem; height: min(2.6rem, 5.6svh); }
@@ -1172,4 +1201,14 @@ html.sd-open, body.sd-open { overflow: hidden; }
   .dc-res b { font-size: 1.8rem; }
   .dc-btns { margin-top: .45rem; }
   .dc-btns .btn { flex: 1 1 0; }
+}
+/* Kleine Handys (z. B. iPhone SE im Safari): etwas dichter, damit nichts verdeckt wird */
+@media (max-width: 560px) and (max-height: 600px) {
+  .sd-head { min-height: 1.6rem; }
+  .sd-gym { margin-bottom: .25rem; gap: .2rem; }
+  .sd-gsel { height: 2.2rem; }
+  .sd-res { margin-top: .3rem; min-height: 2.3rem; }
+  .sd-hint { margin-top: .1rem; }
+  .sd-set { margin-top: .2rem; }
+  .sd-disp { height: 2rem; }
 }

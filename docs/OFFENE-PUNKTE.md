@@ -1,8 +1,17 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Liste für das nächste Update (nach Beta 78 – wird gesammelt und dann auf einmal umgesetzt)
+## Nächste Liste (nach Beta 79)
 
-Begonnen 01.11.2026.
+1. **Menüs in der grauen Kopfzeile** (Idee 01.11.2026, Vorschaubilder gezeigt, in Abstimmung – wird nach Beta 79 besprochen
+   und ausprobiert): „WTB-Oberliga ▾“ (Wettkämpfe, Mannschaften, Regeln, Anleitung, Startseite), „Anzeigetafel ▾“
+   (Anzeigetafel öffnen, Hell/Dunkel, Turnervorstellung, Wettkampfpause, Ergebnis/Siegerehrung – Zustand wie „Pause 4:12“ am
+   Menüknopf) und „Wettkampf ▾“ (Setup, Protokoll/Drucken, Wettkampf abschließen); am iPhone „Oberliga ▾ | Tafel ▾ |
+   Wettkampf ▾“, „online“ als Punkt, „Beta“ im Ligamenü. Die Werkzeugzeile entfällt; Gerätereiter beginnen dann am Laptop
+   bei ca. 126 statt 168 px, iPad quer 126 statt 215, iPad hoch 267 statt 475, iPhone 224 statt 764 px.
+
+## Liste nach Beta 78 – umgesetzt in Beta 79 (auf dem Arbeitszweig, noch nicht veröffentlicht)
+
+Begonnen 01.11.2026, umgesetzt 01.11.2026 (Punkte 1–11).
 
 1. **Wertungsfenster am iPad und PC wieder mittig** (gemeldet 01.11.2026, Bildschirmfoto PC): Seit Beta 78 steht das
    Fenster ganz oben; wie in Beta 77 soll es senkrecht in der Mitte stehen – auch der D-Note-Rechner. Am Handy (bis 560 px
