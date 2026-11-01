@@ -74,6 +74,12 @@
      sich ein noch laufender Timer nach Freigabe oder Umstellen auf „kein Turner“ nicht mehr anhalten).
    - Wertungsfenster: Der Sturz-Timer oben rechts folgt denselben Regeln – gesperrt bei einer bereits freigegebenen Wertung
      („Wertung ändern“) und bei „kein Turner“, außer sein Timer läuft gerade.
+10. **iPad hochkant: D-Note-Rechner so breit wie das Wertungsfenster** (beschlossen 01.11.2026, Fehler seit Beta 78):
+    Gedacht war gleiche Breite (der Rechner deckt das Wertungsfenster genau ab), eine später stehende CSS-Regel hob die
+    Begrenzung im Hochformat aber auf. Gemessen (Beta 81): iPad Air hoch Wertungsfenster 760 / Rechner 788 px, iPad Pro
+    12,9″ hoch 760 / 992 px; iPad 9,7″ hoch (736/736) und iPad quer (1100/1100) schon gleich. Künftig im Hochformat höchstens
+    760 px wie das Wertungsfenster – Zahlentastatur an derselben Stelle, Anzahlfelder näher an D, C, B, A. iPad quer, Laptop
+    und Handy unverändert.
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
