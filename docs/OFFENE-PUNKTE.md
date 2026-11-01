@@ -39,9 +39,11 @@
        an ihm.
      - Läuft er, zeigt der Knopf die Restzeit (am Handy auch am Menüknopf, wie die Pause); Antippen beendet ihn vorzeitig,
        ohne Rückfrage „Gerät jetzt starten?“.
-     - Eine laufende Wettkampfpause verhindert den Start (Knopf grau); Annahme: umgekehrt genauso.
-     - Auf der Tafel heißen die Timer „Wettkampfpause“ und „Einturnen“ (bisher „Pause“ und „Einturnzeit Barren“), am Ende
-       wie heute „Einturnen beendet“ mit Schelle bzw. „Zeit abgelaufen“ (Annahme, zu bestätigen).
+     - Eine laufende Wettkampfpause verhindert den Start der Einturnzeit und umgekehrt (Knopf jeweils grau; bestätigt).
+     - Überschrift auf der Tafel: Einturn-Timer „Einturnen“ (bisher „Einturnzeit Barren“), Pausen-Timer „Wettkampfpause und
+       Einturnen“ (bisher „Pause“) – während der Wettkampfpause wird schon das nächste Gerät eingeturnt, ein eigener
+       Einturn-Timer ist dann nicht nötig. Am Ende wie heute „Einturnen beendet“ mit Schelle bzw. „Zeit abgelaufen“.
+       Die längere Überschrift darf die Passung der Tafel nicht verändern (prüfen, notfalls kleiner).
    - Ältere Wettkämpfe: Die alten Startdaten werden nicht mehr beachtet.
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
