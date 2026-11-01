@@ -46,6 +46,16 @@ Gefunden mit Beta 77 auf dem iPhone in Safari (Bildschirmfotos 31.10.2026):
    Felder an die verfügbare Breite anpassen, sodass „10,0“ auch bei 360 px Bildschirmbreite ganz zu sehen ist.
    Prüfen: 360/375/390 px, Oberliga und Landesliga mit E3, auch Sprung (ohne Standbonus).
 
+**Vorschlag, noch nicht beschlossen: D-Note-Rechner** (gewünscht 01.11.2026, Vorschaubilder gezeigt)
+- Im Wertungsfenster unter dem Feld D-Note ein gleich breiter Knopf „berechnen“; am Sprung kein Knopf (Wert wird
+  direkt eingegeben).
+- Eigenes Fenster über dem Wertungsfenster: Zeilen ≥ D (je 0,8), C (je 0,6), B (je 0,4), A (je 0,2) mit − / Anzahl / +
+  und Teilsumme; darunter „Elemente x von 8“ und Summe; EG (Elementgruppen) freie Eingabe mit einer Nachkommastelle,
+  höchstens 2,3; Ergebnis D-Note groß; „Abbrechen“ / „Übernehmen“ (trägt den Wert ins Feld D-Note ein, freigegeben
+  wird weiter im Wertungsfenster). Am Handy bildschirmfüllend mit der Zahlentastatur für EG.
+- Annahme: „höchstens 8“ = höchstens 8 Elemente insgesamt (+ wird bei 8 gesperrt). Offen: Bestätigung dieser Annahme;
+  ob die Element-Anzahlen gespeichert werden (beim erneuten Öffnen wieder da) oder nur die D-Note; Aufnahme als Punkt 9.
+
 
 ## Beschlossen und in Beta 77 umgesetzt (veröffentlicht): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
 
