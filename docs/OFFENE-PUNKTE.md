@@ -8,6 +8,21 @@
    Menüknopf) und „Wettkampf ▾“ (Setup, Protokoll/Drucken, Wettkampf abschließen); am iPhone „Oberliga ▾ | Tafel ▾ |
    Wettkampf ▾“, „online“ als Punkt, „Beta“ im Ligamenü. Die Werkzeugzeile entfällt; Gerätereiter beginnen dann am Laptop
    bei ca. 126 statt 168 px, iPad quer 126 statt 215, iPad hoch 267 statt 475, iPhone 224 statt 764 px.
+2. **Einheitliche Tastaturbedienung im Wertungsfenster und im D-Note-Rechner** (beschlossen 01.11.2026):
+   - Hardware-Tastatur: Tab/Umschalt+Tab wie bisher (Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“).
+     → und Enter vorwärts im Kreis E1 → … → NA → „Wertung freigeben“ (nur wenn aktiv, sonst übersprungen) → E1, ← rückwärts.
+     Enter auf „Wertung freigeben“ gibt frei. ↑/↓: kein ±0,1 mehr; auf dem Stand schalten ↑/↓ den Standbonus um (auch 1 = ja,
+     0 = nein, Leertaste); auf der D-Note wählt ↓ „berechnen“ (Enter öffnet den Rechner, ↑ zurück). Enter auf dem Stand geht
+     weiter (schaltet nicht um). Esc = Abbrechen.
+   - Software-Tastatur: rechte Spalte ⌫ – „◀ Zurück“ – „Weiter ▶“ (doppelt hoch), keine Enter-Taste; Kreis E1 → … → Stand →
+     NA → E1 ohne „Wertung freigeben“ (wird angetippt). Stand aktiv: 1 = ja, 0/⌫ = nein, 2–9 und Komma ausgegraut.
+     „berechnen“ wird angetippt.
+   - D-Note-Rechner: Software-Tastatur ebenfalls mit „◀ Zurück“ (Kreis ≥ D … EG, „Übernehmen“ antippen, Komma bei den
+     Anzahlen ausgegraut). Hardware: Enter/→ ≥ D → … → EG → „Übernehmen“ (nur wenn möglich) → ≥ D, ← zurück, Enter auf
+     „Übernehmen“ übernimmt; kein ±1 mit ↑/↓ mehr; Tab über ≥ D … EG und „Übernehmen“, Esc = Abbrechen.
+   - Auf Touch-Geräten schalten auch Pfeiltasten und Enter einer angeschlossenen Tastatur die Bildschirm-Tastatur aus.
+   - Gelbe Umrandung in der ganzen App für alles, was mit der Tastatur ausgewählt ist (Felder, ganzer Stand-Kasten,
+     „Wertung freigeben“, „berechnen“, „Übernehmen“, Kachel-Knöpfe, Auswahllisten, Setup); nicht bei Maus/Finger.
 
 ## Liste nach Beta 78 – umgesetzt in Beta 79 (veröffentlicht 01.11.2026)
 
