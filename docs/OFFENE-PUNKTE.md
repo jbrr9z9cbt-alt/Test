@@ -10,6 +10,9 @@
      die Pause. Ergebnis/Siegerehrung und Turnervorstellung öffnen ihr Fenster in der App (siehe Punkt 2).
    - Handy: Menü schließt nach der Auswahl (nicht beim Aufklappen der Pausendauer); die laufende Pause steht am Menüknopf
      („Pause 4:12“, orange). Tab erreicht Reiter bzw. Menüknöpfe (gelbe Umrandung), Esc schließt ein Aufklappmenü.
+   - Vorausdenken (01.11.2026): Der Bereich „Anzeigetafel“ soll später eventuell auch den Einturn-Timer aufnehmen können,
+     falls Gerätestart und Gerätesperre vereinfacht werden (noch offen). Menüband und Aufklappmenü daher so anlegen, dass ein
+     weiterer Knopf mit laufender Zeit (wie die Pause) Platz hat – am iPad hoch notfalls mit kürzeren Beschriftungen.
    Bisherige Ideen dazu: „WTB-Oberliga ▾“ (Wettkämpfe, Mannschaften, Regeln, Anleitung, Startseite), „Anzeigetafel ▾“
    (Anzeigetafel öffnen, Hell/Dunkel, Turnervorstellung, Wettkampfpause, Ergebnis/Siegerehrung – Zustand wie „Pause 4:12“ am
    Menüknopf) und „Wettkampf ▾“ (Setup, Protokoll/Drucken, Wettkampf abschließen); am iPhone „Oberliga ▾ | Tafel ▾ |
@@ -25,7 +28,7 @@
 2. **Ergebnis/Siegerehrung als Fenster in der App** (gewünscht 01.11.2026): wie bei der Turnervorstellung – ist
    Ergebnis/Siegerehrung eingeblendet, überlagert dasselbe Fenster wie auf der Tafel („Zwischenstand“ bzw. „Wettkampfergebnis“:
    Stand, Gerätepunkte, Topscorer) die App, mit einem Knopf zum Schließen. So kann der Bediener die Siegerehrung lesen, ohne zum
-   Beamer zu schauen. Annahme (zu bestätigen): „Schließen“ blendet es wie bei der Turnervorstellung auch auf der Tafel aus.
+   Beamer zu schauen. „Schließen“ blendet es wie bei der Turnervorstellung auch auf der Tafel aus (bestätigt 01.11.2026).
 
 ## Umgesetzt in Beta 80 (veröffentlicht 01.11.2026)
 
