@@ -53,23 +53,42 @@ Beim Öffnen wählt man die Liga: **Oberliga** oder **Landesliga**. Beide nutzen
   E-Note und Endnote stehen in der Zeile der Werte. Keine Überschriften „E-/D-Kampfgericht“ mehr (auch nicht am Handy).
 - **Wertungsfenster** (beide Ligen): Die Kachel zeigt die Werte nur als Text (E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote)
   mit Turnerauswahl, Sturz-Timer und Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“ (dann ist die
-  Turnerauswahl der Kachel gesperrt; der Turner lässt sich im Fenster korrigieren). Das Fenster enthält Gerät, Duell/Übung,
-  Turner, Sturz-Timer, die Eingabefelder, „Wertung 0,00“, E-Note und Endnote (schon beim Tippen), Oberliga beim zweiten
-  Turner eine Vorschau der Scorepunkte, und die Knöpfe „Abbrechen“ (verwirft ohne Rückfrage) und „Wertung freigeben“
-  bzw. „Korrektur freigeben“. Ungültige Werte rot, Freigabe dann gesperrt. „kein Turner“ wird ebenfalls über das Fenster
-  freigegeben (Endnote 0,00). Was im Fenster getippt ist, wird erst mit der Freigabe gespeichert.
+  Turnerauswahl der Kachel gesperrt – grau hinterlegt, Name schwarz; der Turner lässt sich im Fenster korrigieren).
+  „Wertung eingeben“ geht auch ohne gewählten Turner; gesperrt nur vor dem Gerätestart, an gesperrten bzw. abgeschlossenen
+  Geräten und im abgeschlossenen Wettkampf.
+  - **Fester Aufbau** von oben nach unten (nichts erscheint oder verschwindet; das Fenster beginnt oben und ist auch mit den
+    Leisten des Safari-Browsers ganz sichtbar): Kopfzeile einzeilig (z. B. „Ringe · Duell 1 · 2.“, rechts Sturz-Timer-Knopf) ·
+    Mannschaft und **Turnerauswahl** · Felder E1, E2, (E3), D-Note, Stand, NA – alle gleich breit, Schrift passend zur Breite
+    („10,0“ auch bei sechs Feldern auf 360 px) – darunter „berechnen“ · „Wertung 0,00“, Oberliga-Vorschau, E-Note, Endnote ·
+    Hinweiszeile · „Abbrechen“ / „Wertung freigeben“ bzw. „Korrektur freigeben“ · Einstellung Zahlentastatur.
+  - **Turnerauswahl im Fenster**: vor der Freigabe sofort gespeichert (wie in der Kachel; „Abbrechen“ verwirft nur die
+    getippten Noten), ohne Turner sind die Notenfelder gesperrt („Erst den Turner wählen.“). Nach der Freigabe gehört ein
+    Turnerwechsel zur Korrektur. „kein Turner“ bei schon erfassten oder getippten Noten: Rückfrage.
+  - **Oberliga-Vorschau**: beim zweiten Turner nur die Scorepunktzahl des Duells in der Farbe der Mannschaft, die es gewinnt
+    (unentschieden: 0 in Schwarz); der Platz ist immer reserviert.
+  - Ungültige Werte rot, Freigabe dann gesperrt. „kein Turner“ wird ebenfalls über das Fenster freigegeben (Endnote 0,00).
+    Getippte Noten werden erst mit der Freigabe gespeichert.
   - Oberliga: „Wertung freigeben“ beim ersten Turner speichert nur (Tafel zeigt nichts Neues); sind beide Turner
     freigegeben, wird das Duell freigegeben – in beliebiger Reihenfolge.
   - Ältere Daten: noch nicht freigegebene Noten und offene Korrekturen (Beta 76 und früher) erscheinen im Fenster;
     „Korrektur freigeben“ übernimmt, „Abbrechen“ verwirft eine offene Korrektur.
   - **Zahlentastatur** (Touch-Geräte): eigene Tastatur im Fenster – 7 8 9 ⌫ / 4 5 6 ⌫ / 1 2 3 Weiter / 0 0 , Weiter
     (0 doppelt breit, ⌫ und „Weiter ▶“ doppelt hoch) – mit großer Anzeige des aktiven Felds; die Tastatur des Geräts bleibt zu.
-    Ohne Komma ist die letzte Ziffer die Nachkommastelle („17“ = 1,7), ein getipptes Komma gilt wie getippt. „Weiter ▶“ nach
-    dem letzten Feld markiert „Wertung freigeben“. Handy: Fenster bildschirmfüllend, größere Felder und Endnote,
-    „Abbrechen“/„Wertung freigeben“ direkt über der Tastatur; iPad quer: Tastatur rechts daneben, hochkant darunter.
-  - **Sturz-Timer** des Turners auch im Fenster; läuft er, stehen seine Sekunden groß im Fenster (Farben wie auf der Tafel).
+    Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0 beim Verlassen des Felds), kein automatisches Komma.
+    Die Felder sind dabei Schaltflächen (zuverlässiges Antippen am iPhone). „Weiter ▶“ nach dem letzten Feld markiert
+    „Wertung freigeben“. Handy: Fenster bildschirmfüllend von oben, Tastatur direkt unter den Knöpfen (Höhen passen sich
+    kleinen Bildschirmen an); iPad quer: Tastatur rechts daneben, hochkant darunter.
     Einstellung im Fenster: automatisch (Touch-Geräte; verschwindet beim ersten Druck einer echten Taste) / immer / nie,
-    gespeichert je Gerät. Mit echter Tastatur kein automatisches Komma („5“ = 5,0).
+    gespeichert je Gerät.
+  - **iPhone/iPad**: Doppeltipp-Zoom im Fenster aus, Auswahllisten mit mindestens 16 px Schrift (kein Zoom beim Antippen),
+    die Seite hinter dem Fenster verschiebt sich nicht; die Scroll-Position bleibt beim Schließen erhalten.
+  - **D-Note-Rechner** (Knopf „berechnen“ unter der D-Note, nicht am Sprung): eigenes Fenster über dem Wertungsfenster mit
+    getippten Anzahlen ≥ D (je 0,8), C (je 0,6), B (je 0,4), A (je 0,2) samt Teilsummen, „Elemente x von 8“, Summe,
+    EG (Elementgruppen, eine Nachkommastelle, höchstens 2,3) und D-Note. Mehr als 8 Elemente oder EG über 2,3: rot,
+    „Übernehmen“ gesperrt. „Übernehmen“ trägt die D-Note ins Wertungsfenster ein (freigegeben wird dort); die Anzahlen
+    werden mit der Wertung gespeichert (`dparts`, auch in der Datensicherung) – nur wenn sie zur freigegebenen D-Note
+    passen – und stehen beim erneuten Öffnen wieder da. Handy: bildschirmfüllend mit Zahlentastatur („Weiter“:
+    ≥ D → C → B → A → EG → „Übernehmen“, Komma nur bei EG); Laptop: Enter/Tab, ↑/↓ = ±1 bzw. ±0,1, Esc = Abbrechen.
 - **Lange Vereinsnamen** brechen nach Leerzeichen, „/“ und „-“ um. Am Handy stehen im Kopf beide Namen nebeneinander und der
   Stand mittig darunter; in den Wertungskacheln rutscht die Turnerauswahl bei Bedarf in eine eigene Zeile.
 - **7 feste Mannschaften** mit vorgegebenen Turnern (Startnummern 1–20) aus `js/config.js`

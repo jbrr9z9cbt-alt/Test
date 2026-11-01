@@ -961,6 +961,8 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 
 /* Wertungseingabe: gesperrte Felder im Grau des Hintergrunds, nur offene Felder sind weiß (auch das Standbonus-Kästchen) */
 .side input:disabled, .side select:disabled { background: #e2e2e2; border-color: #d0d0d0; }
+/* Gesperrte Turnerauswahl (z. B. nach der Freigabe): grau hinterlegt, Name aber schwarz – auch auf iPhone/iPad (Safari blasst sonst ab) */
+.side select[data-field="gymnast"]:disabled { color: var(--text); -webkit-text-fill-color: var(--text); opacity: 1; }
 .bonus-box.off { background: #e2e2e2; border-color: #d0d0d0; color: #737373; }
 
 .side-foot .hidden-keep { visibility: hidden; }
@@ -1029,94 +1031,145 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 }
 
 /* ---------- Wertungsfenster: Eingabe und Freigabe einer Übung (mit Bildschirm-Zahlentastatur auf Touch-Geräten) ---------- */
-.sd-backdrop { position: fixed; inset: 0; z-index: 280; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 1rem; }
-body.sd-open { overflow: hidden; }
-.sd-win { background: #fff; border-radius: 14px; width: min(860px, 100%); max-height: 100%; overflow: auto; padding: 1rem 1.3rem 1rem;
+/* Fester Aufbau von oben nach unten: Kopf · Turner · Felder (darunter „berechnen“) · Endnote · Hinweis · Knöpfe · Einstellung.
+   Nichts erscheint oder verschwindet; das Fenster beginnt oben (auch mit den Leisten von Safari ganz sichtbar). */
+.sd-backdrop, .dc-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-start; justify-content: center;
+  padding: 1rem; touch-action: manipulation; overscroll-behavior: contain; }
+.sd-backdrop { z-index: 280; }
+.dc-backdrop { z-index: 290; background: rgba(0,0,0,.3); }
+html.sd-open, body.sd-open { overflow: hidden; }
+.sd-win { background: #fff; border-radius: 14px; width: min(760px, 100%); max-height: 100%; overflow: auto; overscroll-behavior: contain; padding: .8rem 1.2rem .8rem;
   box-shadow: 0 10px 40px rgba(0,0,0,.3); border-left: 6px solid var(--team); display: flex; gap: 1.2rem; }
+.sd-win:focus, .dc-win:focus { outline: none; }
 .sd-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
-.sd-head { display: flex; align-items: center; gap: .6rem; }
-.sd-where { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
-.sd-head .timer-btn { margin-left: auto; }
-.sd-gym { display: flex; align-items: center; gap: .6rem; margin: .35rem 0 .9rem; flex-wrap: wrap; }
-.sd-tag { background: var(--team); color: var(--team-fg, #fff); border-radius: 4px; padding: .15rem .45rem; font-weight: 700; font-size: .85rem; overflow-wrap: break-word; }
-.sd-name { font-size: 1.4rem; font-weight: 800; }
-.sd-gsel { font-size: 1.1rem; flex: 1 1 14rem; min-width: 0; }
-.sd-none { font-size: 1.3rem; font-weight: 700; color: #404040; padding: .8rem 0; }
-.sd-fields { display: flex; gap: 1.2rem; align-items: flex-end; }
-.sd-grp { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .45rem; flex: 2 1 0; min-width: 0; }
-.sd-grp + .sd-grp { flex: 3 1 0; }
+.sd-head { display: flex; align-items: center; gap: .6rem; min-height: 1.9rem; }
+.sd-where { flex: 1 1 auto; min-width: 0; font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sd-head .timer-btn { flex: none; }
+.sd-gym { display: flex; align-items: center; gap: .5rem; margin: .3rem 0 .6rem; }
+.sd-tag { flex: none; max-width: 45%; background: var(--team); color: var(--team-fg, #fff); border-radius: 4px; padding: .15rem .45rem; font-weight: 700; font-size: .85rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Auswahllisten im Fenster mit mindestens 16 px Schrift – sonst zoomt iOS beim Antippen */
+.sd-gsel { flex: 1 1 auto; min-width: 0; height: 2.5rem; font-size: max(16px, 1.05rem); font-weight: 700; }
+/* Notenfelder: alle gleich breit, Schrift passend zur Breite (--sd-fs, siehe fitDlgFont) */
+.sd-fields { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: .45rem; align-items: start; }
 .sd-f { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
 .sd-f > .lbl { display: block; white-space: nowrap; overflow: hidden; font-size: .75rem; color: var(--muted); }
 .sd-f > .lbl span { font-size: .75rem; color: var(--muted); }
-.sd-f input[type=text] { height: 3rem; font-size: 1.35rem; text-align: right; padding: .3rem .5rem; border-radius: 8px; font-variant-numeric: tabular-nums; width: 100%; }
-.sd-f input.active { outline: 3px solid #f59e0b; outline-offset: 0; border-color: #f59e0b; }
-.sd-f input.invalid { border-color: var(--danger); background: #fef2f2; }
-.sd-f input:disabled { background: #e2e2e2; }
-.sd-box { height: 3rem; display: flex; align-items: center; justify-content: center; gap: .35rem; border: 1px solid #d4d4d4; border-radius: 8px; font-size: .9rem; background: #fff; }
-.sd-box input { width: 1.3rem; height: 1.3rem; margin: 0; }
-.sd-box.off { background: #e2e2e2; color: #737373; }
-.sd-res { display: flex; align-items: flex-end; gap: 1rem; margin: .9rem 0 .2rem; flex-wrap: wrap; }
-.sd-res .check { flex-direction: row; align-items: center; gap: .4rem; font-size: .95rem; margin: 0; }
-.sd-n { margin-left: auto; display: flex; gap: 1.2rem; align-items: flex-end; }
-.sd-n > span { display: flex; flex-direction: column; align-items: flex-end; font-size: .78rem; color: var(--muted); }
+.sd-f input[type=text], .sd-in { height: 3rem; width: 100%; min-width: 0; font: inherit; font-size: var(--sd-fs, 1.35rem); text-align: right; padding: .3rem .35rem; border-radius: 8px;
+  font-variant-numeric: tabular-nums; overflow: hidden; white-space: nowrap; }
+.sd-in { border: 1px solid #d4d4d4; background: #fff; color: var(--text); touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.sd-in.empty { color: #a3a3a3; }
+.sd-f input.active, .sd-in.active { outline: 3px solid #f59e0b; outline-offset: 0; border-color: #f59e0b; }
+.sd-f input.invalid, .sd-in.invalid { border-color: var(--danger); background: #fef2f2; }
+.sd-f input:disabled, .sd-in:disabled { background: #e2e2e2; color: #737373; cursor: default; }
+.sd-box { height: 3rem; display: flex; align-items: center; justify-content: center; gap: .3rem; border: 1px solid #d4d4d4; border-radius: 8px; font-size: .9rem; background: #fff;
+  min-width: 0; overflow: hidden; white-space: nowrap; cursor: pointer; margin: 0; flex-direction: row; }
+.sd-box input { width: 1.3rem; height: 1.3rem; margin: 0; flex: none; }
+.sd-box.off { background: #e2e2e2; color: #737373; cursor: default; }
+/* „berechnen“ so breit wie die D-Note; ist die Spalte schmaler als das Wort (Handy mit drei E-Feldern), ragt der Knopf mittig etwas über */
+.sd-dcalc { align-self: center; width: max-content; min-width: 100%; height: 1.9rem; padding: 0 .35rem; font-size: .8rem; white-space: nowrap; }
+.sd-res { display: flex; align-items: flex-end; gap: 1rem; margin: .7rem 0 0; min-height: 3rem; }
+.sd-res .check { flex-direction: row; align-items: center; gap: .4rem; font-size: .95rem; margin: 0; white-space: nowrap; }
+.sd-n { margin-left: auto; display: flex; gap: 1.1rem; align-items: flex-end; }
+.sd-n > span { display: flex; flex-direction: column; align-items: flex-end; font-size: .78rem; color: var(--muted); white-space: nowrap; }
 .sd-n b { font-size: 1.2rem; color: var(--text); font-variant-numeric: tabular-nums; }
 .sd-n .fin b { font-size: 1.9rem; }
-.sd-prev { background: #f5f5f5; border-radius: 8px; padding: .45rem .7rem; font-size: .9rem; margin-top: .5rem; }
-.sd-btns { display: flex; gap: .6rem; justify-content: flex-end; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
-.sd-hint { margin-right: auto; font-size: .82rem; color: var(--muted); }
-/* Sturz-Timer des Turners groß im Fenster (Farben wie auf der hellen Tafel) */
-.sd-fall { margin-top: .6rem; text-align: center; border-radius: 12px; padding: .4rem .6rem .5rem; border: 2px solid #d97706; background: #fef3c7; }
-.sd-fall.phase2 { border-color: #dc2626; background: #fee2e2; }
-.sd-fall .t { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #92400e; }
-.sd-fall.phase2 .t, .sd-fall .n { color: #b91c1c; }
-.sd-fall .s { font-size: 3.6rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
-.sd-fall .s.fz-0 { color: #171717; } .sd-fall .s.fz-1 { color: #92400e; } .sd-fall .s.fz-2 { color: #b91c1c; }
-.sd-fall .n { font-size: 1.2rem; font-weight: 900; }
-.sd-set { margin-top: .6rem; text-align: right; }
+/* Oberliga: Vorschau der Scorepunkte des Duells (Platz immer reserviert) */
+.sd-n .pv { visibility: hidden; min-width: 2.6rem; }
+.sd-n .pv.on { visibility: visible; }
+.sd-n .pv b { font-size: 1.9rem; font-weight: 800; }
+.sd-hint { min-height: 1.25rem; margin-top: .35rem; font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sd-btns { display: flex; gap: .6rem; justify-content: flex-end; align-items: center; margin-top: .3rem; }
+.sd-set { margin-top: .5rem; text-align: right; }
 .sd-set label { display: inline-flex; flex-direction: row; align-items: center; gap: .4rem; font-size: .75rem; color: var(--muted); }
-.sd-set select { width: auto; padding: .15rem .3rem; font-size: .75rem; }
+.sd-set select { width: auto; padding: .1rem .3rem; font-size: 16px; }
 /* Zahlentastatur: rechts neben den Feldern (breite Bildschirme), sonst darunter */
-.sd-win.kp { width: min(1180px, 100%); }
+.sd-win.kp { width: min(1100px, 100%); }
 .sd-pad { flex: 0 0 19rem; display: flex; flex-direction: column; border-left: 1px solid #e5e5e5; padding-left: 1rem; }
-.sd-disp { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .1rem .2rem .5rem; min-height: 2.6rem; }
-.sd-disp .w { font-size: .82rem; color: #525252; }
+.sd-disp { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .1rem .2rem .45rem; min-height: 2.5rem; }
+.sd-disp .w { font-size: .82rem; color: #525252; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sd-disp .val { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sd-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem;
   grid-template-areas: "k7 k8 k9 kb" "k4 k5 k6 kb" "k1 k2 k3 kn" "k0 k0 kc kn"; }
-.sd-keys button { height: 3.2rem; font: inherit; font-size: 1.45rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 10px; background: #fff; color: var(--text); cursor: pointer; touch-action: manipulation; }
+.sd-keys button { height: 3.2rem; font: inherit; font-size: 1.45rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 10px; background: #fff; color: var(--text);
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .sd-keys button:active { background: #e5e5e5; }
+.sd-keys button:disabled { color: #c4c4c4; background: #f5f5f5; cursor: default; }
 .sd-keys .k-fn { font-size: 1.4rem; background: #f3f3f3; }
 .sd-keys .k-next, .sd-keys .k-fn { height: auto; }
 .sd-keys .k-next { background: #4a4a4a; color: #fff; font-size: 1.05rem; }
-.sd-btns .btn.sd-next { outline: 3px solid #f59e0b; outline-offset: 2px; }
+.sd-btns .btn.sd-next, .dc-btns .btn.sd-next { outline: 3px solid #f59e0b; outline-offset: 2px; }
 @media (max-width: 900px), (orientation: portrait) {
-  .sd-win.kp { flex-direction: column; width: min(860px, 100%); }
-  .sd-pad { flex: none; border-left: 0; padding-left: 0; border-top: 1px solid #e5e5e5; padding-top: .5rem; }
+  .sd-win.kp, .dc-win.kp { flex-direction: column; width: min(760px, 100%); gap: 0; }
+  .dc-win.kp .dc-main { flex: none; }
+  .sd-pad { flex: none; border-left: 0; padding-left: 0; border-top: 1px solid #e5e5e5; padding-top: .45rem; margin-top: .5rem; }
 }
-/* Handy: Fenster bildschirmfüllend, Tastatur unten */
+
+/* ---------- D-Note-Rechner (über dem Wertungsfenster) ---------- */
+.dc-win { background: #fff; border-radius: 14px; width: min(440px, 100%); max-height: 100%; overflow: auto; overscroll-behavior: contain; padding: .9rem 1.2rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3); border-left: 6px solid var(--team); display: flex; gap: 1.2rem; }
+/* Mit Zahlentastatur deckt der Rechner das Wertungsfenster genau ab (gleiche Breite), damit nur eine Tastatur zu sehen ist */
+.dc-win.kp { width: min(1100px, 100%); justify-content: center; gap: 2.5rem; }
+.dc-win.kp .dc-main { flex: 0 1 30rem; }
+.dc-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.dc-where { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-title { font-size: 1.25rem; font-weight: 800; margin: .15rem 0 .6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-grid { display: grid; grid-template-columns: 3rem minmax(0, 1fr) 5.5rem 3.6rem; align-items: center; gap: .4rem .7rem; }
+.dc-grid .l { font-size: 1.35rem; font-weight: 800; white-space: nowrap; }
+.dc-grid .v { font-size: .85rem; color: var(--muted); line-height: 1.2; }
+.dc-grid input, .dc-in { width: 100%; height: 2.9rem; font: inherit; font-size: 1.5rem; text-align: right; padding: .2rem .6rem; border-radius: 8px; font-variant-numeric: tabular-nums; }
+.dc-in { border: 1px solid #d4d4d4; background: #fff; color: var(--text); touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.dc-grid input.active, .dc-in.active { outline: 3px solid #f59e0b; outline-offset: 0; border-color: #f59e0b; }
+.dc-grid input.invalid, .dc-in.invalid { border-color: var(--danger); background: #fef2f2; }
+.dc-grid .s { text-align: right; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dc-sum { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: .5rem; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; padding: .35rem 0;
+  font-size: .95rem; color: #404040; white-space: nowrap; }
+.dc-sum b { font-variant-numeric: tabular-nums; }
+.dc-sum .full { color: #b45309; font-weight: 600; }
+.dc-sum.bad, .dc-sum.bad .full { color: var(--danger); font-weight: 600; }
+.dc-res { display: flex; justify-content: space-between; align-items: baseline; margin-top: .6rem; padding: .45rem .7rem; background: #f5f5f5; border-radius: 10px; }
+.dc-res span { font-size: 1rem; color: #404040; }
+.dc-res b { font-size: 2.1rem; font-variant-numeric: tabular-nums; }
+.dc-btns { display: flex; gap: .6rem; justify-content: flex-end; margin-top: .7rem; }
+
+/* Handy: Fenster bildschirmfüllend, Inhalt von oben, Tastatur direkt darunter (auch kleine Bildschirme: Höhen nach svh) */
 @media (max-width: 560px) {
-  .sd-backdrop { padding: 0; align-items: stretch; }
-  .sd-win { width: 100%; max-height: none; height: 100%; border-radius: 0; border-left-width: 5px; flex-direction: column; gap: .4rem;
-    padding: calc(.7rem + env(safe-area-inset-top, 0px)) .8rem calc(.6rem + env(safe-area-inset-bottom, 0px)); }
-  .sd-win.kp { width: 100%; }
-  .sd-gym { margin: .2rem 0 .5rem; }
-  .sd-name { font-size: 1.15rem; }
-  .sd-fields { gap: .5rem; }
-  .sd-grp { gap: .3rem; }
-  .sd-f input[type=text], .sd-box { height: clamp(3rem, 8vh, 4rem); font-size: 1.75rem; }
-  .sd-box { font-size: 1.05rem; gap: .25rem; }
-  .sd-n b { font-size: 1.5rem; }
-  .sd-keys button { height: clamp(3.2rem, 8.5vh, 4.4rem); }
-  .sd-n .fin b { font-size: 2.6rem; }
-  .sd-res { margin-top: .9rem; }
-  /* Mit Zahlentastatur: Abbrechen/Freigeben direkt über der Tastatur (Daumen), der Sturz-Timer mittig in der Lücke */
+  .sd-backdrop, .dc-backdrop { padding: 0; align-items: stretch; }
+  .sd-win, .dc-win { width: 100%; max-height: none; height: 100%; border-radius: 0; border-left-width: 5px; flex-direction: column; gap: 0;
+    padding: calc(.45rem + env(safe-area-inset-top, 0px)) .75rem calc(.5rem + env(safe-area-inset-bottom, 0px)); }
+  .sd-win.kp, .dc-win.kp { width: 100%; }
   .sd-win.kp .sd-main { display: contents; }
-  .sd-win.kp .sd-fall { margin: auto 0; }
-  .sd-win.kp .sd-btns { margin-top: auto; }
-  .sd-win.kp .sd-fall:not([hidden]) + .sd-btns { margin-top: 0; }
-  .sd-win.kp .sd-set { margin-top: .3rem; }
-  .sd-win.kp .sd-pad { margin-top: .3rem; }
-  .sd-btns { margin-top: .6rem; }
+  .sd-win.kp .sd-pad { order: 1; }
+  .sd-win.kp .sd-set { order: 2; }
+  .sd-head { min-height: 1.8rem; }
+  .sd-gym { margin: .15rem 0 .45rem; }
+  .sd-fields { gap: .3rem; }
+  .sd-f input[type=text], .sd-in, .sd-box { height: 3rem; height: min(3.1rem, 6.6svh); }
+  .sd-f input[type=text], .sd-in { padding: .2rem .25rem; }
+  .sd-box { font-size: .85rem; gap: .15rem; }
+  .sd-dcalc { font-size: .75rem; padding: 0 .3rem; }
+  .sd-box input { width: 1.1rem; height: 1.1rem; }
+  .sd-res { margin-top: .45rem; min-height: 2.6rem; gap: .6rem; }
+  .sd-n { gap: .8rem; }
+  .sd-n b { font-size: 1.3rem; }
+  .sd-n .fin b, .sd-n .pv b { font-size: 1.9rem; }
+  .sd-hint { margin-top: .2rem; }
+  .sd-btns { margin-top: .2rem; }
   .sd-btns .btn { flex: 1 1 0; }
-  .sd-hint { flex-basis: 100%; }
+  .sd-set { margin-top: .35rem; }
+  .sd-disp { min-height: 0; padding-bottom: .3rem; }
+  .sd-disp .val { font-size: 1.6rem; }
+  .sd-keys { gap: .3rem; }
+  .sd-keys button { height: 3rem; height: min(3.1rem, 6.4svh); }
+  .sd-keys .k-next, .sd-keys .k-fn { height: auto; }
+  .dc-win.kp .dc-main { display: contents; }
+  .dc-title { font-size: 1.1rem; margin: .1rem 0 .4rem; }
+  .dc-grid { grid-template-columns: 2.6rem minmax(0, 1fr) 5rem 3rem; gap: .3rem .6rem; }
+  .dc-grid input, .dc-in { height: 2.6rem; height: min(2.6rem, 5.6svh); }
+  .dc-grid .l { font-size: 1.2rem; }
+  .dc-res { margin-top: .4rem; padding: .25rem .7rem; }
+  .dc-res b { font-size: 1.8rem; }
+  .dc-btns { margin-top: .45rem; }
+  .dc-btns .btn { flex: 1 1 0; }
 }
