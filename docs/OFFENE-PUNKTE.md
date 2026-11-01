@@ -48,6 +48,11 @@
 5. **Landesliga: Zeile „Summe (beste 3)“ unter den Turnerkacheln entfällt** (beschlossen 01.11.2026): Derselbe Wert steht
    schon im Gerätereiter („Boden 0,00 : 0,00“) und in der Gerätezeile über den Kacheln („Gerätesumme …“). Streichwertungen
    bleiben an der Kachel erkennbar; die Links „Mannschaftsabzug Heim/Gast“ bleiben und rücken nach oben. Oberliga unverändert.
+6. **Landesliga: Kopfzeile mit den Vereinsnamen über den Turnerkacheln entfällt** (beschlossen 01.11.2026): Die Zeile
+   „● TSV Kierspe 2 beginnt | ● TuS Leopoldshöhe 2“ wird ganz gestrichen (beide Namen und „beginnt“). Jede Kachel trägt den
+   Verein schon im farbigen Schild, die beginnende Mannschaft erkennt man an Kachel 1; am Handy standen beide Namen sogar
+   untereinander über allen Kacheln. Die Kacheln rücken direkt unter die Gerätezeile („Boden · Gerätesumme …“). Oberliga
+   unverändert.
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
