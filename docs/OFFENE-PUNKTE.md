@@ -1,6 +1,6 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026)
+## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
 Umgesetzt 01.11.2026 (Punkte 1, 2, 4–11; Punkt 3 entfällt). Rückkehrpunkt: Beta 81 (Commit `b102b5c`).
 Hinweise zur Umsetzung:
