@@ -2,7 +2,7 @@
 
 ## Nächste Liste (nach Beta 81 – wird gesammelt und dann auf einmal umgesetzt)
 
-1. **Ligamenü: „Zurück zum Wettkampf“ statt „Startseite (Liga wechseln)“** (gewünscht 01.11.2026): Im Menü „WTB-Oberliga ▾“ bzw.
+1. **Ligamenü: „Zurück zum Wettkampf“ statt „Startseite (Liga wechseln)“** (beschlossen 01.11.2026, zuletzt geöffneter Wettkampf): Im Menü „WTB-Oberliga ▾“ bzw.
    „WTB-Landesliga ▾“ ersetzt ein Link zum zuletzt geöffneten Wettkampf dieser Liga den Eintrag „Startseite (Liga wechseln)“,
    z. B. „← Zurück zum Wettkampf · TG Geisweid/Eichen – KTS Mettingen“ (lange Namen mit „…“). Gemerkt je Liga auf diesem Gerät
    beim Öffnen eines Wettkampfs; auf der Wettkampfseite selbst und wenn der Wettkampf gelöscht wurde, entfällt der Eintrag.
