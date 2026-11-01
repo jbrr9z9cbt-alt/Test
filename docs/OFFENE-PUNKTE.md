@@ -2,7 +2,13 @@
 
 ## Liste für das nächste Update (nach Beta 78 – wird gesammelt und dann auf einmal umgesetzt)
 
-Begonnen 01.11.2026. Noch keine Punkte.
+Begonnen 01.11.2026.
+
+1. **Wertungsfenster am iPad und PC wieder mittig** (gemeldet 01.11.2026, Bildschirmfoto PC): Seit Beta 78 steht das
+   Fenster ganz oben; wie in Beta 77 soll es senkrecht in der Mitte stehen – auch der D-Note-Rechner. Am Handy (bis 560 px
+   Breite) bleibt es bildschirmfüllend von oben (wegen der Safari-Leisten). Da im Fenster nichts mehr erscheint oder
+   verschwindet, bleibt es auch mittig an festem Platz. Ist ein Fenster höher als der Bildschirm (z. B. Handy quer), beginnt
+   es oben und lässt sich verschieben.
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
 Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
