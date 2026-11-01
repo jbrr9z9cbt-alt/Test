@@ -1,5 +1,16 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## Nächste Liste (nach Beta 82 – wird gesammelt und dann auf einmal umgesetzt)
+
+1. **Rückfrage bei „Wertung 0,00“, wenn schon Werte eingetragen sind** (beschlossen 01.11.2026): Bis Beta 76 (Eingabe in
+   der Kachel) fragte die App „Wertung 0,00: Die bereits eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?“
+   (seit Beta 65); mit dem Wertungsfenster (Beta 77) ging die Rückfrage verloren – das Häkchen leert seitdem sofort alle
+   Notenfelder und den Standbonus (Wegnehmen des Häkchens bringt sie nicht zurück). Künftig im Wertungsfenster:
+   - Sind schon Werte eingetragen (E1, E2, E3, D-Note, Standbonus oder neutraler Abzug), kommt beim Ankreuzen dieselbe
+     Rückfrage wie früher. „Ja“: Felder werden geleert (wie heute). „Nein“: Häkchen bleibt aus, alle Werte bleiben.
+   - Sind noch keine Werte eingetragen, wird ohne Rückfrage angekreuzt.
+   - Beide Ligen, auch bei „Wertung ändern“ einer bereits freigegebenen Wertung (wie die Rückfrage bei „kein Turner“).
+
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
 Umgesetzt 01.11.2026 (Punkte 1, 2, 4–11; Punkt 3 entfällt). Rückkehrpunkt: Beta 81 (Commit `b102b5c`).
