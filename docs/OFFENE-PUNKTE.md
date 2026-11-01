@@ -54,6 +54,19 @@
    Verein schon im farbigen Schild, die beginnende Mannschaft erkennt man an Kachel 1; am Handy standen beide Namen sogar
    untereinander über allen Kacheln. Die Kacheln rücken direkt unter die Gerätezeile („Boden · Gerätesumme …“). Oberliga
    unverändert.
+7. **Handy: Zahlentastatur etwas höher, besser mit dem Daumen erreichbar** (beschlossen 01.11.2026):
+   - Wertungsfenster: Unter der Zeile „Zahlentastatur“ kommt ein freier Streifen von etwa deren Zeilenhöhe (ca. 35 px);
+     Tastatur und Auswahlzeile rücken zusammen um diese Höhe nach oben.
+   - D-Note-Rechner: Seine Tastatur (ohne Auswahlzeile, heute rund 33 px tiefer) steht auf derselben Höhe wie im
+     Wertungsfenster – der Daumen findet die Tasten in beiden Fenstern an derselben Stelle.
+   - Der freie Streifen schrumpft von selbst, wenn der Platz nicht reicht (nichts wird verdeckt, kein Scrollen). Gemessen
+     01.11.2026 (Beta 81): frei über der Tastatur iPhone 13 als App vom Home-Bildschirm ca. 195 px, in Safari ca. 49 px.
+   - iPad und Laptop unverändert.
+8. **Grundsatz Zielgeräte** (festgelegt 01.11.2026): Die App muss auf Handys **ab 6,1 Zoll** funktionieren – iPhone ab 6,1
+   Zoll (z. B. iPhone 13–16: 390 × 844, in Safari mit Leisten sichtbar ca. 390 × 664) und entsprechende Android-Handys
+   (6,1 Zoll sind dort oft nur 360 px breit, z. B. Galaxy S: 360 × 780 – die Breite 360 bleibt also wichtig).
+   **iPhone SE und iPhone mini** (375 × 667 bzw. 375 × 812) müssen nicht mehr berücksichtigt werden; bisherige Anpassungen
+   für sie bleiben, werden aber nicht mehr geprüft. Grundsatz kommt mit dem nächsten Update auch in die README.
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
