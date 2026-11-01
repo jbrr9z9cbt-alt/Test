@@ -45,17 +45,24 @@ Gefunden mit Beta 77 auf dem iPhone in Safari (Bildschirmfotos 31.10.2026):
    werden abgeschnitten. Abhilfe: alle Felder gleich breit (bei E3 sechs gleiche Spalten), Schrift und Innenabstand der
    Felder an die verfügbare Breite anpassen, sodass „10,0“ auch bei 360 px Bildschirmbreite ganz zu sehen ist.
    Prüfen: 360/375/390 px, Oberliga und Landesliga mit E3, auch Sprung (ohne Standbonus).
-
-**Vorschlag, noch nicht beschlossen: D-Note-Rechner** (gewünscht 01.11.2026, Vorschaubilder gezeigt)
-- Im Wertungsfenster unter dem Feld D-Note ein gleich breiter Knopf „berechnen“; am Sprung kein Knopf (Wert wird
-  direkt eingegeben).
-- Eigenes Fenster über dem Wertungsfenster: Zeilen ≥ D (je 0,8), C (je 0,6), B (je 0,4), A (je 0,2) mit − / Anzahl / +
-  und Teilsumme; darunter „Elemente x von 8“ und Summe; EG (Elementgruppen) freie Eingabe mit einer Nachkommastelle,
-  höchstens 2,3; Ergebnis D-Note groß; „Abbrechen“ / „Übernehmen“ (trägt den Wert ins Feld D-Note ein, freigegeben
-  wird weiter im Wertungsfenster). Am Handy bildschirmfüllend mit der Zahlentastatur für EG.
-- Bestätigt (01.11.2026): höchstens **8 Elemente insgesamt**; die **Anzahlen werden gespeichert** (beim erneuten Öffnen
-  für diesen Turner wieder da, z. B. für eine Korrektur).
-- Offen: Eingabe der Anzahlen mit − / + oder als getippte Zahl (zweite Vorschau gewünscht); Aufnahme als Punkt 9.
+9. **D-Note-Rechner** (beschlossen 01.11.2026, Vorschaubilder „getippt“ gezeigt):
+   - Im Wertungsfenster unter dem Feld D-Note ein gleich breiter Knopf „berechnen“ (fester Platz, passt zu Punkt 1).
+     Am Sprung kein Knopf – dort wird die D-Note direkt eingegeben.
+   - Eigenes Fenster über dem Wertungsfenster (Rand in Mannschaftsfarbe): Kopf „D-Note berechnen · Gerät · Duell/Übung“,
+     Turnername. Darunter in einer Spalte die Felder **≥ D (je 0,8), C (je 0,6), B (je 0,4), A (je 0,2)** – Anzahl als
+     **ganze Zahl getippt** – je mit Teilsumme; Zeile „Elemente x von 8“ (bei 8: „· voll“) und Summe der Elemente;
+     **EG (Elementgruppen)** freie Eingabe mit einer Nachkommastelle, **höchstens 2,3**; darunter die D-Note groß.
+     Leeres Feld zählt als 0 (Teilsumme „–“).
+   - **Höchstens 8 Elemente insgesamt.** Mehr als 8 oder EG über 2,3: Zeile bzw. Feld rot, D-Note „–“, „Übernehmen“
+     gesperrt, bis es stimmt.
+   - „Übernehmen“ trägt die D-Note ins Feld D-Note des Wertungsfensters ein (freigegeben wird wie bisher dort);
+     „Abbrechen“ schließt den Rechner ohne Änderung.
+   - Handy: bildschirmfüllend mit der Zahlentastatur; „Weiter“ springt ≥ D → C → B → A → EG → „Übernehmen“; bei den
+     Anzahlen ist die Komma-Taste gesperrt. Laptop: normale Tastatur, Enter/Tab ins nächste Feld, Esc = Abbrechen.
+   - **Die Anzahlen werden gespeichert** (bestätigt 01.11.2026): mit der Wertung des Turners (beim Freigeben; „Abbrechen“
+     im Wertungsfenster verwirft sie mit den übrigen getippten Werten), auch in der Datensicherung. Beim erneuten
+     Öffnen des Rechners für diesen Turner (z. B. Korrektur) stehen sie wieder da. Auf Tafel und Protokoll erscheinen
+     sie nicht.
 
 
 ## Beschlossen und in Beta 77 umgesetzt (veröffentlicht): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
