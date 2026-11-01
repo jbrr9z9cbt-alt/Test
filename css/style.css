@@ -629,6 +629,8 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 /* Vereinsnamen im Kopf: fester Platz, einzeilig; zu lange Namen enden mit „…“ (der volle Name steht im Tooltip). */
 .scoreline .team { min-width: 0; }
 .scoreline .team .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Einzeilige Namen: Trennstellen nach „/“ (wbr) abschalten – Chrome bricht dort sonst trotz nowrap um */
+.scoreline .team-tag wbr, .sd-tag wbr { display: none; }
 /* Punkt als Teil der ersten Zeile, damit er beim Umbruch direkt vor dem Namen bleibt */
 .scoreline .team-tag { display: inline; }
 .scoreline .team-tag .dot { margin-right: .35rem; vertical-align: -.02em; }
