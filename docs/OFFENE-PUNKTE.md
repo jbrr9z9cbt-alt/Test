@@ -9,10 +9,10 @@
    Wettkampf ▾“, „online“ als Punkt, „Beta“ im Ligamenü. Die Werkzeugzeile entfällt; Gerätereiter beginnen dann am Laptop
    bei ca. 126 statt 168 px, iPad quer 126 statt 215, iPad hoch 267 statt 475, iPhone 224 statt 764 px.
 
-## Liste nach Beta 78 – umgesetzt in Beta 79 (auf dem Arbeitszweig, noch nicht veröffentlicht)
+## Liste nach Beta 78 – umgesetzt in Beta 79 (veröffentlicht 01.11.2026)
 
-Begonnen 01.11.2026, umgesetzt und getestet 01.11.2026 (Punkte 1–11). **Gesichert** als eigener Zweig **`stand-beta-79`**
-(Rückkehrpunkt, bevor die Menüs aus der nächsten Liste ausprobiert werden). Live ist weiter Beta 78.
+Begonnen 01.11.2026, umgesetzt und getestet 01.11.2026 (Punkte 1–11), veröffentlicht nach Freigabe (Commit `838a88a`).
+**Gesichert** als eigener Zweig **`stand-beta-79`** (Rückkehrpunkt, bevor die Menüs aus der nächsten Liste ausprobiert werden).
 
 1. **Wertungsfenster am iPad und PC wieder mittig** (gemeldet 01.11.2026, Bildschirmfoto PC): Seit Beta 78 steht das
    Fenster ganz oben; wie in Beta 77 soll es senkrecht in der Mitte stehen – auch der D-Note-Rechner. Am Handy (bis 560 px
