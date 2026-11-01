@@ -6,7 +6,12 @@ Offline-fähige Web-App zur Durchführung von Mannschaftswettkämpfen im Gerätt
 
 ## Seiten
 
-Kopfzeile je Liga: Wettkämpfe · Mannschaften · Regeln · Anleitung (Kurzanleitung für den Wettkampftag, Texte je Liga).
+Kopfzeile je Liga: Menü unter dem Liganamen („WTB-Oberliga ▾“) mit Wettkämpfe · Mannschaften · Regeln · Anleitung (Kurzanleitung
+für den Wettkampftag, Texte je Liga) · Startseite. Auf der Wettkampfseite zusätzlich „Anzeigetafel“ und „Wettkampf“:
+am Laptop und iPad (ab 700 × 500 px) als **Menüband** – Reiter in der grauen Zeile, darunter immer (nicht einklappbar) eine Leiste
+mit den Knöpfen des gewählten Reiters (gemerkt je Gerät; iPad hoch mit kurzen Beschriftungen; läuft die Pause, trägt der Reiter
+„Anzeigetafel“ die Restzeit); am Handy als **Aufklappmenüs** („Oberliga ▾ | Tafel ▾ | Wettkampf ▾“, schließen nach der Auswahl
+bzw. beim Tipp daneben, ohne darunter etwas auszulösen; laufende Pause orange am Menüknopf). „✓ gespeichert“ steht in der Kopfzeile.
 Von der Startseite aus: „Installation und Datensicherung“ (`#/info`) mit Installation, empfohlenen Geräten, Datensicherung und Updates für beide Ligen.
 Adressen: `#/oberliga/…` bzw. `#/landesliga/…`; ein Wettkampf (`#/match/<id>`) gehört fest zu seiner Liga.
 
@@ -42,16 +47,15 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   (+ „Bearbeiten“, solange gesperrt), „🔒 Gerät gesperrt – <Gerät> läuft“ mit „Turner können schon gewählt werden.“ und
   „Sperre aufheben …“. Beim abgeschlossenen Wettkampf keine Statuszeile.
 - **Gerätereiter mit Abzeichen** (beide Ligen): ✓ abgeschlossen, ● läuft (ab „Gerät starten“), 🔒 gesperrt.
-  Am Handy nur Logo und Abzeichen (ohne Summen); am Laptop (ab 1100 px) flach in einer Zeile und zusammen mit Kopf und
-  Werkzeugzeile beim Scrollen fixiert.
+  Am Handy nur Logo und Abzeichen (ohne Summen); am Laptop (ab 1100 px) flach in einer Zeile und zusammen mit Menüband und
+  Kopf beim Scrollen fixiert (am iPad bleibt das Menüband stehen).
   Solange ein Gerät läuft oder irgendwo die Einturnzeit läuft, lassen sich an keinem anderen Gerät Einturnzeit oder Start beginnen (Reihenfolge frei); gesperrte Geräte lassen sich zum Ändern der Turner öffnen.
   Abgeschlossene Geräte öffnen sich gesperrt (nur ansehen); „Bearbeiten“ mit Bestätigung gibt sie frei, bis das Gerät verlassen wird.
   Gesperrte Reiter sind nicht ausgegraut, sie tragen nur das Schloss.
   Notausgang: „Sperre aufheben …“ in der Statuszeile eines gesperrten Geräts (doppelt bestätigt, gilt für alle Geräte); solange steht über den
   Geräten ein Hinweis mit „Sperre wieder aktivieren“.
 - **Wettkampfseite am Laptop** (ab 1100 px): Ergebniszeile immer einzeilig – Datum · Status | Heim (rechtsbündig) Stand
-  Gast (linksbündig) | Gerätepunkte; Liga, „Beginn: …“ und „Sieger: …“ stehen dort nicht mehr. Darunter die Werkzeugzeile
-  (Anzeigetafel links, Wettkampf rechts). Die Wertungskacheln nutzen die volle Breite;
+  Gast (linksbündig) | Gerätepunkte; Liga, „Beginn: …“ und „Sieger: …“ stehen dort nicht mehr. Die Knöpfe stehen im Menüband. Die Wertungskacheln nutzen die volle Breite;
   E-Note und Endnote stehen in der Zeile der Werte. Keine Überschriften „E-/D-Kampfgericht“ mehr (auch nicht am Handy).
 - **Wertungsfenster** (beide Ligen): Die Kachel zeigt die Werte nur als Text (E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote)
   mit Turnerauswahl, Sturz-Timer und Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“ (dann ist die
@@ -171,6 +175,7 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   - Knöpfe „Hell“ / „Dunkel“ daneben: hell ist Standard (gut lesbar mit Beamer in heller Halle),
     dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
   - Knopf „Ergebnis/Siegerehrung“ (eingeblendet: dunkel hinterlegt) zeigt Stand, Gerätepunkte und Topscorer als Fenster über der Tafel
+    – und dasselbe Fenster über der App (wie bei der Turnervorstellung), „Schließen“/Esc blendet es auch auf der Tafel aus
     (Überschrift „Zwischenstand“, solange der Wettkampf läuft); beim Öffnen der Tafel ist es immer ausgeblendet
   - Knopf „Wettkampfpause“: im aufklappenden Menü 10, 15 oder 20 Minuten wählen, die Pause startet sofort – Restzeit groß in der Detailkarte der Tafel (Liste bleibt sichtbar),
     am Ende Signalton und 5 Sekunden „Zeit abgelaufen“; ein Klick auf den laufenden Knopf beendet die Pause

@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '80';
+  var APP_BUILD = '81';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -496,13 +496,25 @@
     var ready = !!r.league && leagueReady(r.league);
     document.querySelectorAll('.topbar nav a').forEach(function (a) {
       var page = a.getAttribute('data-route');
+      if (page === 'start') return;
       a.setAttribute('href', leagueHref(page));
       a.classList.toggle('active', page === r.name);
     });
-    // Auf der Startseite (und in noch nicht freigeschalteten Ligen) gibt es keine Liga-Navigation.
+    // Auf der Startseite (und in noch nicht freigeschalteten Ligen) gibt es kein Ligamenü.
     document.body.classList.toggle('no-league', !ready);
     var ln = document.getElementById('league-name');
-    if (ln) ln.textContent = r.league ? leagueOf(r.league).name : APP_NAME;
+    if (ln) {
+      var lgo = r.league ? leagueOf(r.league) : null;
+      ln.innerHTML = lgo ? '<span class="ml">' + esc(lgo.name) + '</span><span class="ms">' + esc(lgo.short) + '</span>' + (ready ? '<span class="car" aria-hidden="true">▾</span>' : '') : esc(APP_NAME);
+      ln.disabled = !ready;
+    }
+    // Reiter bzw. Menüs „Anzeigetafel“ und „Wettkampf“ nur auf der Wettkampfseite
+    var onMatch = r.name === 'match' && !r.sub && !!match(r.id);
+    var tabsEl = document.getElementById('topbar-tabs');
+    if (tabsEl) tabsEl.innerHTML = onMatch ? '<button type="button" class="tb-menu tb-tab" id="tb-board" data-menu="board" aria-haspopup="true" aria-expanded="false"></button>' +
+      '<button type="button" class="tb-menu tb-tab" data-menu="match" aria-haspopup="true" aria-expanded="false">Wettkampf<span class="car" aria-hidden="true">▾</span></button>' : '';
+    if (!onMatch) closeMenus();
+    applyRibbonTab();
     var html;
     switch (r.league && !ready ? 'pending' : r.name) {
       case 'pending': html = viewLeaguePending(); break;
@@ -533,16 +545,19 @@
     var isBoard = r.name === 'match' && r.sub === 'board' && match(r.id);
     if (isBoard) { checkBoardFlash(match(r.id)); fitBoard(); }
     else state.board = { matchId: null, lastReveal: '' };
+    if (onMatch) refreshTopMenus(match(r.id));
     syncTopbarHeight();
     if (!keepScroll) window.scrollTo(0, 0);
     tickTimers();
     if (isBoard) { fitBoard(); fitIntro(); fitScorers(); }
     if (r.name === 'match' && !r.sub && match(r.id)) {
       showAppIntro(match(r.id));
+      showAppScorers(match(r.id));
       // Ein offenes Wertungsfenster bleibt mit seinen Eingaben erhalten (z. B. nach einer Änderung aus der Tafel).
       if (scoreDlg && scoreDlg.matchId === r.id) showScoreDlg(false); else closeScoreDlg();
     } else {
       document.body.classList.remove('intro-open');
+      document.body.classList.remove('scorers-open');
       closeScoreDlg();
     }
     keepScroll = false;
@@ -1055,8 +1070,25 @@
         appIcon(a.key, 'tab-ico') + '<span class="tab-name">' + a.name + '</span><span class="tab-score" data-out="tab-' + a.key + '">' + totalPair(m, ar) + '</span></button>';
     }).join('');
 
+    // Menüband (Laptop, iPad) bzw. Aufklappmenüs (Handy): dieselben Knöpfe, nur anders dargestellt (siehe Kopfzeile).
+    var ribbon = '<div class="tb-ribbon">' +
+      '<div class="menu-pop" id="menu-board" role="group" aria-label="Anzeigetafel">' +
+      '<button class="btn mi-main" data-action="open-board"><span class="ml">Anzeigetafel öffnen</span><span class="ms">Öffnen</span></button>' +
+      '<span class="mi-design"><span class="mi-lbl">Design</span><span class="bs-theme" role="group" aria-label="Design der Anzeigetafel">' +
+      '<button class="toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
+      '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span></span><hr>' +
+      // Reihenfolge wie im Ablauf: Turnervorstellung, Wettkampfpause, Ergebnis/Siegerehrung (Platz für einen weiteren Timer)
+      '<span data-out="intro">' + introControls(m) + '</span>' + pauseControls() +
+      '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' + scorersLabel() + '</button></div>' +
+      '<div class="menu-pop" id="menu-match" role="group" aria-label="Wettkampf">' +
+      (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '"><span class="ml">Wettkampf Setup</span><span class="ms">Setup</span></a>') +
+      '<a class="btn" href="#/match/' + m.id + '/print"><span class="ml">Protokoll / Drucken</span><span class="ms">Protokoll</span></a><hr>' +
+      (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
+        : '<button class="btn mi-main" data-action="finalize"><span class="ml">Wettkampf abschließen</span><span class="ms">Abschließen</span></button>') +
+      '</div></div>';
+
     // Kopf, Hinweise und Gerätereiter bilden den oberen Bereich (am Laptop beim Scrollen fixiert).
-    return '<div class="match-top"><section class="card match-head">' +
+    return ribbon + '<div class="match-top"><section class="card match-head">' +
       // Kopf: Datum und Status · Mannschaften mit Stand · Gerätepunkte. Liga, „Beginn: …“ und (im Querformat) „Sieger: …“
       // stehen hier nicht mehr, damit die Ergebniszeile einzeilig bleibt; Namen haben einen festen Platz (sonst „…“).
       '<div class="match-meta"><div class="muted">' + esc(fmtDate(m.date)) + ' · <span data-out="status">' + statusBadge(m, r) + '</span></div></div>' +
@@ -1069,25 +1101,6 @@
       '</div>' +
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong></div>' +
       (deductionsText(m) ? '<div class="deduct-note">' + esc(deductionsText(m)) + '</div>' : '') +
-      '<div class="actions wrap">' +
-      // Alles, was die Anzeigetafel betrifft, als eine Gruppe
-      '<div class="board-group" role="group" aria-label="Anzeigetafel">' +
-      // „Anzeigetafel“ und die Wahl Hell/Dunkel in einem gemeinsamen Rahmen
-      '<span class="board-switch"><button class="btn bs-main" data-action="open-board">Anzeigetafel</button>' +
-      '<span class="bs-theme" role="group" aria-label="Design der Anzeigetafel">' +
-      '<button class="toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
-      '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span></span>' +
-      // Reihenfolge wie im Ablauf: Turnervorstellung, Wettkampfpause, Wettkampfergebnis
-      '<span data-out="intro">' + introControls(m) + '</span>' + pauseControls() +
-      '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' +
-      scorersLabel() + '</button></div>' +
-      // Knöpfe zum Wettkampf selbst als zweite Gruppe, rechts daneben der Speicherstatus
-      '<div class="tool-right"><div class="board-group" role="group" aria-label="Wettkampf">' +
-      (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '">Wettkampf Setup</a>') +
-      (locked ? '<button class="btn" data-action="reopen">Wieder öffnen</button>'
-        : '<button class="btn primary" data-action="finalize">Wettkampf abschließen</button>') +
-      '<a class="btn" href="#/match/' + m.id + '/print">Protokoll / Drucken</a></div>' +
-      '<span id="save-status" class="save-status"></span></div>' +
       '</div></section>' +
       (locked ? '<div class="banner info">Dieser Wettkampf ist abgeschlossen und schreibgeschützt.</div>' : '') +
       '<div data-out="pending">' + pendingBanner(m) + '</div>' +
@@ -1095,13 +1108,13 @@
         '<button type="button" class="btn" data-action="relock">Sperre wieder aktivieren</button></div>' : '') +
       '<nav class="tabs">' + tabs + '</nav></div>' +
       '<section class="card" id="apparatus-panel">' + apparatusPanel(m, tab) + '</section>' +
-      '<div id="app-intro"></div><div id="score-dlg"></div>';
+      '<div id="app-intro"></div><div id="app-scorers"></div><div id="score-dlg"></div>';
   }
 
   /** Knopfbeschriftung nennt, was beim Drücken passiert. */
   /** Wettkampfpause: ein Knopf; ein Klick öffnet die Auswahl der Dauer, die Wahl startet die Pause sofort. */
   function pauseControls() {
-    return '<span class="pause-ctl"><button class="btn timer-btn" data-action="pause-timer" aria-haspopup="menu">Wettkampfpause</button>' +
+    return '<span class="pause-ctl"><button class="btn timer-btn" data-action="pause-timer" aria-haspopup="menu">' + pauseLabel(null) + '</button>' +
       '<div class="pause-menu" role="menu" hidden><div class="pm-head">Dauer wählen</div>' + PAUSE_MINUTES.map(function (n) {
         return '<button class="btn" role="menuitem" data-action="pause-start" data-min="' + n + '">' + n + ' Minuten</button>';
       }).join('') + '</div></span>';
@@ -1113,7 +1126,12 @@
   }
 
   /** Gleiche Beschriftung in beiden Zuständen; eingeblendet zeigt der Knopf dunkel hinterlegt (wie Hell/Dunkel). */
-  function scorersLabel() { return 'Ergebnis/Siegerehrung'; }
+  function scorersLabel() { return '<span class="ml">Ergebnis/Siegerehrung</span><span class="ms">Ergebnis</span>'; }
+
+  /** Beschriftung des Pause-Knopfs: „Wettkampfpause“ bzw. mit Restzeit „Wettkampfpause 4:12 – beenden“ (schmal: „Pause …“). */
+  function pauseLabel(pause) {
+    return '<span class="ml">Wettkampfpause</span><span class="ms">Pause</span>' + (pause ? ' ' + clock(pause.remaining) + ' – beenden' : '');
+  }
 
   /** Solange eine nachträgliche Änderung nicht angezeigt ist, sind alle anderen Duelle gesperrt. */
   /**
@@ -1962,14 +1980,15 @@
     });
   }
 
-  /** Knopf in der Werkzeugzeile; läuft die Vorstellung, liegt ihr Fenster mit ◀ ▶ ■ über der ganzen Seite. */
+  /** Knopf im Menüband bzw. Menü „Anzeigetafel“; läuft die Vorstellung, liegt ihr Fenster mit ◀ ▶ ■ über der ganzen Seite. */
   function introControls(m) {
-    return '<button class="btn toggle' + (introOn(m) ? ' on' : '') + '" data-action="intro-start">Turnervorstellung</button>';
+    return '<button class="btn toggle' + (introOn(m) ? ' on' : '') + '" data-action="intro-start"><span class="ml">Turnervorstellung</span><span class="ms">Vorstellung</span></button>';
   }
 
   function refreshIntro(m) {
     var el = $app.querySelector('[data-out="intro"]');
     if (el) el.innerHTML = introControls(m);
+    showAppScorers(m);
     showAppIntro(m);
   }
 
@@ -2132,7 +2151,11 @@
   /** Der fixierte obere Bereich der Wettkampfseite schließt direkt an die App-Leiste an. */
   function syncTopbarHeight() {
     var tb = document.querySelector('.topbar');
-    if (tb) document.documentElement.style.setProperty('--topbar-h', tb.offsetHeight + 'px');
+    if (!tb) return;
+    var rb = document.querySelector('.tb-ribbon');
+    var rbh = rb && ribbonMode() ? rb.offsetHeight : 0;
+    document.documentElement.style.setProperty('--bar-h', tb.offsetHeight + 'px');
+    document.documentElement.style.setProperty('--topbar-h', (tb.offsetHeight + rbh) + 'px');
   }
 
   window.addEventListener('resize', function () { fitBoard(); fitIntro(); fitScorers(); syncTopbarHeight(); fitFieldLabels(); fitDlgFont(); });
@@ -2295,7 +2318,9 @@
   function refreshDisplayButtons(m) {
     var t = $app.querySelector('[data-action="toggle-scorers"]');
     var son = !!(m.display && m.display.scorers);
-    if (t) { t.textContent = scorersLabel(); t.classList.toggle('on', son); }
+    if (t) { if (t.innerHTML !== scorersLabel()) t.innerHTML = scorersLabel(); t.classList.toggle('on', son); }
+    showAppScorers(m);
+    refreshTopMenus(m);
     $app.querySelectorAll('[data-action="theme"]').forEach(function (b) {
       b.classList.toggle('on', (b.getAttribute('data-theme') === 'light') === boardLight(m));
     });
@@ -2325,10 +2350,11 @@
     var pause = pauseState(m);
     var pb = $app.querySelector('[data-action="pause-timer"]');
     if (pb) {
-      var pl = pause ? 'Wettkampfpause ' + clock(pause.remaining) + ' – beenden' : 'Wettkampfpause';
-      if (pb.textContent !== pl) pb.textContent = pl;
+      var pl = pauseLabel(pause);
+      if (pb.innerHTML !== pl) pb.innerHTML = pl;
       pb.classList.toggle('t-running', !!pause);
     }
+    if (r.name === 'match' && !r.sub) refreshTopMenus(m);
     var cd = document.querySelector('.board .cur-duel');
     if (cd) {
       var tc = cd.querySelector('.tm-card'), tin = timerCardInner(m);
@@ -2789,8 +2815,9 @@
       ]) +
 
       sec('5. Anzeigetafel', [
-        '<b>Anzeigetafel</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort doppelt auf die Tafel klicken – das schaltet das Vollbild ein und aus.',
-        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Ergebnis/Siegerehrung</b> blendet ein bzw. aus (eingeblendet ist der Knopf dunkel hinterlegt) und zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Beim Öffnen der Tafel ist es immer ausgeblendet. ' +
+        'Alle Knöpfe zur Tafel stehen unter <b>„Anzeigetafel“</b> in der grauen Kopfzeile, die zum Wettkampf (Setup, Protokoll / Drucken, Wettkampf abschließen) unter <b>„Wettkampf“</b>. Am Laptop und iPad sind das Reiter eines Menübands: Die Leiste darunter zeigt immer die Knöpfe des gewählten Reiters (die App merkt sich die Wahl). Am Handy sind es Aufklappmenüs („Tafel ▾“, „Wettkampf ▾“), die nach der Auswahl schließen; eine laufende Wettkampfpause steht dann am Menüknopf. Wettkämpfe, Mannschaften, Regeln und Anleitung stehen im Menü unter dem Liganamen.',
+        '<b>Anzeigetafel öffnen</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort doppelt auf die Tafel klicken – das schaltet das Vollbild ein und aus.',
+        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Ergebnis/Siegerehrung</b> blendet ein bzw. aus (eingeblendet ist der Knopf dunkel hinterlegt) und zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Dasselbe Fenster liegt dann auch über der App, damit man die Siegerehrung am Gerät mitlesen kann; „Schließen“ (oder Esc) blendet es auch auf der Tafel aus. Beim Öffnen der Tafel ist es immer ausgeblendet. ' +
         '<b>Turnervorstellung</b> zeigt nacheinander die Gastmannschaft (Titelseite, dann die anwesenden Turner nach Startnummer), die Heimmannschaft und zum Schluss das Kampfgericht. Solange sie läuft, erscheint auch in der App dasselbe Fenster wie auf der Tafel, unten mit ◀ ▶ ■ (zurück, weiter, beenden); weiterschalten damit oder per Tastatur – Pfeil rechts, Leertaste oder Bild ab (auch mit einem Presenter), zurück mit Pfeil links oder Bild auf, Esc beendet. Während der Vorstellung sind keine anderen Fenster auf der Tafel möglich.',
         '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel; am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
         (classic ? 'Nach jeder Freigabe erscheint 10 Sekunden groß auf der Tafel die Endnote der Übung mit dem Turner darüber' : 'Nach jeder Freigabe erscheinen 10 Sekunden groß auf der Tafel die Scorepunkte des Duells mit dem Sieger darüber') +
@@ -3696,6 +3723,150 @@
     else if (!ev.shiftKey && (at === foc.length - 1 || at < 0)) { ev.preventDefault(); foc[0].focus(); }
   }
 
+  // ---------- Menüband (Laptop, iPad) und Aufklappmenüs (Handy) ----------
+  // Kopfzeile: „WTB-Oberliga ▾“ (Aufklappmenü der Liga) und auf der Wettkampfseite „Anzeigetafel“ / „Wettkampf“.
+  // Ab 700 × 500 px sind das Reiter eines Menübands: darunter immer eine Leiste mit den Knöpfen des gewählten Reiters
+  // (nicht einklappbar). Kleiner (Handy) sind es Aufklappmenüs, die nach der Auswahl schließen. Die Knöpfe gibt es nur einmal.
+  var RIBBON_MQ = window.matchMedia ? window.matchMedia('(min-width: 700px) and (min-height: 500px)') : null;
+  var RIBBON_KEY = 'wtb-menueband';
+  var openMenu = null;
+
+  function ribbonMode() { return !!(RIBBON_MQ && RIBBON_MQ.matches); }
+
+  function ribbonTab() {
+    try { return localStorage.getItem(RIBBON_KEY) === 'match' ? 'match' : 'board'; } catch (e) { return 'board'; }
+  }
+
+  /** Gewählten Reiter des Menübands anzeigen (Leiste und Reiter). */
+  function applyRibbonTab() {
+    var t = ribbonTab();
+    document.body.classList.toggle('rb-board', t === 'board');
+    document.body.classList.toggle('rb-match', t === 'match');
+    document.querySelectorAll('.tb-tab').forEach(function (b) {
+      var on = b.getAttribute('data-menu') === t;
+      b.classList.toggle('on', on);
+      if (ribbonMode()) b.setAttribute('aria-pressed', on ? 'true' : 'false'); else b.removeAttribute('aria-pressed');
+    });
+  }
+
+  /**
+   * Reiter bzw. Menüknopf „Anzeigetafel“: Läuft die Wettkampfpause, steht die Restzeit daran – am Handy als „Pause 4:12“
+   * (orange), im Menüband als Abzeichen, solange der Reiter „Wettkampf“ gewählt ist.
+   */
+  function refreshTopMenus(m) {
+    var b = document.getElementById('tb-board');
+    if (!b || !m) return;
+    var p = pauseState(m), t = p ? clock(p.remaining) : '';
+    var html = '<span class="tl"><span class="ml">Anzeigetafel</span><span class="ms">Tafel</span></span>' +
+      (p ? '<span class="bdg">' + t + '</span><span class="tp">Pause ' + t + '</span>' : '') + '<span class="car" aria-hidden="true">▾</span>';
+    if (b.innerHTML !== html) b.innerHTML = html;
+    b.classList.toggle('live', !!p);
+  }
+
+  function menuPop(name) { return document.getElementById('menu-' + name); }
+
+  function closeMenus() {
+    if (!openMenu) return;
+    document.body.classList.remove('menu-open-' + openMenu);
+    document.querySelectorAll('.tb-menu[aria-expanded="true"]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+    openMenu = null;
+    closePauseMenu();
+  }
+
+  function toggleMenu(btn) {
+    var name = btn.getAttribute('data-menu');
+    if (btn.disabled) return;
+    // Menüband: die Reiter schalten die Leiste um (sie bleibt immer sichtbar)
+    if (ribbonMode() && (name === 'board' || name === 'match')) {
+      closeMenus();
+      try { localStorage.setItem(RIBBON_KEY, name); } catch (e) { /* nur für diese Sitzung */ }
+      applyRibbonTab();
+      closePauseMenu();
+      syncTopbarHeight();
+      return;
+    }
+    var was = openMenu;
+    closeMenus();
+    if (was === name) return;
+    var r = btn.getBoundingClientRect();
+    document.documentElement.style.setProperty('--menu-x', Math.round(Math.max(8, Math.min(r.left, window.innerWidth - 290))) + 'px');
+    document.body.classList.add('menu-open-' + name);
+    btn.setAttribute('aria-expanded', 'true');
+    openMenu = name;
+    // Mit der Tastatur geöffnet: Fokus auf den ersten Eintrag
+    if (lastInputKeyboard) {
+      var first = menuPop(name) && menuPop(name).querySelector('a, button:not([disabled])');
+      if (first) first.focus();
+    }
+  }
+
+  // Tipp neben ein offenes Aufklappmenü schließt nur das Menü (löst darunter nichts aus).
+  document.addEventListener('click', function (ev) {
+    if (!openMenu || !ev.target.closest) return;
+    if (ev.target.closest('.menu-pop') || ev.target.closest('.tb-menu[data-menu]')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    closeMenus();
+  }, true);
+
+  document.addEventListener('click', function (ev) {
+    var mb = ev.target.closest && ev.target.closest('.tb-menu[data-menu]');
+    if (mb) { ev.preventDefault(); toggleMenu(mb); return; }
+    if (!openMenu) return;
+    var pop = ev.target.closest && ev.target.closest('.menu-pop');
+    if (!pop) { closeMenus(); return; }
+    var item = ev.target.closest('a, button');
+    if (!item) return;
+    // Hell/Dunkel und das Aufklappen der Pausendauer lassen das Menü offen; alles andere schließt es.
+    if (item.getAttribute('data-action') === 'theme') return;
+    setTimeout(function () {
+      var pm = document.querySelector('#menu-board .pause-menu');
+      if (item.getAttribute('data-action') === 'pause-timer' && pm && !pm.hidden) return;
+      closeMenus();
+    }, 0);
+  });
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    if (openMenu) {
+      ev.preventDefault();
+      var btn = document.querySelector('.tb-menu[data-menu="' + openMenu + '"]');
+      closeMenus();
+      if (btn) btn.focus();
+      return;
+    }
+    // Fenster „Ergebnis/Siegerehrung“ in der App: Esc = Schließen
+    if (document.body.classList.contains('scorers-open') && !document.querySelector('.modal-backdrop') && !scoreDlg) {
+      var cb = document.querySelector('#app-scorers [data-action="scorers-close"]');
+      if (cb) { ev.preventDefault(); cb.click(); }
+    }
+  }, true);
+
+  window.addEventListener('hashchange', closeMenus);
+  if (RIBBON_MQ) {
+    var onRibbonChange = function () { closeMenus(); applyRibbonTab(); syncTopbarHeight(); };
+    if (RIBBON_MQ.addEventListener) RIBBON_MQ.addEventListener('change', onRibbonChange); else if (RIBBON_MQ.addListener) RIBBON_MQ.addListener(onRibbonChange);
+  }
+
+  // ---------- Ergebnis/Siegerehrung als Fenster in der App ----------
+  /**
+   * Ist „Ergebnis/Siegerehrung“ eingeblendet, liegt dasselbe Fenster wie auf der Tafel über der App (wie bei der
+   * Turnervorstellung) – mit „Schließen“, das es auch auf der Tafel ausblendet.
+   */
+  function showAppScorers(m) {
+    var box = document.getElementById('app-scorers');
+    if (!box) return;
+    var inner = m ? boardScorers(m, S.revealedView(m)) : '';
+    var html = inner ? inner.replace('<div class="scorer-overlay">', '<div class="scorer-overlay app-so' + (boardLight(m) ? ' so-light' : '') + '" role="dialog" aria-modal="true" aria-label="Ergebnis/Siegerehrung">')
+      .replace(/<\/div><\/div>$/, '<div class="tv-ctl-bar"><button class="btn primary so-close" data-action="scorers-close">Schließen</button></div></div></div>') : '';
+    var was = box.getAttribute('data-sig');
+    if (was !== html) { box.setAttribute('data-sig', html); box.innerHTML = html; }
+    document.body.classList.toggle('scorers-open', !!html);
+    if (!html) return;
+    fitScorers();
+    if (!was) { var cb = box.querySelector('.so-close'); if (cb) cb.focus({ preventScroll: true }); }
+  }
+
   // ---------- Ereignisse ----------
 
   // Namen von D1/D2 sofort in ein noch verbundenes E2-/E3-Feld übernehmen.
@@ -4132,6 +4303,12 @@
         save('matches', m).then(function () { refreshDisplayButtons(m); });
         refreshDisplayButtons(m);
         break;
+      case 'scorers-close':
+        if (!m || !(m.display && m.display.scorers)) return;
+        m.display.scorers = false;
+        save('matches', m).then(function () { refreshDisplayButtons(m); });
+        refreshDisplayButtons(m);
+        break;
       case 'toggle-scorers':
         if (!(m.display && m.display.scorers) && introBlocks(m)) return;
         m.display = m.display || {};
@@ -4297,6 +4474,8 @@
   if (leagueEl) leagueEl.textContent = APP_NAME;
   var versionEl = document.getElementById('app-version');
   if (versionEl) versionEl.textContent = APP_LABEL;
+  var menuVer = document.getElementById('menu-ver');
+  if (menuVer) menuVer.textContent = APP_LABEL;
 
   function updateNetStatus() {
     var el = document.getElementById('net-status');

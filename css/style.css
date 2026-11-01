@@ -40,9 +40,6 @@ code { background: #ebebeb; padding: 0 .25em; border-radius: 4px; }
 .app-version { font-size: .75rem; color: #d4d4d4; margin-left: auto; }
 .app-version + .net-status { margin-left: 0; }
 .brand { display: flex; align-items: center; gap: .5rem; color: #fff; text-decoration: none; font-weight: 700; font-size: 1.1rem; }
-.topbar nav { display: flex; gap: .25rem; flex-wrap: wrap; flex: 1; }
-.topbar nav a { color: #d4d4d4; text-decoration: none; padding: .35rem .7rem; border-radius: 6px; }
-.topbar nav a.active, .topbar nav a:hover { background: rgba(255,255,255,.15); color: #fff; }
 .net-status { font-size: .8rem; padding: .15rem .5rem; border-radius: 99px; }
 .net-status.on { background: #166534; }
 .net-status.off { background: #92400e; }
@@ -485,7 +482,6 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
   .row2 { grid-template-columns: 1fr; }
   .scoreline .big { font-size: 2.2rem; }
   .scoreline .team .name { font-size: 1rem; }
-  .topbar nav { order: 3; flex-basis: 100%; }
   main { padding: .75rem; }
   .card { padding: .85rem; }
 }
@@ -503,9 +499,7 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
 .rules-table { max-width: 420px; margin-bottom: .75rem; }
 
 /* Startseite */
-body.no-league .topbar nav { visibility: hidden; }
 /* Handy: Startseite ohne Scrollen – keine leere Menüzeile im Kopf, flachere Kacheln, kleineres Logo */
-@media (max-width: 700px) { body.no-league .topbar nav { display: none; } }
 .start { max-width: 720px; margin: 2rem auto; text-align: center; }
 .start h1 { margin: .5rem 0 .25rem; font-size: 2rem; }
 .start-logo { border-radius: 20px; }
@@ -1225,3 +1219,103 @@ html.sd-open, body.sd-open { overflow: hidden; }
   .sd-set { margin-top: .2rem; }
   .sd-disp { height: 2rem; }
 }
+
+/* ---------- Kopfzeile: Ligamenü, Menüband (Laptop, iPad) bzw. Aufklappmenüs (Handy) ---------- */
+.topbar { flex-wrap: nowrap; gap: .6rem; }
+.topbar .league-name { background: none; border: 0; border-left: 1px solid #6b6b6b; border-radius: 0; font: inherit; font-size: 1.15rem; font-weight: 800; color: #fff;
+  padding: .2rem .5rem .2rem .75rem; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; }
+.topbar .league-name:disabled { cursor: default; opacity: 1; }
+.tb-menu .car { font-size: .7rem; opacity: .8; margin-left: .35rem; }
+.tb-menu .ms, .menu-pop .ms { display: none; }
+.tb-tabs { display: flex; gap: .3rem; min-width: 0; }
+.tb-tab { font: inherit; font-size: .95rem; font-weight: 600; color: #fff; background: rgba(255,255,255,.12); border: 0; border-radius: 8px; padding: .4rem .7rem;
+  cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: .4rem; }
+.tb-tab[aria-expanded="true"] { background: #fff; color: var(--text); }
+.tb-tab .bdg, .tb-tab .tp { display: none; }
+.tb-tab .bdg { background: #b45309; color: #fff; border-radius: 99px; padding: 0 .45rem; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.tb-tab.live { background: #b45309; color: #fff; }
+.tb-tab.live .tl { display: none; }
+.tb-tab.live .tp { display: inline; font-variant-numeric: tabular-nums; }
+.topbar .save-status { margin-left: auto; color: #bbf7d0; white-space: nowrap; }
+.topbar .save-status.error { color: #fecaca; }
+.topbar .save-status + .app-version { margin-left: .6rem; }
+/* Aufklappmenü (Ligamenü immer; Handy auch „Anzeigetafel“ und „Wettkampf“): unter der Kopfzeile, schließt nach der Auswahl */
+.menu-pop { display: none; position: fixed; top: calc(var(--bar-h, 52px) + 4px); left: var(--menu-x, .5rem); z-index: 60; background: #fff; color: var(--text);
+  border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25); padding: .4rem; min-width: 17rem; max-width: calc(100vw - 1rem); flex-direction: column; gap: .15rem; }
+body.menu-open-league #menu-league, body.menu-open-board #menu-board, body.menu-open-match #menu-match { display: flex; }
+.menu-pop a, .menu-pop > .btn, .menu-pop > span > .btn, .menu-pop .pause-ctl > .btn { display: flex; justify-content: flex-start; width: 100%; padding: .6rem .8rem;
+  border: 0; border-radius: 8px; background: none; color: var(--text); text-decoration: none; font: inherit; font-size: 1rem; text-align: left; cursor: pointer; }
+.menu-pop a:hover, .menu-pop > .btn:hover, .menu-pop > span > .btn:hover, .menu-pop .pause-ctl > .btn:hover { background: #f0f0f0; }
+.menu-pop a.active { font-weight: 700; }
+.menu-pop .btn.mi-main { background: #4a4a4a; color: #fff; font-weight: 700; }
+.menu-pop .btn.toggle.on { background: #171717; color: #fff; }
+.menu-pop .btn.t-running { background: #b45309; color: #fff; font-weight: 700; }
+.menu-pop hr { border: 0; border-top: 1px solid #e5e5e5; margin: .25rem .2rem; }
+.menu-pop .menu-ver { color: #737373; font-size: .78rem; padding: .3rem .8rem; }
+.menu-pop .mi-design { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .35rem .8rem; }
+.menu-pop .mi-lbl { color: #525252; font-size: .9rem; }
+.menu-pop .pause-ctl { display: flex; flex-direction: column; }
+.menu-pop .pause-menu { position: static; box-shadow: none; border: 0; padding: .1rem 0 .2rem 1rem; background: none; min-width: 0; }
+.tb-ribbon { display: contents; }
+body.scorers-open { overflow: hidden; }
+@media (max-width: 560px) {
+  .topbar { gap: .35rem; padding-left: .6rem; padding-right: .6rem; }
+  .topbar .league-name { font-size: 1.05rem; padding-left: .5rem; padding-right: .3rem; }
+  .topbar .app-version, .topbar .save-status { display: none; }
+  .topbar .net-status { font-size: 0; width: .7rem; height: .7rem; padding: 0; border-radius: 50%; margin-left: auto; flex: none; }
+  .tb-menu .ml { display: none; }
+  .tb-menu .ms { display: inline; }
+  .tb-tab { padding: .35rem .55rem; font-size: .92rem; }
+  .menu-pop { left: .5rem; right: .5rem; min-width: 0; }
+}
+/* Menüband: Laptop und iPad (ab 700 × 500 px) – Reiter in der Kopfzeile, darunter immer die Leiste des gewählten Reiters */
+@media (min-width: 700px) and (min-height: 500px) {
+  body.match-page .topbar { padding-bottom: 0; align-items: flex-end; }
+  body.match-page .topbar > .brand, body.match-page .topbar > .league-name, body.match-page .topbar > .save-status,
+  body.match-page .topbar > .app-version, body.match-page .topbar > .net-status { align-self: center; margin-bottom: .6rem; }
+  .tb-tabs { gap: .2rem; margin-left: .4rem; }
+  .tb-tab { background: transparent; color: #e5e5e5; border-radius: 8px 8px 0 0; padding: .45rem .9rem .55rem; }
+  .tb-tab .car { display: none; }
+  .tb-tab.on, .tb-tab[aria-expanded="true"] { background: #f3f3f3; color: var(--text); }
+  .tb-tab.live { background: transparent; color: #e5e5e5; }
+  .tb-tab.live.on { background: #f3f3f3; color: var(--text); }
+  .tb-tab.live .tl { display: inline; }
+  .tb-tab .tp { display: none !important; }
+  .tb-tab.live .bdg { display: inline; }
+  .tb-tab.on .bdg { display: none; }
+  body.match-page .tb-ribbon { display: flex; align-items: center; position: sticky; top: var(--bar-h, 52px); z-index: 7; background: #f3f3f3; border-bottom: 1px solid #d4d4d4;
+    margin: -1rem -1rem 1rem; padding: .35rem 1rem; min-height: 2.9rem; }
+  body.match-page .banner + .tb-ribbon { margin-top: 0; }
+  body.match-page .tb-ribbon .menu-pop { position: static; display: none; flex-direction: row; align-items: center; flex-wrap: nowrap; gap: .45rem; background: none;
+    box-shadow: none; padding: 0; min-width: 0; max-width: none; border-radius: 0; }
+  body.match-page.rb-board .tb-ribbon #menu-board, body.match-page.rb-match .tb-ribbon #menu-match { display: flex; }
+  .tb-ribbon .menu-pop a, .tb-ribbon .menu-pop > .btn, .tb-ribbon .menu-pop > span > .btn, .tb-ribbon .menu-pop .pause-ctl > .btn {
+    width: auto; padding: .3rem .75rem; font-size: .88rem; border: 1px solid #d0d0d0; background: #fff; white-space: nowrap; border-radius: 8px; }
+  .tb-ribbon .menu-pop a:hover, .tb-ribbon .menu-pop > .btn:hover, .tb-ribbon .menu-pop > span > .btn:hover { background: #f7f7f7; }
+  .tb-ribbon .menu-pop .btn.mi-main { background: #4a4a4a; border-color: #4a4a4a; color: #fff; }
+  .tb-ribbon .menu-pop .btn.toggle.on { background: #171717; border-color: #171717; color: #fff; }
+  .tb-ribbon .menu-pop .btn.t-running { background: #b45309; border-color: #b45309; color: #fff; }
+  .tb-ribbon .menu-pop hr { width: 1px; height: 1.6rem; border: 0; background: #d4d4d4; margin: 0 .2rem; }
+  .tb-ribbon .menu-pop .mi-design { padding: 0; gap: .4rem; }
+  .tb-ribbon .menu-pop .mi-lbl { font-size: .8rem; }
+  .tb-ribbon .menu-pop .bs-theme button { padding: .3rem .7rem; font-size: .86rem; }
+  .tb-ribbon .menu-pop .pause-ctl { flex-direction: row; position: relative; }
+  .tb-ribbon .menu-pop .pause-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; background: #fff; border: 1px solid #d4d4d4; border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.15); padding: .35rem; min-width: 100%; }
+  body.match-page .tb-ribbon + .match-top { margin-top: 0; }
+}
+@media (min-width: 700px) and (min-height: 500px) and (max-width: 1099px) {
+  /* iPad hoch: kurze Beschriftungen, damit die Leiste einzeilig bleibt (auch mit einem weiteren Timer-Knopf) */
+  .tb-ribbon .menu-pop .ml { display: none; }
+  .tb-ribbon .menu-pop .ms { display: inline; }
+}
+@media (min-width: 1100px) and (min-height: 500px) {
+  /* Laptop: Leiste und fixierter oberer Bereich schließen lückenlos aneinander an */
+  body.match-page .tb-ribbon { margin: -.6rem -1rem 0; }
+}
+/* Ergebnis/Siegerehrung in der App: dasselbe Fenster wie auf der Tafel (Hell/Dunkel wie die Tafel), unten „Schließen“ */
+.app-so { z-index: 190; }
+.app-so.so-light { background: rgba(244,244,244,.85); }
+.app-so.so-light .so-box { background: #fff; border-color: #a3a3a3; color: #171717; }
+.app-so.so-light .so-table td { border-bottom-color: #e5e5e5; }
+.app-so .tv-ctl-bar .btn { font-size: 1.1rem; padding: .55rem 1.6rem; }

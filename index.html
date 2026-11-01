@@ -16,13 +16,18 @@
 <body>
   <header class="topbar">
     <a href="#/" class="brand"><img src="icons/icon.svg" alt="Startseite" width="28" height="28"></a>
-    <span class="league-name" id="league-name"></span>
-    <nav>
+    <button type="button" class="league-name tb-menu" id="league-name" data-menu="league" aria-haspopup="true" aria-expanded="false"></button>
+    <nav class="menu-pop" id="menu-league" aria-label="Liga">
       <a href="#/oberliga" data-route="home">Wettkämpfe</a>
       <a href="#/oberliga/teams" data-route="teams">Mannschaften</a>
       <a href="#/oberliga/rules" data-route="rules">Regeln</a>
       <a href="#/oberliga/help" data-route="help">Anleitung</a>
+      <hr>
+      <a href="#/" data-route="start">Startseite (Liga wechseln)</a>
+      <div class="menu-ver" id="menu-ver"></div>
     </nav>
+    <span id="topbar-tabs" class="tb-tabs"></span>
+    <span id="save-status" class="save-status"></span>
     <span id="app-version" class="app-version"></span>
     <span id="net-status" class="net-status"></span>
   </header>

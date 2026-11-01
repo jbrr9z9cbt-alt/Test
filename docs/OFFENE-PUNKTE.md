@@ -1,6 +1,9 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Nächste Liste (nach Beta 80 – wird gesammelt und dann auf einmal umgesetzt)
+## Liste nach Beta 80 – umgesetzt in Beta 81 (auf dem Arbeitszweig, noch nicht veröffentlicht)
+
+Umgesetzt 01.11.2026 (Punkte 1 und 2). Rückkehrpunkt: Beta 80 (Commit `8f145eb`), Beta 79 als Zweig `stand-beta-79`.
+
 
 1. **Menüs in der grauen Kopfzeile** (beschlossen 01.11.2026: **Laptop und iPad Menüband, Handy Aufklappmenüs**):
    - Regel: Menüband ab 700 px Breite und 500 px Höhe (Laptop, iPad quer und hoch), sonst Aufklappmenüs (Handy hoch und quer).
