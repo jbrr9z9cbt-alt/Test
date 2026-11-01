@@ -32,8 +32,9 @@
      - Vergessene Freigabe: Sind mehrere Geräte angefangen und nicht fertig, zeigt die Tafel das mit der letzten Freigabe
        (das andere behält den gelben Punkt).
      - Korrekturen an fertigen Geräten verschieben die Tafel nicht (Korrekturanzeige wie bisher).
-   - **Bildschirmsymbol** am Reiter des Geräts, das die Tafel gerade zeigt – auch während der 10 Sekunden nach der letzten
-     Freigabe (ohne Vorschaubild, wird ausprobiert).
+   - ~~Bildschirmsymbol am Reiter des Geräts, das die Tafel gerade zeigt~~ – **entfällt** (entschieden 01.11.2026 nach
+     Vorschaubildern mit drei Varianten: oben links, unten mittig, oben rechts mit dem Statuspunkt – für keine gibt es einen
+     richtigen Platz, und nötig ist es nicht).
    - **Einturnzeit im Menü Anzeigetafel** zwischen Turnervorstellung und Wettkampfpause (Menüband und Aufklappmenü):
      - Ein einziger Timer (6:40) ohne Zuordnung zu einem Gerät. Reiterwechsel, Turneränderungen und Wertungen ändern nichts
        an ihm.
