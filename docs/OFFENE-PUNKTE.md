@@ -8,6 +8,10 @@ Hinweise zur Umsetzung:
   der ersten Freigabe im Fenster (Oberliga: schon beim gespeicherten ersten Turner eines Duells; die Tafel wird erst mit dem
   ganzen Duell fixiert). Ohne gemerkten Reiter (ältere Wettkämpfe) zeigt die Tafel das Gerät mit der letzten Freigabe.
 - Punkt 7: Unter 600 px Fensterhöhe (iPhone SE) entfällt der freie Streifen – dort bleibt alles wie in Beta 81.
+- Punkt 4 (Platz für die Einturnzeit, wegen Punkt 8 auch bei 360 px Breite): Am Handy zeigt der orange Menüknopf bei
+  laufender Pause bzw. Einturnzeit nur noch die Restzeit („4:12 ▾“ statt „Pause 4:12“ – das war bei 360 px schon in Beta 81
+  zu breit); im Aufklappmenü steht weiter „Wettkampfpause 4:12 – beenden“ bzw. „Einturnzeit 6:40 – beenden“. Im Menüband am
+  iPad hochkant entfällt das Wort „Design“ vor Hell/Dunkel, damit die Leiste mit laufendem Timer einzeilig bleibt.
 
 
 1. **Knopf „← zurück“ auf den Seiten, die man vom Wettkampf aus öffnet – statt eines Eintrags im Ligamenü** (beschlossen
