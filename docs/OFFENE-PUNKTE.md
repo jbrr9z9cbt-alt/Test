@@ -1,9 +1,16 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Nächste Liste (nach Beta 79)
+## Nächste Liste (nach Beta 80 – wird gesammelt und dann auf einmal umgesetzt)
 
-1. **Menüs in der grauen Kopfzeile** (Idee 01.11.2026, Vorschaubilder gezeigt, in Abstimmung – noch nicht umsetzen, erst
-   Rückmeldung abwarten): „WTB-Oberliga ▾“ (Wettkämpfe, Mannschaften, Regeln, Anleitung, Startseite), „Anzeigetafel ▾“
+1. **Menüs in der grauen Kopfzeile** (beschlossen 01.11.2026: **Laptop und iPad Menüband, Handy Aufklappmenüs**):
+   - Regel: Menüband ab 700 px Breite und 500 px Höhe (Laptop, iPad quer und hoch), sonst Aufklappmenüs (Handy hoch und quer).
+     Die Knöpfe gibt es nur einmal; nur die Darstellung richtet sich nach dem Bildschirm.
+   - Knöpfe wie heute, ohne „an“/„aus“: Wettkampfpause zeigt die Restzeit („Wettkampfpause 4:12 – beenden“, auf dem iPad hoch
+     kürzer „Pause 4:12 – beenden“); Tipp auf „Wettkampfpause“ klappt die Dauer (10 · 15 · 20 Minuten) auf, die Wahl startet
+     die Pause. Ergebnis/Siegerehrung und Turnervorstellung öffnen ihr Fenster in der App (siehe Punkt 2).
+   - Handy: Menü schließt nach der Auswahl (nicht beim Aufklappen der Pausendauer); die laufende Pause steht am Menüknopf
+     („Pause 4:12“, orange). Tab erreicht Reiter bzw. Menüknöpfe (gelbe Umrandung), Esc schließt ein Aufklappmenü.
+   Bisherige Ideen dazu: „WTB-Oberliga ▾“ (Wettkämpfe, Mannschaften, Regeln, Anleitung, Startseite), „Anzeigetafel ▾“
    (Anzeigetafel öffnen, Hell/Dunkel, Turnervorstellung, Wettkampfpause, Ergebnis/Siegerehrung – Zustand wie „Pause 4:12“ am
    Menüknopf) und „Wettkampf ▾“ (Setup, Protokoll/Drucken, Wettkampf abschließen); am iPhone „Oberliga ▾ | Tafel ▾ |
    Wettkampf ▾“, „online“ als Punkt, „Beta“ im Ligamenü. Die Werkzeugzeile entfällt; Gerätereiter beginnen dann am Laptop
@@ -15,7 +22,14 @@
    Wettkampf“, Knöpfe kurz („Öffnen“, „Hell“/„Dunkel“, „Vorstellung“, „Pause“, „Ergebnis“ bzw. „Setup“, „Protokoll“,
    „Abschließen“). Nachgemessen: Laptop Gerätereiter ab 159 statt 174 px, beim Scrollen fest 199 statt 215 px; iPad quer
    159 statt 221, fest 199 statt 262; iPhone 249 statt 640, beim Scrollen fest 91 statt heute 139 px.
-2. **Einheitliche Tastaturbedienung im Wertungsfenster und im D-Note-Rechner** (beschlossen 01.11.2026; umgesetzt in Beta 80,
+2. **Ergebnis/Siegerehrung als Fenster in der App** (gewünscht 01.11.2026): wie bei der Turnervorstellung – ist
+   Ergebnis/Siegerehrung eingeblendet, überlagert dasselbe Fenster wie auf der Tafel („Zwischenstand“ bzw. „Wettkampfergebnis“:
+   Stand, Gerätepunkte, Topscorer) die App, mit einem Knopf zum Schließen. So kann der Bediener die Siegerehrung lesen, ohne zum
+   Beamer zu schauen. Annahme (zu bestätigen): „Schließen“ blendet es wie bei der Turnervorstellung auch auf der Tafel aus.
+
+## Umgesetzt in Beta 80 (veröffentlicht 01.11.2026)
+
+1. **Einheitliche Tastaturbedienung im Wertungsfenster und im D-Note-Rechner** (beschlossen 01.11.2026; umgesetzt in Beta 80,
    veröffentlicht 01.11.2026, Commit `8f145eb`):
    - Hardware-Tastatur: Tab/Umschalt+Tab wie bisher (Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“).
      → und Enter vorwärts im Kreis E1 → … → NA → „Wertung freigeben“ (nur wenn aktiv, sonst übersprungen) → E1, ← rückwärts.
