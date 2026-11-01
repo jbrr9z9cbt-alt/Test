@@ -53,8 +53,9 @@ Gefunden mit Beta 77 auf dem iPhone in Safari (Bildschirmfotos 31.10.2026):
   und Teilsumme; darunter „Elemente x von 8“ und Summe; EG (Elementgruppen) freie Eingabe mit einer Nachkommastelle,
   höchstens 2,3; Ergebnis D-Note groß; „Abbrechen“ / „Übernehmen“ (trägt den Wert ins Feld D-Note ein, freigegeben
   wird weiter im Wertungsfenster). Am Handy bildschirmfüllend mit der Zahlentastatur für EG.
-- Annahme: „höchstens 8“ = höchstens 8 Elemente insgesamt (+ wird bei 8 gesperrt). Offen: Bestätigung dieser Annahme;
-  ob die Element-Anzahlen gespeichert werden (beim erneuten Öffnen wieder da) oder nur die D-Note; Aufnahme als Punkt 9.
+- Bestätigt (01.11.2026): höchstens **8 Elemente insgesamt**; die **Anzahlen werden gespeichert** (beim erneuten Öffnen
+  für diesen Turner wieder da, z. B. für eine Korrektur).
+- Offen: Eingabe der Anzahlen mit − / + oder als getippte Zahl (zweite Vorschau gewünscht); Aufnahme als Punkt 9.
 
 
 ## Beschlossen und in Beta 77 umgesetzt (veröffentlicht): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
