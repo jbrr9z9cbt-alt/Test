@@ -37,6 +37,9 @@ Gefunden mit Beta 77 auf dem iPhone in Safari (Bildschirmfotos 31.10.2026):
    - Die Seite hinter dem Fenster lässt sich am iPhone trotz Sperre verschieben → Seite hinter dem Fenster fest
      verriegeln und die Scroll-Position beim Schließen wiederherstellen.
    - Hier nur in Chrome prüfbar; Kontrolle auf dem iPhone durch den Nutzer nach dem Veröffentlichen.
+7. **Turnername in der gesperrten Auswahl schwarz** (gemeldet 01.11.2026): In Kacheln mit freigegebener Wertung (und
+   sonst gesperrter Turnerauswahl) bleibt das Feld grau hinterlegt, die Schrift wird aber normal schwarz – so gut lesbar
+   wie die Wertungen. Auch auf iPhone/iPad (Safari blasst gesperrte Auswahlfelder zusätzlich ab; das wird mit abgeschaltet).
 
 
 ## Beschlossen und in Beta 77 umgesetzt (veröffentlicht): Wertungseingabe im eigenen Fenster mit eigener Zahlentastatur
