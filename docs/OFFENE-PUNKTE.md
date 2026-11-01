@@ -1,6 +1,10 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Liste nach Beta 80 – umgesetzt in Beta 81 (auf dem Arbeitszweig, noch nicht veröffentlicht)
+## Nächste Liste (nach Beta 81 – wird gesammelt und dann auf einmal umgesetzt)
+
+Noch keine Punkte.
+
+## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
 Umgesetzt 01.11.2026 (Punkte 1 und 2). Rückkehrpunkt: Beta 80 (Commit `8f145eb`), Beta 79 als Zweig `stand-beta-79`.
 
