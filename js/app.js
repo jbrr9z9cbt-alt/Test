@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '79';
+  var APP_BUILD = '80';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -2761,11 +2761,11 @@
           'Den Turner kann man vorab in der Kachel oder erst im Fenster wählen; vor der Freigabe ist er sofort gespeichert (auch bei „Abbrechen“). Ohne Turner sind die Notenfelder gesperrt. ' +
           'Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. 4,8 oder 1.3; E-Note und Endnote rechnet die App schon beim Tippen: E-Note = 10 − Mittelwert der Abzüge E1 und E2 (bei drei E-Kampfrichtern 10 − mittlerer Abzug, höchster und niedrigster gestrichen); Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. ' +
           'Bei wenig Platz stehen über allen Feldern Kurzformen: E1–E3 = Abzüge der E-Kampfrichter, Stand = Standbonus, NA = neutraler Abzug. Der Sturz-Timer ist auch im Fenster bedienbar (Knopf oben rechts).',
-        '<b>D-Note berechnen</b> (Knopf „berechnen“ unter der D-Note, nicht am Sprung): Anzahl der Elemente je Wertigkeit eintippen – ≥ D je 0,8, C je 0,6, B je 0,4, A je 0,2, höchstens 8 Elemente insgesamt – und die Elementgruppen (EG, höchstens 2,3). „Übernehmen“ trägt die D-Note ins Fenster ein; die Anzahlen werden mit der Wertung gespeichert und stehen beim erneuten Öffnen wieder da. Über den Feldern steht, wie viele Elemente noch möglich sind; bei mehr als 8 Elementen oder EG über 2,3 wird rot markiert, „Übernehmen“ geht dann nicht. Wurde die D-Note danach von Hand geändert, beginnt der Rechner wieder leer.',
+        '<b>D-Note berechnen</b> (Knopf „berechnen“ unter der D-Note, nicht am Sprung): Anzahl der Elemente je Wertigkeit eintippen – ≥ D je 0,8, C je 0,6, B je 0,4, A je 0,2, höchstens 8 Elemente insgesamt – und die Elementgruppen (EG, höchstens 2,3). „Übernehmen“ trägt die D-Note ins Fenster ein; die Anzahlen werden mit der Wertung gespeichert und stehen beim erneuten Öffnen wieder da. Über den Feldern steht, wie viele Elemente noch möglich sind; bei mehr als 8 Elementen oder EG über 2,3 wird rot markiert, „Übernehmen“ geht dann nicht. Wurde die D-Note danach von Hand geändert, beginnt der Rechner wieder leer. Mit Tastatur: Enter/→ bis EG und weiter auf „Übernehmen“ (Enter übernimmt), ← zurück, Esc bricht ab.',
         '<b>Wertung freigeben</b> im Fenster übernimmt die Werte; <b>Abbrechen</b> verwirft sie ohne Rückfrage. In der Kachel stehen die Werte danach als Text, der Knopf heißt dann „Wertung ändern“.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.' : 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.') +
-          ' Im Fenster führt Tab nur über Turner, Notenfelder, Stand und „Wertung freigeben“ (Umschalt+Tab rückwärts); ← / → wechseln zwischen den Feldern (im Kreis), ↑ / ↓ ändern Noten in 0,1-Schritten (im Rechner Anzahlen um 1). Enter springt ins nächste Feld und nach dem letzten auf „Wertung freigeben“, Esc bricht ab. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
-        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0); ein Feld antippen macht es zum aktiven Feld. „Weiter ▶“ springt ins nächste Feld, nach dem letzten wieder auf E1 (im Kreis); freigegeben wird durch Antippen von „Wertung freigeben“. Auch der <b>Standbonus</b> gehört zur Reihenfolge: Taste 1 = +0,1, Taste 0 oder ⌫ = kein Standbonus. Am Handy steht die Zahlentastatur immer ganz unten. ' +
+          ' Im Fenster führt Tab nur über Turner, Notenfelder, Stand und „Wertung freigeben“ (Umschalt+Tab rückwärts). → und Enter gehen ins nächste Feld, ← ins vorige – im Kreis E1 → … → Stand → NA → „Wertung freigeben“ (nur wenn vollständig) → E1; Enter auf „Wertung freigeben“ gibt frei. Den <b>Standbonus</b> schalten ↑ / ↓ (oder 1 = ja, 0 = nein); auf der D-Note wählt ↓ den Knopf „berechnen“ (Enter öffnet den Rechner, ↑ zurück). Esc bricht ab. Was mit der Tastatur ausgewählt ist, hat eine gelbe Umrandung. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
+        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0); ein Feld antippen macht es zum aktiven Feld. „Weiter ▶“ springt ins nächste Feld, „◀ Zurück“ ins vorige (im Kreis E1 → … → Stand → NA → E1); freigegeben wird durch Antippen von „Wertung freigeben“. Auch der <b>Standbonus</b> gehört zur Reihenfolge: Taste 1 = +0,1, Taste 0 oder ⌫ = kein Standbonus (die übrigen Tasten sind dann ausgegraut). Am Handy steht die Zahlentastatur immer ganz unten. ' +
           'Mit angeschlossener Tastatur verschwindet sie beim ersten Tastendruck. Einstellung unten im Fenster: automatisch, immer oder nie (gilt für dieses Gerät).',
         '<b>kein Turner</b> (ganz oben in der Turnerauswahl, in der Kachel oder im Fenster, auch vorab wählbar): Die Übung zählt 0 Punkte. Der Knopf in der Kachel heißt dann „Wertung freigeben“ und gibt direkt frei, ohne Fenster (danach „Wertung ändern“). Bereits erfasste Werte werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0.',
         classic
@@ -3083,11 +3083,11 @@
   function keypadHtml(prefix) {
     var out = prefix === 'sd' ? 'data-dlg-out' : 'data-dc-out';
     return '<div class="sd-pad"><div class="sd-disp"><span class="w" ' + out + '="kpwhat"></span><span class="val" ' + out + '="kpval"></span></div>' +
-      // 7 8 9 ⌫ / 4 5 6 ⌫ / 1 2 3 Weiter / 0 0 , Weiter – „0“ doppelt breit, ⌫ und „Weiter ▶“ doppelt hoch
-      '<div class="sd-keys">' + ['7', '8', '9', 'back', '4', '5', '6', '1', '2', '3', 'next', '0', ','].map(function (k) {
-        var label = { back: '⌫', next: 'Weiter ▶' }[k] || k;
-        var area = { back: 'kb', next: 'kn', ',': 'kc' }[k] || 'k' + k;
-        return '<button type="button" tabindex="-1" class="' + (k === 'next' ? 'k-next' : k === 'back' ? 'k-fn' : '') + '" style="grid-area:' + area + '" data-action="' + prefix + '-key" data-k="' + k + '" aria-label="' + label + '">' + label + '</button>';
+      // 7 8 9 ⌫ / 4 5 6 ◀ Zurück / 1 2 3 Weiter ▶ / 0 0 , Weiter ▶ – „0“ doppelt breit, „Weiter ▶“ doppelt hoch
+      '<div class="sd-keys">' + ['7', '8', '9', 'back', '4', '5', '6', 'prev', '1', '2', '3', 'next', '0', ','].map(function (k) {
+        var label = { back: '⌫', prev: '◀ Zurück', next: 'Weiter ▶' }[k] || k;
+        var area = { back: 'kb', prev: 'kp', next: 'kn', ',': 'kc' }[k] || 'k' + k;
+        return '<button type="button" tabindex="-1" class="' + (k === 'next' ? 'k-next' : k === 'back' || k === 'prev' ? 'k-fn' + (k === 'prev' ? ' k-prev' : '') : '') + '" style="grid-area:' + area + '" data-action="' + prefix + '-key" data-k="' + k + '" aria-label="' + label + '">' + label + '</button>';
       }).join('') + '</div></div>';
   }
 
@@ -3230,8 +3230,10 @@
       if (sbox) sbox.classList.toggle('active', f === 'bonus');
       out('kpwhat', noGym ? 'Erst den Turner wählen' : f ? esc(f === 'bonus' ? 'Standbonus' : DLG_LABEL[f]) + ' · <b>' + esc(gymnastLabel(g.draft.number, g.draft.name)) + '</b>' : '');
       out('kpval', f === 'bonus' ? (g.draft.bonus ? '+0,1' : '–') : f ? esc(g.text[f] || '–') : '');
-      var comma = box.querySelector('[data-action="sd-key"][data-k=","]');
-      if (comma) comma.disabled = f === 'bonus';
+      // Stand aktiv: nur 1, 0 und ⌫ – Ziffern 2–9 und Komma ausgegraut
+      box.querySelectorAll('[data-action="sd-key"]').forEach(function (kb) {
+        if (/^[2-9,]$/.test(kb.getAttribute('data-k'))) kb.disabled = f === 'bonus';
+      });
     }
   }
 
@@ -3254,7 +3256,7 @@
   function keypadPress(k) {
     var g = scoreDlg, m = g && match(g.matchId);
     if (!m || !dlgEditable()) return;
-    if (k === 'next') { moveDlgActive(m); return; }
+    if (k === 'next' || k === 'prev') { moveDlgActive(m, k === 'prev' ? -1 : 1); return; }
     var f = g.active;
     if (!f) return;
     if (f === 'bonus') {
@@ -3284,24 +3286,37 @@
   }
 
   /**
-   * „Weiter ▶“ (Zahlentastatur): nächstes Feld im Kreis, einschließlich Stand – freigegeben wird durch Antippen.
-   * Enter (echte Tastatur): nächstes Notenfeld, nach dem letzten auf „Wertung freigeben“.
+   * Zahlentastatur: „Weiter ▶“ / „◀ Zurück“ – nächstes bzw. voriges Feld im Kreis E1 → … → Stand → NA → E1
+   * („Wertung freigeben“ wird angetippt).
    */
-  function moveDlgActive(m) {
-    var g = scoreDlg, fs = dlgFields(m);
+  function moveDlgActive(m, dir) {
+    var g = scoreDlg, ko = kpOrder(m, g.appKey);
     commitDlgField();
-    if (keypadOn()) {
-      var ko = kpOrder(m, g.appKey);
-      g.active = ko[(ko.indexOf(g.active) + 1) % ko.length];
-      g.buf = null;
-      refreshScoreDlg();
-      return;
-    }
-    g.active = fs[fs.indexOf(g.active) + 1] || null;
+    var i = ko.indexOf(g.active);
+    g.active = ko[((i < 0 ? (dir > 0 ? -1 : 0) : i) + dir + ko.length) % ko.length];
     g.buf = null;
     refreshScoreDlg();
-    if (g.active) focusDlgField();
-    else { var rel = document.querySelector('#score-dlg [data-action="sd-release"]'); if (rel && !keypadOn()) rel.focus({ preventScroll: true }); }
+  }
+
+  /**
+   * Echte Tastatur: → und Enter vorwärts, ← rückwärts im Kreis E1 → … → Stand → NA → „Wertung freigeben“ → E1;
+   * „Wertung freigeben“ nur, wenn der Knopf aktiv ist (sonst übersprungen). from: Feld, 'release' oder 'calc' („berechnen“).
+   */
+  function dlgStep(m, dir, from) {
+    var g = scoreDlg;
+    if (from === 'calc') from = 'd';
+    if (from !== 'release') { g.active = from; commitDlgField(); refreshScoreDlg(); }
+    var order = kpOrder(m, g.appKey);
+    var rel = document.querySelector('#score-dlg [data-action="sd-release"]');
+    if (rel && !rel.disabled) order.push('release');
+    var i = order.indexOf(from);
+    if (i < 0) i = from === 'release' ? order.length : -1;
+    var next = order[(i + dir + order.length) % order.length];
+    g.buf = null;
+    if (next === 'release') { rel.focus({ preventScroll: true }); return; }
+    g.active = next;
+    refreshScoreDlg();
+    focusDlgField();
   }
 
   function releaseScoreDlg() {
@@ -3575,7 +3590,7 @@
   function calcKey(k) {
     var c = scoreDlg && scoreDlg.calc;
     if (!c) return;
-    if (k === 'next') { moveCalcActive(); return; }
+    if (k === 'next' || k === 'prev') { moveCalcActive(k === 'prev' ? -1 : 1); return; }
     var f = c.active;
     if (!f) return;
     var nb = f === 'EG' ? typeKey(c.buf === null ? '' : c.buf, k, 2) : /^\d$/.test(k) ? k : k === 'back' ? '' : null;
@@ -3596,22 +3611,32 @@
     if (el) el.value = c.text.EG;
   }
 
-  /** „Weiter ▶“: ≥ D → C → B → A → EG → wieder ≥ D. Enter: bis EG, dann „Übernehmen“ (bleibt bei EG, solange etwas nicht stimmt). */
-  function moveCalcActive() {
+  /**
+   * Zahlentastatur: „Weiter ▶“ / „◀ Zurück“ im Kreis ≥ D → C → B → A → EG („Übernehmen“ wird angetippt).
+   * Echte Tastatur: → und Enter vorwärts, ← rückwärts im Kreis ≥ D → … → EG → „Übernehmen“ (nur wenn möglich) → ≥ D.
+   */
+  function moveCalcActive(dir, from) {
     var c = scoreDlg.calc;
+    dir = dir || 1;
+    if (from && from !== 'ok') c.active = from;
     commitCalcField();
-    if (keypadOn()) {
-      c.active = DC_FIELDS[(DC_FIELDS.indexOf(c.active) + 1) % DC_FIELDS.length];
-      c.buf = null;
+    var order = DC_FIELDS.slice();
+    if (!keypadOn() && dcState().ok) order.push('ok');
+    var cur = from === 'ok' ? 'ok' : c.active;
+    var i = order.indexOf(cur);
+    if (i < 0) i = cur === 'ok' ? order.length : -1;
+    var next = order[(i + dir + order.length) % order.length];
+    c.buf = null;
+    if (next === 'ok') {
+      c.active = null;
       refreshCalc();
+      var ok = document.querySelector('#score-dlg [data-action="dc-ok"]');
+      if (ok) ok.focus({ preventScroll: true });
       return;
     }
-    var next = DC_FIELDS[DC_FIELDS.indexOf(c.active) + 1] || null;
-    if (!next && !dcState().ok) { refreshCalc(); return; }
     c.active = next;
-    c.buf = null;
     refreshCalc();
-    focusCalcField();
+    if (!keypadOn()) focusCalcField();
   }
 
   function calcOk() {
@@ -3638,42 +3663,27 @@
     if (b) b.focus({ preventScroll: true }); else focusDlgField();
   }
 
-  /** Tasten im Rechner (ohne Bildschirm-Tastatur): Enter = nächstes Feld, Esc = Abbrechen, ↑/↓ = ±1 bzw. ±0,1, Tab bleibt im Rechner. */
+  /** Tasten im Rechner (echte Tastatur): Enter/→ vorwärts, ← rückwärts (bis „Übernehmen“), Esc = Abbrechen, Tab bleibt im Rechner. */
   function calcKeydown(ev) {
-    var box = document.getElementById('score-dlg'), c = scoreDlg.calc, el = ev.target;
+    var box = document.getElementById('score-dlg'), el = ev.target;
     if (ev.key === 'Escape') { ev.preventDefault(); calcCancel(); return; }
     if (ev.key === 'Tab') { trapTab(ev, box.querySelector('.dc-win')); return; }
-    if (!el.matches || !el.matches('#score-dlg input[data-dc]')) return;
-    var f = el.getAttribute('data-dc');
-    if (ev.key === 'Enter') { ev.preventDefault(); c.active = f; moveCalcActive(); return; }
-    if ((ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey) {
+    if (keypadOn() || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    var item = el.matches && el.matches('#score-dlg input[data-dc]') ? el.getAttribute('data-dc')
+      : el.matches && el.matches('#score-dlg [data-action="dc-ok"]') ? 'ok' : null;
+    if (!item) return;
+    if (ev.key === 'Enter') {
+      if (item === 'ok') return; // Enter auf „Übernehmen“ übernimmt
       ev.preventDefault();
-      c.active = f;
-      commitCalcField();
-      c.active = DC_FIELDS[(DC_FIELDS.indexOf(f) + (ev.key === 'ArrowRight' ? 1 : DC_FIELDS.length - 1)) % DC_FIELDS.length];
-      c.buf = null;
-      refreshCalc();
-      focusCalcField();
+      moveCalcActive(1, item);
       return;
     }
-    if ((ev.key === 'ArrowUp' || ev.key === 'ArrowDown') && !keypadOn()) {
+    if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') && !ev.shiftKey) {
       ev.preventDefault();
-      var up = ev.key === 'ArrowUp';
-      if (f === 'EG') {
-        var cur = S.parseScore(el.value);
-        if (cur === null || Number.isNaN(cur)) cur = 0;
-        el.value = fmt1(Math.min(DC_MAX_EG, Math.max(0, cur - cur % 100 + (up ? 100 : -100))));
-      } else {
-        var n = parseInt(el.value, 10);
-        if (Number.isNaN(n)) n = 0;
-        el.value = String(Math.min(DC_MAX_ELEMENTS, Math.max(0, n + (up ? 1 : -1))));
-        c.last = f;
-      }
-      c.text[f] = el.value;
-      c.active = f;
-      refreshCalc();
-      el.select();
+      moveCalcActive(ev.key === 'ArrowRight' ? 1 : -1, item);
+      return;
     }
+    if ((ev.key === 'ArrowUp' || ev.key === 'ArrowDown') && item !== 'ok') ev.preventDefault(); // kein ±1 mehr
   }
 
   /** Tab-Taste: Fokus bleibt im Fenster (win). */
@@ -3809,9 +3819,10 @@
     if (ev.target.matches('#score-dlg input[type=text][data-dlg], #score-dlg input[data-dc]') && !keypadOn()) ev.target.select();
   });
 
-  // Wertungsfenster per Tastatur: Enter = nächstes Feld (nach dem letzten „Wertung freigeben“), Esc = Abbrechen,
-  // Pfeile ↑/↓ = ±0,1, Tab bleibt im Fenster (bzw. im D-Note-Rechner). Ein Druck auf eine echte Taste blendet die
-  // Bildschirm-Tastatur („automatisch“) für diese Sitzung aus; Ziffern und Komma werden dabei schon ins Feld übernommen.
+  // Wertungsfenster per Tastatur: → und Enter = nächstes Feld im Kreis (mit „Wertung freigeben“, wenn aktiv), ← = voriges,
+  // Enter auf einem Knopf löst ihn aus; Stand mit ↑/↓, 1 und 0; auf der D-Note wählt ↓ „berechnen“; Esc = Abbrechen;
+  // Tab bleibt im Fenster (bzw. im D-Note-Rechner). Ein Druck auf eine echte Taste blendet die Bildschirm-Tastatur
+  // („automatisch“) für diese Sitzung aus; Ziffern und Komma werden dabei schon ins Feld übernommen.
   document.addEventListener('keydown', function (ev) {
     if (!scoreDlg || !document.getElementById('score-dlg') || document.querySelector('.modal-backdrop')) return;
     var m = match(scoreDlg.matchId);
@@ -3819,7 +3830,7 @@
     var el = ev.target, box = document.getElementById('score-dlg');
     if (el.dataset && el.dataset.picking) return; // aufgeklappte Turnerauswahl: Enter/Esc gehören ihr
     if (keypadOn() && keypadSetting() === 'auto' && ev.isTrusted && !ev.altKey && !ev.ctrlKey && !ev.metaKey &&
-        (ev.key.length === 1 || ev.key === 'Backspace' || ev.key === 'Tab')) {
+        (ev.key.length === 1 || ['Backspace', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(ev.key) >= 0)) {
       hwKeySeen = true;
       var c0 = scoreDlg.calc;
       var f0 = c0 ? c0.active : scoreDlg.active;
@@ -3835,35 +3846,35 @@
     if (scoreDlg.calc) { calcKeydown(ev); return; }
     if (ev.key === 'Escape') { ev.preventDefault(); cancelScoreDlg(); return; }
     if (ev.key === 'Tab') { trapTab(ev, box.querySelector('.sd-win')); return; }
-    if (!el.matches || !el.matches('#score-dlg input[data-dlg]')) return;
-    var field = el.getAttribute('data-dlg');
-    if ((ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') && !keypadOn() && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.shiftKey) {
-      var ko = kpOrder(m, scoreDlg.appKey), at = ko.indexOf(field);
-      if (at < 0) return;
-      ev.preventDefault();
-      scoreDlg.active = field;
-      commitDlgField();
-      scoreDlg.active = ko[(at + (ev.key === 'ArrowRight' ? 1 : ko.length - 1)) % ko.length];
-      refreshScoreDlg();
-      focusDlgField();
-      return;
-    }
+    if (keypadOn() || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    // Was ist ausgewählt? Notenfeld, Stand, „Wertung freigeben“ oder „berechnen“ (Turnerauswahl: siehe unten)
+    var item = el.matches && el.matches('#score-dlg input[data-dlg]') ? el.getAttribute('data-dlg')
+      : el.matches && el.matches('#score-dlg [data-action="sd-release"]') ? 'release'
+      : el.matches && el.matches('#score-dlg [data-action="dc-open"]') ? 'calc' : null;
+    if (!item || item === 'zero') return;
     if (ev.key === 'Enter') {
+      if (item === 'release' || item === 'calc') return; // Enter löst den Knopf aus
       ev.preventDefault();
-      if (field === 'bonus' || field === 'zero') { el.click(); return; }
-      scoreDlg.active = field;
-      moveDlgActive(m);
+      dlgStep(m, 1, item);
       return;
     }
-    if ((ev.key === 'ArrowUp' || ev.key === 'ArrowDown') && DLG_FIELDS.indexOf(field) >= 0 && !keypadOn()) {
+    if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') && !ev.shiftKey) {
       ev.preventDefault();
-      var cur = dlgValue(field, el.value);
-      if (cur === null || Number.isNaN(cur)) cur = 0;
-      var v = Math.min(field === 'd' ? 20000 : 10000, Math.max(0, cur + (ev.key === 'ArrowUp' ? 100 : -100)));
-      el.value = fmt1(v);
-      scoreDlg.text[field] = el.value;
-      refreshScoreDlg();
-      el.select();
+      dlgStep(m, ev.key === 'ArrowRight' ? 1 : -1, item);
+      return;
+    }
+    if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+      ev.preventDefault(); // kein ±0,1 mehr
+      if (item === 'bonus') { el.click(); return; } // Standbonus ein/aus
+      var calcBtn = box.querySelector('[data-action="dc-open"]');
+      if (item === 'd' && ev.key === 'ArrowDown' && calcBtn && !calcBtn.disabled) { scoreDlg.active = 'd'; commitDlgField(); calcBtn.focus({ preventScroll: true }); return; }
+      if (item === 'calc' && ev.key === 'ArrowUp') { scoreDlg.active = 'd'; focusDlgField(); }
+      return;
+    }
+    // Standbonus auch mit 1 (ja) und 0 (nein)
+    if (item === 'bonus' && (ev.key === '1' || ev.key === '0')) {
+      ev.preventDefault();
+      if (el.checked !== (ev.key === '1')) el.click();
     }
   }, true);
 

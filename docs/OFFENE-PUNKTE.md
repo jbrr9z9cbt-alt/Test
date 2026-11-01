@@ -2,13 +2,14 @@
 
 ## Nächste Liste (nach Beta 79)
 
-1. **Menüs in der grauen Kopfzeile** (Idee 01.11.2026, Vorschaubilder gezeigt, in Abstimmung – wird nach Beta 79 besprochen
-   und ausprobiert): „WTB-Oberliga ▾“ (Wettkämpfe, Mannschaften, Regeln, Anleitung, Startseite), „Anzeigetafel ▾“
+1. **Menüs in der grauen Kopfzeile** (Idee 01.11.2026, Vorschaubilder gezeigt, in Abstimmung – noch nicht umsetzen, erst
+   Rückmeldung abwarten): „WTB-Oberliga ▾“ (Wettkämpfe, Mannschaften, Regeln, Anleitung, Startseite), „Anzeigetafel ▾“
    (Anzeigetafel öffnen, Hell/Dunkel, Turnervorstellung, Wettkampfpause, Ergebnis/Siegerehrung – Zustand wie „Pause 4:12“ am
    Menüknopf) und „Wettkampf ▾“ (Setup, Protokoll/Drucken, Wettkampf abschließen); am iPhone „Oberliga ▾ | Tafel ▾ |
    Wettkampf ▾“, „online“ als Punkt, „Beta“ im Ligamenü. Die Werkzeugzeile entfällt; Gerätereiter beginnen dann am Laptop
    bei ca. 126 statt 168 px, iPad quer 126 statt 215, iPad hoch 267 statt 475, iPhone 224 statt 764 px.
-2. **Einheitliche Tastaturbedienung im Wertungsfenster und im D-Note-Rechner** (beschlossen 01.11.2026):
+2. **Einheitliche Tastaturbedienung im Wertungsfenster und im D-Note-Rechner** (beschlossen 01.11.2026; umgesetzt in Beta 80,
+   auf dem Arbeitszweig, noch nicht veröffentlicht):
    - Hardware-Tastatur: Tab/Umschalt+Tab wie bisher (Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“).
      → und Enter vorwärts im Kreis E1 → … → NA → „Wertung freigeben“ (nur wenn aktiv, sonst übersprungen) → E1, ← rückwärts.
      Enter auf „Wertung freigeben“ gibt frei. ↑/↓: kein ±0,1 mehr; auf dem Stand schalten ↑/↓ den Standbonus um (auch 1 = ja,

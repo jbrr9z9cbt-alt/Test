@@ -78,14 +78,19 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   - **Zahlentastatur** (Touch-Geräte): eigene Tastatur im Fenster – 7 8 9 ⌫ / 4 5 6 ⌫ / 1 2 3 Weiter / 0 0 , Weiter
     (0 doppelt breit, ⌫ und „Weiter ▶“ doppelt hoch) – mit großer Anzeige des aktiven Felds; die Tastatur des Geräts bleibt zu.
     Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0 beim Verlassen des Felds), kein automatisches Komma.
-    Die Felder sind dabei Schaltflächen (zuverlässiges Antippen am iPhone). „Weiter ▶“ läuft im Kreis
-    (E1 → E2 → (E3) → D-Note → Stand → NA → E1); freigegeben wird durch Antippen. **Standbonus** über die Tastatur:
-    1 = +0,1, 0 oder ⌫ = nein (Komma gesperrt). Die Anzeigezeile über der Tastatur hat eine feste Höhe – die Tastatur
+    Die Felder sind dabei Schaltflächen (zuverlässiges Antippen am iPhone). Rechte Tastenspalte: ⌫ – „◀ Zurück“ –
+    „Weiter ▶“ (doppelt hoch); Weiter/Zurück laufen im Kreis (E1 → E2 → (E3) → D-Note → Stand → NA → E1), freigegeben wird
+    durch Antippen. **Standbonus** über die Tastatur: 1 = +0,1, 0 oder ⌫ = nein (2–9 und Komma ausgegraut). Die Anzeigezeile über der Tastatur hat eine feste Höhe – die Tastatur
     bewegt sich nie. Handy: Tastatur ganz unten, Platz dazwischen bleibt frei (Höhen passen sich kleinen Bildschirmen an);
     iPad quer: Tastatur rechts daneben, hochkant darunter.
   - **Hardware-Tastatur**: Tab nur über Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“ (nicht über
-    Sturz-Timer, „berechnen“, „Wertung 0,00“, „Abbrechen“ = Esc, Einstellung); ← / → wechseln zwischen den Feldern im Kreis,
-    ↑ / ↓ = ±0,1; in der geschlossenen Turnerauswahl ändern Pfeiltasten den Turner nicht.
+    Sturz-Timer, „berechnen“, „Wertung 0,00“, „Abbrechen“ = Esc, Einstellung). → und Enter vorwärts, ← rückwärts im Kreis
+    E1 → … → NA → „Wertung freigeben“ (nur wenn aktiv) → E1; Enter auf „Wertung freigeben“ gibt frei. Kein ±0,1 mehr:
+    Stand mit ↑/↓ (oder 1/0, Leertaste), auf der D-Note wählt ↓ „berechnen“ (Enter öffnet, ↑ zurück). In der geschlossenen
+    Turnerauswahl ändern Pfeiltasten den Turner nicht. Auf Touch-Geräten schalten auch Pfeile und Enter einer angeschlossenen
+    Tastatur die Bildschirm-Tastatur aus.
+  - **Gelbe Umrandung** in der ganzen App für alles, was mit der Tastatur ausgewählt ist (Felder, ganzer Stand-Kasten,
+    Knöpfe wie „Wertung freigeben“ und „Wertung eingeben“, Auswahllisten, Setup); nicht bei Maus oder Finger, nie auf der Tafel.
     Einstellung im Fenster: automatisch (Touch-Geräte; verschwindet beim ersten Druck einer echten Taste) / immer / nie,
     gespeichert je Gerät.
   - **iPhone/iPad**: Doppeltipp-Zoom im Fenster aus, Auswahllisten mit mindestens 16 px Schrift (kein Zoom beim Antippen),
@@ -97,8 +102,9 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
     „Übernehmen“ gesperrt. „Übernehmen“ trägt die D-Note ins Wertungsfenster ein (freigegeben wird dort); die Anzahlen
     werden mit der Wertung gespeichert (`dparts`, auch in der Datensicherung) – nur wenn sie zur freigegebenen D-Note
     passen – und stehen beim erneuten Öffnen wieder da (wurde die D-Note von Hand geändert, beginnt der Rechner leer).
-    Handy: bildschirmfüllend, Kopf oben, Tastatur unten („Weiter“ im Kreis ≥ D → C → B → A → EG → ≥ D, Komma nur bei EG);
-    Laptop: Tab ≥ D … EG → „Übernehmen“, Enter/← /→, ↑/↓ = ±1 bzw. ±0,1, Esc = Abbrechen.
+    Handy: bildschirmfüllend, Kopf oben, Tastatur unten („Weiter“/„◀ Zurück“ im Kreis ≥ D → C → B → A → EG, Komma nur bei
+    EG, „Übernehmen“ antippen); Laptop: Tab ≥ D … EG → „Übernehmen“, Enter/→ bis EG und weiter auf „Übernehmen“ (Enter
+    übernimmt), ← zurück, Esc = Abbrechen.
   - **„kein Turner“ direkt freigeben**: Ist in der Kachel „kein Turner“ gewählt, heißt der Knopf „Wertung freigeben“ und gibt
     ohne Fenster frei (Oberliga: Duell frei, wenn beide Turner fertig sind; sonst vermerkt, `dnsReleased`); danach
     „Wertung ändern“.
