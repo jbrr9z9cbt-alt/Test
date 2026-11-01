@@ -59,6 +59,14 @@ Begonnen 01.11.2026.
    - Vorab (vor dem Gerätestart) gewählt: Knopf bis zum Start gesperrt wie bisher. „kein Turner“ im Fenster gewählt: das
      Fenster bleibt offen, dort „Wertung freigeben“.
    - Tastatur: Tab von der Turnerauswahl zum Knopf, Enter gibt frei; danach Fokus beim nächsten Turner.
+10. **Startseite ohne Scrollen** (gewünscht 01.11.2026):
+    - Die Reihe mit den 6 Gerätepiktogrammen (ohne Funktion) und der Satz „Bitte die Liga wählen“ entfallen (beschlossen).
+    - Vorschlag zusätzlich am Handy (noch zu bestätigen): Im Kopf der Startseite steht eine leere, unsichtbare Menüzeile
+      (ca. 85 px dunkle Fläche) – sie entfällt auf der Startseite; die drei Kacheln werden etwas flacher, das Logo etwas
+      kleiner (64 statt 96 px). Nachgemessen: ohne Scrollen in der installierten App (390×844), im iPhone-Safari (390×664)
+      und auf kleinen Android-Handys (360×640); nur das iPhone SE im Safari (375×548) scrollt noch ca. 70 px.
+      Nur die Reihe und den Satz wegzulassen reicht nur in der App (im Safari blieben ca. 130 px).
+    - iPad und Laptop scrollen schon heute nicht; dort ändert sich nur der Wegfall von Reihe und Satz.
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
 Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
