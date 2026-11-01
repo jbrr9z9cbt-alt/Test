@@ -3800,9 +3800,12 @@
     }
   }
 
-  // Tipp neben ein offenes Aufklappmenü schließt nur das Menü (löst darunter nichts aus).
+  // Tipp neben ein offenes Aufklappmenü schließt nur das Menü (löst darunter nichts aus). Ein Link im Menü schließt es
+  // sofort (auch wenn danach eine Rückfrage kommt, z. B. „Änderungen speichern?“); Klicks in Rückfragen gehen immer durch.
   document.addEventListener('click', function (ev) {
     if (!openMenu || !ev.target.closest) return;
+    if (ev.target.closest('.modal-backdrop')) { closeMenus(); return; }
+    if (ev.target.closest('.menu-pop a')) { closeMenus(); return; }
     if (ev.target.closest('.menu-pop') || ev.target.closest('.tb-menu[data-menu]')) return;
     ev.preventDefault();
     ev.stopPropagation();
