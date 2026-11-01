@@ -18,15 +18,20 @@ Begonnen 01.11.2026.
    verdeckt, Kopf (Titel und Turner) nach oben weggeschoben** (gemeldet 01.11.2026). Ursache: Der Abstand, der am iPad quer
    zwischen Rechner und Tastatur gedacht war (2,5rem), wirkt am iPhone zwischen allen Zeilen des Rechners. Er gilt künftig nur
    für iPad quer und PC; danach passt der Rechner am iPhone wieder ganz auf den Bildschirm (Kopf oben, Tastatur unten).
-4. **Zahlentastatur: „Weiter“ endet im letzten Feld, Tastatur steht fest** (gemeldet 01.11.2026): Bisher springt „Weiter ▶“
+4. **Zahlentastatur: „Weiter“ als Kreislauf, Tastatur steht fest** (gemeldet 01.11.2026): Bisher springt „Weiter ▶“
    nach dem letzten Feld (NA) auf „Wertung freigeben“; dabei verschwinden Feld- und Turnername über der Tastatur, die Zeile
    wird niedriger und die Tastatur rutscht ein Stück nach oben. Am Touch-Gerät bringt der Sprung nichts – „Wertung freigeben“
    wird ohnehin angetippt.
    - Die Anzeigezeile über der Tastatur bekommt eine feste Höhe – die Tastatur bewegt sich nie.
-   - Vorschlag: „Weiter ▶“ bleibt im letzten Feld stehen und ist dort ausgegraut (NA bleibt aktiv, Anzeige bleibt); freigegeben
-     wird durch Antippen von „Wertung freigeben“. Ebenso im D-Note-Rechner: „Weiter“ endet bei EG, „Übernehmen“ wird angetippt.
+   - „Weiter ▶“ ist ein Kreislauf (entschieden 01.11.2026): nach dem letzten Feld wieder E1. Freigegeben wird durch Antippen
+     von „Wertung freigeben“. Ebenso im D-Note-Rechner: nach EG wieder ≥ D, „Übernehmen“ wird angetippt.
    - Mit echter Tastatur (Laptop) bleibt es wie bisher: Enter nach dem letzten Feld springt auf „Wertung freigeben“
      bzw. „Übernehmen“, ein weiteres Enter gibt frei.
+5. **Standbonus über die Zahlentastatur** (Vorschlag 01.11.2026, noch zu bestätigen): „Stand“ wird ein Feld in der
+   Reihenfolge von „Weiter ▶“ – E1 → E2 → (E3) → D-Note → Stand → NA → E1 (am Pauschenpferd ohne Stand). Ist Stand aktiv,
+   zeigt die Anzeige über der Tastatur „Standbonus · Turner“ und „+0,1“ bzw. „–“; Taste **1** = Standbonus ja (+0,1),
+   **0** oder **⌫** = nein, das Komma ist dort gesperrt. Antippen des Kästchens schaltet wie bisher direkt um.
+   Am Laptop unverändert (Tab erreicht das Kästchen, Leertaste schaltet um).
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
 Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
