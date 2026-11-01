@@ -42,7 +42,7 @@ Begonnen 01.11.2026.
      Werten wie „1,4“ wird ohnehin neu getippt; ⌫ löscht). ↑ / ↓ bleiben ±0,1.
    - In der geschlossenen Turnerauswahl ändern ← / → den Turner nicht versehentlich (wie schon ↑ / ↓).
    - D-Note-Rechner genauso: Tab ≥ D → C → B → A → EG → „Übernehmen“, ← / → zwischen den Feldern, „Abbrechen“ = Esc.
-7. **D-Note-Rechner: Texte** (gewünscht 01.11.2026):
+7. **D-Note-Rechner: Texte** (beschlossen 01.11.2026, Texte bestätigt):
    - Statt „Elemente 4 von 8“ steht „noch 4 Elemente möglich“ (Einzahl: „noch 1 Element möglich“; bei 8 Elementen:
      „keine Elemente mehr möglich“; bei mehr als 8 rot: „1 Element zu viel“ bzw. „2 Elemente zu viel“). „Summe“ rechts bleibt.
    - Bei EG entfällt der Text „höchstens 2,3“ (nur noch „Elementgruppen“); die rote Markierung bei einem zu hohen Wert bleibt.
