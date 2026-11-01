@@ -12,8 +12,8 @@ Begonnen 01.11.2026.
 2. **iPhone: Zahlentastatur immer ganz unten** (gemeldet 01.11.2026, Bildschirmfotos aus der installierten App) – im
    Wertungsfenster und im D-Note-Rechner. Oben bleibt alles wie bisher (Kopf, Turner, Felder, Endnote, Hinweis, Knöpfe),
    die Tastatur steht unten am Bildschirmrand (in Safari direkt über der unteren Leiste); der Platz dazwischen bleibt frei.
-   Die Einstellung „Zahlentastatur“ rückt dafür unter die Knöpfe „Abbrechen“/„Wertung freigeben“. Prüfen: App 390×844,
-   Safari 390×664 und 375×548 – nichts darf verdeckt sein.
+   Die Einstellung „Zahlentastatur“ bleibt unter der Tastatur – als unterstes Element (entschieden 01.11.2026).
+   Prüfen: App 390×844, Safari 390×664 und 375×548 – nichts darf verdeckt sein.
 3. **Fehler in Beta 78: D-Note-Rechner am iPhone mit großen Lücken, lässt sich verschieben, untere Tastenreihe teils
    verdeckt, Kopf (Titel und Turner) nach oben weggeschoben** (gemeldet 01.11.2026). Ursache: Der Abstand, der am iPad quer
    zwischen Rechner und Tastatur gedacht war (2,5rem), wirkt am iPhone zwischen allen Zeilen des Rechners. Er gilt künftig nur
