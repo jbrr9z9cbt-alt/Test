@@ -7,7 +7,8 @@
    z. B. „← Zurück zum Wettkampf · TG Geisweid/Eichen – KTS Mettingen“ (lange Namen mit „…“). Gemerkt je Liga auf diesem Gerät
    beim Öffnen eines Wettkampfs; auf der Wettkampfseite selbst und wenn der Wettkampf gelöscht wurde, entfällt der Eintrag.
    Zur Startseite (Liga wechseln) führt weiterhin das Logo links in der Kopfzeile.
-2. **Fehler in Beta 81 behoben (auf dem Arbeitszweig): Gerätereiter am Laptop/iPad quer wieder fixiert** (gemeldet 01.11.2026):
+2. **Fehler in Beta 81 behoben (auf dem Arbeitszweig, kommt mit dem nächsten Update): Gerätereiter am Laptop/iPad quer wieder
+   fixiert** (gemeldet 01.11.2026):
    Seit Beta 81 scrollten die Gerätereiter (und Hinweise) am Laptop und iPad quer weg, nur Menüband und Kopf blieben stehen.
    Ursache: ein überzähliges Schluss-Tag nach dem Umbau der Werkzeugzeile. Jetzt bleiben Menüband, Kopf und Gerätereiter wieder
    gemeinsam oben stehen (ab 1100 px Breite: Laptop, iPad Air/Pro quer).
