@@ -7,6 +7,15 @@
    z. B. „← Zurück zum Wettkampf · TG Geisweid/Eichen – KTS Mettingen“ (lange Namen mit „…“). Gemerkt je Liga auf diesem Gerät
    beim Öffnen eines Wettkampfs; auf der Wettkampfseite selbst und wenn der Wettkampf gelöscht wurde, entfällt der Eintrag.
    Zur Startseite (Liga wechseln) führt weiterhin das Logo links in der Kopfzeile.
+2. **Fehler in Beta 81 behoben (auf dem Arbeitszweig): Gerätereiter am Laptop/iPad quer wieder fixiert** (gemeldet 01.11.2026):
+   Seit Beta 81 scrollten die Gerätereiter (und Hinweise) am Laptop und iPad quer weg, nur Menüband und Kopf blieben stehen.
+   Ursache: ein überzähliges Schluss-Tag nach dem Umbau der Werkzeugzeile. Jetzt bleiben Menüband, Kopf und Gerätereiter wieder
+   gemeinsam oben stehen (ab 1100 px Breite: Laptop, iPad Air/Pro quer).
+3. **Oberen Bereich auch auf kleineren iPads fixieren** (Vorschlag 01.11.2026, Vorschaubilder gezeigt, noch zu entscheiden):
+   Zwischen 700 und 1099 px Breite (iPad 10,2" quer 1080 px, iPad hoch 768–834 px) bisher nur Kopfzeile und Menüband fest.
+   Vorschlag: wie am Laptop – Kopf einzeilig, Gerätereiter flach in einer Zeile, alles beim Scrollen oben fest; hochkant die
+   Gerätereiter ohne Namen (nur Logo und Stand, wie am Handy). Fest stehen dann ca. 200 px (iPad quer 25 %, hochkant 17–19 %
+   der Höhe).
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 

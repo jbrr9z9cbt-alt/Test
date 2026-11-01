@@ -1101,7 +1101,7 @@
       '</div>' +
       '<div class="subscore">Gerätepunkte <strong data-out="app">' + r.homeApp + ':' + r.guestApp + '</strong></div>' +
       (deductionsText(m) ? '<div class="deduct-note">' + esc(deductionsText(m)) + '</div>' : '') +
-      '</div></section>' +
+      '</section>' +
       (locked ? '<div class="banner info">Dieser Wettkampf ist abgeschlossen und schreibgeschützt.</div>' : '') +
       '<div data-out="pending">' + pendingBanner(m) + '</div>' +
       (m.unlockApparatus && m.status !== 'final' ? '<div class="unlock-bar">⚠ <b>Gerätesperre aufgehoben</b> – alle Geräte sind frei wählbar. ' +
