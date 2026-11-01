@@ -32,8 +32,7 @@ Begonnen 01.11.2026.
    zeigt die Anzeige über der Tastatur „Standbonus · Turner“ und „+0,1“ bzw. „–“; Taste **1** = Standbonus ja (+0,1),
    **0** oder **⌫** = nein, das Komma ist dort gesperrt. Antippen des Kästchens schaltet wie bisher direkt um.
    Am Laptop unverändert (Tab erreicht das Kästchen, Leertaste schaltet um).
-6. **Hardware-Tastatur: kürzere Tab-Reihenfolge, Felder auch mit ← / →** (gewünscht 01.11.2026; Vorschlag, noch zu
-   bestätigen):
+6. **Hardware-Tastatur: kürzere Tab-Reihenfolge, Felder auch mit ← / →** (beschlossen 01.11.2026):
    - Tab im Wertungsfenster nur noch: Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“ → wieder Turner
      (Umschalt+Tab rückwärts). Nicht mehr per Tab erreichbar: „berechnen“, „Wertung 0,00“, „Abbrechen“ (dafür gibt es Esc),
      außerdem der Sturz-Timer-Knopf oben (in der Kachel ist er schon nicht per Tab erreichbar) und die Einstellung
