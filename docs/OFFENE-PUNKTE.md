@@ -32,6 +32,17 @@ Begonnen 01.11.2026.
    zeigt die Anzeige über der Tastatur „Standbonus · Turner“ und „+0,1“ bzw. „–“; Taste **1** = Standbonus ja (+0,1),
    **0** oder **⌫** = nein, das Komma ist dort gesperrt. Antippen des Kästchens schaltet wie bisher direkt um.
    Am Laptop unverändert (Tab erreicht das Kästchen, Leertaste schaltet um).
+6. **Hardware-Tastatur: kürzere Tab-Reihenfolge, Felder auch mit ← / →** (gewünscht 01.11.2026; Vorschlag, noch zu
+   bestätigen):
+   - Tab im Wertungsfenster nur noch: Turner → E1 → E2 → (E3) → D-Note → Stand → NA → „Wertung freigeben“ → wieder Turner
+     (Umschalt+Tab rückwärts). Nicht mehr per Tab erreichbar: „berechnen“, „Wertung 0,00“, „Abbrechen“ (dafür gibt es Esc),
+     außerdem der Sturz-Timer-Knopf oben (in der Kachel ist er schon nicht per Tab erreichbar) und die Einstellung
+     „Zahlentastatur“. Mit Maus bzw. Antippen bleibt alles bedienbar.
+   - **← / →** wechseln zwischen den Feldern E1 … NA (inkl. Stand), in beide Richtungen und im Kreis; der Inhalt des neuen
+     Felds ist markiert, Tippen ersetzt ihn. Innerhalb eines Felds lässt sich der Cursor damit nicht mehr verschieben (bei
+     Werten wie „1,4“ wird ohnehin neu getippt; ⌫ löscht). ↑ / ↓ bleiben ±0,1.
+   - In der geschlossenen Turnerauswahl ändern ← / → den Turner nicht versehentlich (wie schon ↑ / ↓).
+   - D-Note-Rechner genauso: Tab ≥ D → C → B → A → EG → „Übernehmen“, ← / → zwischen den Feldern, „Abbrechen“ = Esc.
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
 Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
