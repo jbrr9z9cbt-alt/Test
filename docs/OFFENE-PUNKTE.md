@@ -12,11 +12,8 @@
    Seit Beta 81 scrollten die Gerätereiter (und Hinweise) am Laptop und iPad quer weg, nur Menüband und Kopf blieben stehen.
    Ursache: ein überzähliges Schluss-Tag nach dem Umbau der Werkzeugzeile. Jetzt bleiben Menüband, Kopf und Gerätereiter wieder
    gemeinsam oben stehen (ab 1100 px Breite: Laptop, iPad Air/Pro quer).
-3. **Oberen Bereich auch auf kleineren iPads fixieren** (Vorschlag 01.11.2026, Vorschaubilder gezeigt, noch zu entscheiden):
-   Zwischen 700 und 1099 px Breite (iPad 10,2" quer 1080 px, iPad hoch 768–834 px) bisher nur Kopfzeile und Menüband fest.
-   Vorschlag: wie am Laptop – Kopf einzeilig, Gerätereiter flach in einer Zeile, alles beim Scrollen oben fest; hochkant die
-   Gerätereiter ohne Namen (nur Logo und Stand, wie am Handy). Fest stehen dann ca. 200 px (iPad quer 25 %, hochkant 17–19 %
-   der Höhe).
+3. ~~Oberen Bereich auch auf kleineren iPads fixieren~~ – **entfällt** (entschieden 01.11.2026): Kleines iPad quer (unter
+   1100 px) und iPad hochkant bleiben wie bisher (nur Kopfzeile und Menüband fest). Nur die Reparatur aus Punkt 2 kommt.
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
