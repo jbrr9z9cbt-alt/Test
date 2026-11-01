@@ -67,6 +67,13 @@
    (6,1 Zoll sind dort oft nur 360 px breit, z. B. Galaxy S: 360 × 780 – die Breite 360 bleibt also wichtig).
    **iPhone SE und iPhone mini** (375 × 667 bzw. 375 × 812) müssen nicht mehr berücksichtigt werden; bisherige Anpassungen
    für sie bleiben, werden aber nicht mehr geprüft. Grundsatz kommt mit dem nächsten Update auch in die README.
+9. **Sturz-Timer sperren wie die Turnerauswahl** (beschlossen 01.11.2026):
+   - Kachel: Der Knopf „Sturz-Timer“ wird gesperrt, sobald dort die Turnerauswahl gesperrt ist (nach der Freigabe).
+     Bei „kein Turner“ ist er wirklich gesperrt – bisher war er nur blass, startete den Timer aber trotzdem (Fehler).
+   - Läuft der Timer gerade für diesen Turner, bleibt der Knopf bedienbar, bis er gestoppt oder abgelaufen ist (sonst ließe
+     sich ein noch laufender Timer nach Freigabe oder Umstellen auf „kein Turner“ nicht mehr anhalten).
+   - Wertungsfenster: Der Sturz-Timer oben rechts folgt denselben Regeln – gesperrt bei einer bereits freigegebenen Wertung
+     („Wertung ändern“) und bei „kein Turner“, außer sein Timer läuft gerade.
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
