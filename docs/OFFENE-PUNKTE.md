@@ -61,7 +61,7 @@ Begonnen 01.11.2026.
    - Tastatur: Tab von der Turnerauswahl zum Knopf, Enter gibt frei; danach Fokus beim nächsten Turner.
 10. **Startseite ohne Scrollen** (gewünscht 01.11.2026):
     - Die Reihe mit den 6 Gerätepiktogrammen (ohne Funktion) und der Satz „Bitte die Liga wählen“ entfallen (beschlossen).
-    - Vorschlag zusätzlich am Handy (noch zu bestätigen): Im Kopf der Startseite steht eine leere, unsichtbare Menüzeile
+    - Zusätzlich am Handy (beschlossen 01.11.2026): Im Kopf der Startseite steht eine leere, unsichtbare Menüzeile
       (ca. 85 px dunkle Fläche) – sie entfällt auf der Startseite; die drei Kacheln werden etwas flacher, das Logo etwas
       kleiner (64 statt 96 px). Nachgemessen: ohne Scrollen in der installierten App (390×844), im iPhone-Safari (390×664)
       und auf kleinen Android-Handys (360×640); nur das iPhone SE im Safari (375×548) scrollt noch ca. 70 px.
