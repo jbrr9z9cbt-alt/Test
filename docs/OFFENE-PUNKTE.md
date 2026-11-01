@@ -560,6 +560,23 @@ Ergänzungen bei der Umsetzung:
 
 ## Weitere offene Punkte
 
+- **Später, gemerkt 01.11.2026 (nicht auf der aktuellen Liste): Drucken in der installierten App am iPhone.**
+  Befund (getestet vom Nutzer): Der Druckknopf funktioniert am iPad (Browser und installierte App) und am iPhone im
+  Browser; nur in der vom Home-Bildschirm installierten App am iPhone passiert nichts – unabhängig vom Pop-up-Blocker.
+  Grenze von iOS, über `window.print()` nicht lösbar. Die Abfrage „Diese Website wurde für das automatische Drucken
+  gesperrt“ beim zweiten Drucken ist ein Schutz von Safari (erstes Mal ohne Frage, danach mit „Erlauben“), harmlos.
+  Gemerkte Lösungen:
+  1. **„Als PDF teilen / drucken“** (nur installierte App am iPhone): Protokollseite per html2canvas scharf abbilden, mit
+     jsPDF als A4-PDF erzeugen, über `navigator.share` das Teilen-Menü öffnen (dort „Drucken“, „In Dateien sichern“, Mail …);
+     falls iOS das Teilen nach dem Erzeugen nicht direkt zulässt, zweiter Tipp auf „PDF fertig – jetzt teilen“. Schon
+     einmal gebaut (Commit `5849a98`, Entwurf Beta 57, zurückgenommen mit `73d4a48`) – müsste an die heutige Protokollseite
+     angepasst und am iPhone getestet werden; App ca. 0,5 MB größer, Bibliotheken erst beim Antippen geladen, offline.
+  2. **Nur ein Hinweis** statt des wirkungslosen Knopfs in der installierten App am iPhone, z. B. „Drucken ist in der
+     installierten App am iPhone nicht möglich – bitte am iPad, PC oder in Safari drucken.“
+  Geprüft und verworfen (Vorschläge von Gemini): Manifest „minimal-ui“ (iOS kennt den Modus nicht, fällt auf normales
+  Safari zurück – getrennte Daten, Löschung nach 7 Tagen ohne Nutzung möglich, gilt für alle Geräte) und PDF per
+  `window.open(blobUrl)` (Pop-up-Sperre nach der Erzeugung, leere Fenster in installierten Apps, im App-Fenster kein Zurück).
+
 - **Später, noch nicht beschlossen: ganzes Gerät ohne Scrollen auf Laptop und iPad quer** (Vorschaubilder 01.11.2026,
   nachgestellt mit scratchpad mock101): einzeilige Kacheln, nur so breit wie nötig (ca. 1000 px, mittig), Spaltenköpfe
   einmal oben; Zeile: Nr., Verein, Turnerauswahl, E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote, ⏱ (Sturz-Timer),
