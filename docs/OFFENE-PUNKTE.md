@@ -50,6 +50,15 @@ Begonnen 01.11.2026.
    geändert, öffnet der Rechner danach leer statt mit der alten Berechnung. Regel: Der Rechner zeigt die gespeicherten
    Anzahlen nur, wenn sie genau die D-Note im Feld ergeben (z. B. bei einer Korrektur ohne Änderung der D-Note); sonst
    beginnt er leer. Beim Freigeben gilt schon dieselbe Regel (nicht passende Anzahlen werden nicht gespeichert).
+9. **„kein Turner“ direkt in der Kachel freigeben** (beschlossen 01.11.2026): Bisher zeigt die Kachel nach „kein Turner“
+   schon „Endnote 0,00“, freigegeben werden muss aber über „Wertung eingeben“ und das Fenster – nicht intuitiv.
+   - Ist in der Kachel „kein Turner“ gewählt (und noch nicht freigegeben), heißt der Knopf **„Wertung freigeben“**
+     (hervorgehoben); ein Klick gibt ohne Fenster frei – genau wie die Freigabe im Fenster (Landesliga: Übung auf die Tafel;
+     Oberliga: Duell frei, wenn beide Turner fertig sind, sonst gespeichert; gleiche Meldungen).
+   - Danach heißt der Knopf „Wertung ändern“ und öffnet wie bisher das Fenster (z. B. wenn der Turner doch geturnt hat).
+   - Vorab (vor dem Gerätestart) gewählt: Knopf bis zum Start gesperrt wie bisher. „kein Turner“ im Fenster gewählt: das
+     Fenster bleibt offen, dort „Wertung freigeben“.
+   - Tastatur: Tab von der Turnerauswahl zum Knopf, Enter gibt frei; danach Fokus beim nächsten Turner.
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
 Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
