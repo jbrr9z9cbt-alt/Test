@@ -45,6 +45,9 @@
        Einturn-Timer ist dann nicht nötig. Am Ende wie heute „Einturnen beendet“ mit Schelle bzw. „Zeit abgelaufen“.
        Die längere Überschrift darf die Passung der Tafel nicht verändern (prüfen, notfalls kleiner).
    - Ältere Wettkämpfe: Die alten Startdaten werden nicht mehr beachtet.
+5. **Landesliga: Zeile „Summe (beste 3)“ unter den Turnerkacheln entfällt** (beschlossen 01.11.2026): Derselbe Wert steht
+   schon im Gerätereiter („Boden 0,00 : 0,00“) und in der Gerätezeile über den Kacheln („Gerätesumme …“). Streichwertungen
+   bleiben an der Kachel erkennbar; die Links „Mannschaftsabzug Heim/Gast“ bleiben und rücken nach oben. Oberliga unverändert.
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
