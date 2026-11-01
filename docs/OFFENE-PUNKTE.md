@@ -67,6 +67,29 @@ Begonnen 01.11.2026.
       und auf kleinen Android-Handys (360×640); nur das iPhone SE im Safari (375×548) scrollt noch ca. 70 px.
       Nur die Reihe und den Satz wegzulassen reicht nur in der App (im Safari blieben ca. 130 px).
     - iPad und Laptop scrollen schon heute nicht; dort ändert sich nur der Wegfall von Reihe und Satz.
+11. **Grundsatz Namen: fester Platz für Vereins- und Turnernamen** (gewünscht 01.11.2026; Prüfung gemacht, Vorschläge in
+    Abstimmung):
+    - Grundsatz: Vereins- und Turnernamen haben in jeder Ansicht und Bildschirmgröße einen festen Platz, der sich nicht nach
+      dem Namen richtet. Durchschnittliche Namen passen ohne Umbruch und ungekürzt (Vereine bis ca. 19 Zeichen wie
+      „TG Geisweid/Eichen“, „TV Jahn Plettenberg“; Turner wie „Daudrich, Michael“, „Brickwedde, Henning“ – die längsten der
+      vorgegebenen Turnerlisten haben 19 Zeichen). Längere Namen brechen innerhalb des festen Platzes um (wie das
+      Mannschaftsschild in der Kachel) oder werden mit „…“ gekürzt; sie machen nichts höher und schieben nichts weg.
+      Querformat (ab 1100 px Breite): Die Ergebniszeile oben bleibt immer einzeilig.
+    - Prüfung 01.11.2026 (FullHD, Laptop 1366/1280, iPad quer/hoch, Handy; mittlere und lange Namen): in Ordnung sind
+      Kacheln am Laptop/iPad (Mannschaftsschild zweizeilig ohne Mehrhöhe, Turnerauswahl breit genug), Wertungsfenster am
+      Laptop/iPad, Anzeigetafel (feste Zeilen), Turnervorstellung, Wettkampfliste am Laptop/iPad. Nicht in Ordnung:
+      a) Ergebniszeile Laptop/iPad quer: langer Name zweizeilig, ab 1280 px/iPad quer drei Reihen (Liga, „Beginn: …“,
+         „Sieger: …“ und Namen ohne feste Breite).
+      b) Handy, Kopf: schon „TG Geisweid/Eichen“ bricht um, der Kopf wird höher.
+      c) Handy, Kacheln: Turnerauswahl neben dem Mannschaftsschild nur ca. 80–150 px breit – „1 Daudrich, Michael“ abgeschnitten.
+      d) Handy, Wertungsfenster: bei langem Vereinsnamen ist die Turnerauswahl zu schmal für „14 Wilmes, Jonathan“.
+      e) Handy, Topscorer-Tabelle unten auf der Eingabeseite: Namen brechen dreizeilig um.
+      f) Handy, Wettkampfliste: sehr lange Namen machen die Zeile höher.
+    - Vorschläge: a) Liga, „Beginn: …“ und „Sieger: …“ entfallen in der Ergebniszeile; Heim rechtsbündig vor dem Stand, Gast
+      linksbündig dahinter, beide mit fester Breite und „…“ (nachgestellt: „SG Langenei-Kickenbach/Gleidorf“ passt ab iPad quer
+      ganz). b) Handy-Kopf als zwei Zeilen „● Verein … Punkte“ untereinander (volle Breite je Name). c) Handy-Kacheln:
+      Turnerauswahl immer in eigener Zeile über die volle Breite. d) Mannschaftsschild im Fenster höchstens 40 % breit.
+      e) Namen einzeilig mit „…“ (oder Tabelle am Handy weglassen). f) höchstens zwei Zeilen, dann „…“.
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
 Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
