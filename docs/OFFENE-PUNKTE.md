@@ -80,6 +80,14 @@
     12,9″ hoch 760 / 992 px; iPad 9,7″ hoch (736/736) und iPad quer (1100/1100) schon gleich. Künftig im Hochformat höchstens
     760 px wie das Wertungsfenster – Zahlentastatur an derselben Stelle, Anzahlfelder näher an D, C, B, A. iPad quer, Laptop
     und Handy unverändert.
+11. **Zoomen mit zwei Fingern auch bei offenem Wertungsfenster / Rechner** (beschlossen 01.11.2026, beobachtet am iPad):
+    Die Sperre aus Beta 78, die verhindert, dass die Seite hinter dem Fenster mitrutscht, blockierte jede Fingerbewegung –
+    auch das Zoomen mit zwei Fingern. Nach dem Drehen des iPads (das iPad behält dabei manchmal die Zoomstufe) ließ sich das
+    Bild deshalb erst nach „Abbrechen“ wieder passend zoomen. Künftig gehen Bewegungen mit zwei Fingern durch, Wischen mit
+    einem Finger verschiebt die Seite dahinter weiterhin nicht. Gemessen: Die Seite ist hoch und quer, mit und ohne Fenster,
+    genau bildschirmbreit (nichts ragt heraus). Nach dem Update am iPad prüfen (hier nur im nachgestellten Browser testbar).
+    Nicht umgesetzt: Zoom beim Drehen automatisch auf 100 % zurücksetzen (am Gerät nicht prüfbar, würde gewollten Zoom
+    zurücknehmen).
 
 ## Liste nach Beta 80 – umgesetzt in Beta 81 (veröffentlicht 01.11.2026, Commit `b102b5c`)
 
