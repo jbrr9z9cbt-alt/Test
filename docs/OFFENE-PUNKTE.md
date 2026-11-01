@@ -67,8 +67,8 @@ Begonnen 01.11.2026.
       und auf kleinen Android-Handys (360×640); nur das iPhone SE im Safari (375×548) scrollt noch ca. 70 px.
       Nur die Reihe und den Satz wegzulassen reicht nur in der App (im Safari blieben ca. 130 px).
     - iPad und Laptop scrollen schon heute nicht; dort ändert sich nur der Wegfall von Reihe und Satz.
-11. **Grundsatz Namen: fester Platz für Vereins- und Turnernamen** (gewünscht 01.11.2026; Prüfung gemacht, Vorschläge in
-    Abstimmung):
+11. **Grundsatz Namen: fester Platz für Vereins- und Turnernamen** (beschlossen 01.11.2026, nur bei e) ist der Umfang noch
+    offen):
     - Grundsatz: Vereins- und Turnernamen haben in jeder Ansicht und Bildschirmgröße einen festen Platz, der sich nicht nach
       dem Namen richtet. Durchschnittliche Namen passen ohne Umbruch und ungekürzt (Vereine bis ca. 19 Zeichen wie
       „TG Geisweid/Eichen“, „TV Jahn Plettenberg“; Turner wie „Daudrich, Michael“, „Brickwedde, Henning“ – die längsten der
@@ -85,11 +85,18 @@ Begonnen 01.11.2026.
       d) Handy, Wertungsfenster: bei langem Vereinsnamen ist die Turnerauswahl zu schmal für „14 Wilmes, Jonathan“.
       e) Handy, Topscorer-Tabelle unten auf der Eingabeseite: Namen brechen dreizeilig um.
       f) Handy, Wettkampfliste: sehr lange Namen machen die Zeile höher.
-    - Vorschläge: a) Liga, „Beginn: …“ und „Sieger: …“ entfallen in der Ergebniszeile; Heim rechtsbündig vor dem Stand, Gast
-      linksbündig dahinter, beide mit fester Breite und „…“ (nachgestellt: „SG Langenei-Kickenbach/Gleidorf“ passt ab iPad quer
-      ganz). b) Handy-Kopf als zwei Zeilen „● Verein … Punkte“ untereinander (volle Breite je Name). c) Handy-Kacheln:
-      Turnerauswahl immer in eigener Zeile über die volle Breite. d) Mannschaftsschild im Fenster höchstens 40 % breit.
-      e) Namen einzeilig mit „…“ (oder Tabelle am Handy weglassen). f) höchstens zwei Zeilen, dann „…“.
+    - Beschlossen (01.11.2026):
+      a) Ergebniszeile Laptop/iPad quer: Liga, „Beginn: …“ und „Sieger: …“ entfallen; Heim rechtsbündig vor dem Stand, Gast
+         linksbündig dahinter, beide mit fester Breite und „…“ (nachgestellt: „SG Langenei-Kickenbach/Gleidorf“ passt ab iPad
+         quer ganz).
+      b) Handy-Kopf: die beiden Mannschaften als zwei Zeilen „● Verein … Punkte“ untereinander (volle Breite je Name).
+      c) Handy-Kacheln: Turnerauswahl immer in eigener Zeile über die volle Breite (bisher nur, wenn der Vereinsname sehr lang
+         ist – z. B. bei SG Langenei-Kickenbach/Gleidorf; bei mittellangen Namen blieb sie daneben und zu schmal).
+      d) Handy-Wertungsfenster: Vereinsschild und Turnerauswahl untereinander (beide volle Breite); am Laptop/iPad bleiben sie
+         nebeneinander. Passt auch mit Safari-Leisten; auf dem kleinsten iPhone (SE) gleichen etwas kleinere Tasten das aus.
+      e) Die Topscorer-Tabelle entfällt „überall“ – sicher auf der Eingabeseite (alle Geräte, beide Ligen). Offen: auch im
+         Fenster „Ergebnis/Siegerehrung“ der Anzeigetafel und im Protokoll?
+      f) Handy-Wettkampfliste: Namen höchstens zwei Zeilen, dann „…“.
 
 Beta 78 am iPhone bestätigt (01.11.2026): Felder lassen sich antippen, kein Zoom, Seite dahinter bleibt stehen,
 Fenster und D-Note-Rechner mit Safari-Leisten ganz sichtbar.
