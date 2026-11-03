@@ -20,6 +20,13 @@
    untereinander, ↑/↓ bewirken dort bisher nichts. Künftig wählt ↓ das nächste Feld wie Enter und → (≥ D → C → B → A → EG
    → „Übernehmen“, nur wenn möglich → wieder ≥ D), ↑ das vorige wie ← (derselbe Kreis rückwärts). → und ← bleiben wie
    bisher. Im Wertungsfenster bleibt alles unverändert (↑/↓ schalten den Standbonus, auf der D-Note wählt ↓ „berechnen“).
+4. **D-Note-Rechner: Hinweis, wenn Elemente eingetragen sind, aber keine Elementgruppen** (beschlossen 03.11.2026): Wird
+   ein Element anerkannt, ist immer auch eine Elementgruppe anerkannt – eine Wertung mit Elementen, aber EG leer oder 0,0
+   kann nicht stimmen. Bei „Übernehmen“ (bzw. Enter darauf) mit mindestens einem Element (≥ D, C, B oder A größer 0) und
+   EG leer oder 0,0 erscheint ein Hinweis „Elementgruppen fehlen – es sind Elemente eingetragen, aber keine
+   Elementgruppen.“ mit nur einem Knopf „Elementgruppen eintragen“: Er schließt den Hinweis, die Auswahl steht im Feld EG.
+   Kein „Trotzdem übernehmen“. Keine rote Markierung beim Tippen (EG kommt ja noch), „Übernehmen“ bleibt antippbar.
+   Ohne Elemente kein Hinweis. Zahlentastatur und Hardware-Tastatur.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
