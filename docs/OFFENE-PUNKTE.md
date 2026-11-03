@@ -10,6 +10,12 @@
      Rückfrage wie früher. „Ja“: Felder werden geleert (wie heute). „Nein“: Häkchen bleibt aus, alle Werte bleiben.
    - Sind noch keine Werte eingetragen, wird ohne Rückfrage angekreuzt.
    - Beide Ligen, auch bei „Wertung ändern“ einer bereits freigegebenen Wertung (wie die Rückfrage bei „kein Turner“).
+2. **D-Note-Rechner: nach „Übernehmen“ bleibt die Auswahl auf der D-Note** (beschlossen 03.11.2026): Bisher springt sie
+   auf „Neutr. Abzug“ und überspringt den Standbonus (der Rechner nimmt das nächste Zahlenfeld, der Standbonus ist ein
+   Schalter). Künftig bleibt die Auswahl auf der D-Note (gelbe Umrandung bzw. aktives Feld der Zahlentastatur, die
+   übernommene Note ist gleich zu sehen); „Weiter ▶“ bzw. Enter/→ führt von dort zum Standbonus, an Geräten ohne
+   Standbonus (Pauschenpferd) zum neutralen Abzug. Gilt für Zahlentastatur und Hardware-Tastatur; „Abbrechen“ im Rechner
+   bleibt wie heute.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
