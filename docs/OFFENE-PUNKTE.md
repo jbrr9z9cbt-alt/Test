@@ -46,6 +46,11 @@
    mindestens 20 Sekunden auf dem Gerät (davon 10 s mit freiem Blick auf alle Wertungen). Ohne große Einblendung (letzte
    Übung in der Landesliga „kein Turner“) 10 Sekunden ab der Freigabe. Eine Freigabe am nächsten Gerät schaltet weiter
    sofort um; ohne Reiterwechsel bleibt das Gerät ohnehin stehen.
+8. **Menüband: beim Öffnen eines Wettkampfs immer Reiter „Anzeigetafel“** (beschlossen 03.11.2026): Bisher merkt sich
+   die App den zuletzt gewählten Reiter je Gerät. Künftig ist beim Öffnen eines Wettkampfs immer „Anzeigetafel“ gewählt –
+   aus der Wettkampfliste, beim Start der App und bei der Rückkehr mit „← zurück“ aus Setup oder Protokoll. Innerhalb der
+   Wettkampfseite bleibt ein gewählter Reiter „Wettkampf“ stehen (kein Zurückspringen beim Speichern oder beim Wechsel der
+   Gerätereiter). Das Merken des Reiters entfällt. Handy (Aufklappmenüs) unverändert.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
