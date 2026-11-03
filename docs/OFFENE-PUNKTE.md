@@ -16,6 +16,10 @@
    übernommene Note ist gleich zu sehen); „Weiter ▶“ bzw. Enter/→ führt von dort zum Standbonus, an Geräten ohne
    Standbonus (Pauschenpferd) zum neutralen Abzug. Gilt für Zahlentastatur und Hardware-Tastatur; „Abbrechen“ im Rechner
    bleibt wie heute.
+3. **D-Note-Rechner: Auswahl auch mit ↑ / ↓ bewegen** (beschlossen 03.11.2026, Hardware-Tastatur): Die Felder stehen
+   untereinander, ↑/↓ bewirken dort bisher nichts. Künftig wählt ↓ das nächste Feld wie Enter und → (≥ D → C → B → A → EG
+   → „Übernehmen“, nur wenn möglich → wieder ≥ D), ↑ das vorige wie ← (derselbe Kreis rückwärts). → und ← bleiben wie
+   bisher. Im Wertungsfenster bleibt alles unverändert (↑/↓ schalten den Standbonus, auf der D-Note wählt ↓ „berechnen“).
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
