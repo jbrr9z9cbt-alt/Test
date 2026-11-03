@@ -33,6 +33,12 @@
    „Übernehmen“ ist möglich und trägt 0,0 ins Wertungsfenster ein (die Felder bleiben leer, keine Nullen tippen).
    Mit Hardware-Tastatur gehört „Übernehmen“ damit immer zum Kreis (außer bei Fehlern wie mehr als 8 Elementen). Ohne
    Elemente kein Hinweis aus Punkt 4. Eine von Hand eingetragene D-Note wird nur beim Tippen auf „Übernehmen“ überschrieben.
+6. **Anzeigetafel: Strich bei „kein Turner“ sofort, nicht erst nach der Freigabe** (beschlossen 03.11.2026): Vor der
+   Freigabe übernimmt die Tafel bisher nur Name und Startnummer des gewählten Turners, „kein Turner“ erst mit der Freigabe.
+   Künftig steht bei „kein Turner“ sofort „–“ in der Liste des Geräts (Oberliga und Landesliga), wie ein gewählter Name
+   sofort erscheint; wird doch ein Turner gewählt, steht sofort wieder sein Name da. Endnote 0,00 und Punkte erscheinen
+   weiterhin erst mit der Freigabe. Umsetzung nur in der Namensanzeige der Tafel, nicht in der Berechnung (sonst zählte
+   ein nicht freigegebenes „kein Turner“ schon als 0, z. B. beim grünen Haken).
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
