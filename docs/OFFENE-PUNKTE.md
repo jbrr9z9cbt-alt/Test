@@ -51,6 +51,18 @@
    aus der Wettkampfliste, beim Start der App und bei der Rückkehr mit „← zurück“ aus Setup oder Protokoll. Innerhalb der
    Wettkampfseite bleibt ein gewählter Reiter „Wettkampf“ stehen (kein Zurückspringen beim Speichern oder beim Wechsel der
    Gerätereiter). Das Merken des Reiters entfällt. Handy (Aufklappmenüs) unverändert.
+9. **Sturz-Timer-Knopf: Darstellungsfehler am iPad beheben** (gemeldet 03.11.2026 mit Fotos, iPad; am iPhone nicht
+   beobachtet): Beim laufenden Timer bleiben Reste der roten Umrandung stehen – während des Laufs doppelte Ränder, nach dem
+   Stopp ein roter Rahmenrest an der früheren, breiteren Stelle. Vermutete Ursache: Der Knopf ändert seine Breite
+   („Sturz-Timer“ → „⏱ 23 – Stopp“ → „⏱ 9 · Abzug 0,3 – Stopp“ …), und in den letzten 10 Sekunden blinkt der ganze Knopf
+   (eigene Bildschicht in Safari), deren alte Fläche das iPad nicht sauber neu zeichnet. Künftig:
+   - In den letzten 10 Sekunden blinkt nur die Sekundenzahl, nicht der ganze Knopf.
+   - Die Sekunden haben im Knopf einen festen Platz für zwei Ziffern – während des Laufs ändert der Knopf seine Breite
+     nicht mehr (Kachel und Wertungsfenster).
+   - Beschriftungen, Farben und Töne unverändert. Nur in Safari am iPad prüfbar – nach dem Update dort einmal einen
+     Sturz-Timer bis zum Ende laufen lassen.
+   Offen (noch nicht beschlossen): gelegentlich verschobenes Wertungsfenster am iPhone (nicht reproduzierbar) – Verdacht:
+   seit Beta 82 erlaubte Zwei-Finger-Gesten; möglicher Ausweg: am Handy wieder sperren, iPad behält das Zoomen.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
