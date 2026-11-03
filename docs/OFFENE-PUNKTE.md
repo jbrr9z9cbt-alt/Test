@@ -61,8 +61,10 @@
      nicht mehr (Kachel und Wertungsfenster).
    - Beschriftungen, Farben und Töne unverändert. Nur in Safari am iPad prüfbar – nach dem Update dort einmal einen
      Sturz-Timer bis zum Ende laufen lassen.
-   Offen (noch nicht beschlossen): gelegentlich verschobenes Wertungsfenster am iPhone (nicht reproduzierbar) – Verdacht:
-   seit Beta 82 erlaubte Zwei-Finger-Gesten; möglicher Ausweg: am Handy wieder sperren, iPad behält das Zoomen.
+   Beobachtung (nicht Teil des Punkts): gelegentlich verschobenes Wertungsfenster am iPhone, nicht reproduzierbar, seither
+   nicht wieder aufgetreten. Zwei-Finger-Gesten am Handy wieder zu sperren, scheidet aus (entschieden 03.11.2026): Wer
+   vorher groß gezoomt hat, sähe das Fenster ebenfalls vergrößert, „Abbrechen“ läge womöglich außerhalb des Bildschirms und
+   man könnte nicht mehr zurückzoomen. Abwarten, ob es wieder vorkommt.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
