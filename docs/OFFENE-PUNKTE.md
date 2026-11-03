@@ -27,6 +27,12 @@
    Elementgruppen.“ mit nur einem Knopf „Elementgruppen eintragen“: Er schließt den Hinweis, die Auswahl steht im Feld EG.
    Kein „Trotzdem übernehmen“. Keine rote Markierung beim Tippen (EG kommt ja noch), „Übernehmen“ bleibt antippbar.
    Ohne Elemente kein Hinweis. Zahlentastatur und Hardware-Tastatur.
+5. **D-Note-Rechner: ohne Eingaben ist D-Note 0,0 übernehmbar** (beschlossen 03.11.2026): Ein regulärer Fall (z. B. nur
+   Teile unterhalb von A, die keinen Wert haben und im Rechner nicht aufgeführt sind). Bisher zeigt der Rechner bei leeren
+   Feldern „–“ und „Übernehmen“ ist gesperrt. Künftig zählen leere Felder als 0: gleich beim Öffnen steht „D-Note 0,0“,
+   „Übernehmen“ ist möglich und trägt 0,0 ins Wertungsfenster ein (die Felder bleiben leer, keine Nullen tippen).
+   Mit Hardware-Tastatur gehört „Übernehmen“ damit immer zum Kreis (außer bei Fehlern wie mehr als 8 Elementen). Ohne
+   Elemente kein Hinweis aus Punkt 4. Eine von Hand eingetragene D-Note wird nur beim Tippen auf „Übernehmen“ überschrieben.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
