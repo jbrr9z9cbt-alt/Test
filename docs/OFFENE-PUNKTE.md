@@ -39,6 +39,13 @@
    sofort erscheint; wird doch ein Turner gewählt, steht sofort wieder sein Name da. Endnote 0,00 und Punkte erscheinen
    weiterhin erst mit der Freigabe. Umsetzung nur in der Namensanzeige der Tafel, nicht in der Berechnung (sonst zählte
    ein nicht freigegebenes „kein Turner“ schon als 0, z. B. beim grünen Haken).
+7. **Haltezeit der Tafel nach der letzten Wertung: 10 Sekunden erst nach der großen Einblendung** (beschlossen 03.11.2026,
+   Korrektur zu Beta 82 Punkt 4): Bisher überschneiden sich die 10 Sekunden Haltezeit mit der 10-sekündigen großen
+   Einblendung der letzten Wertung – danach wechselt die Tafel sofort, die 8 Wertungen des Geräts sind praktisch nie frei
+   zu sehen. Künftig zählen die 10 Sekunden ab dem Ende der Einblendung: Nach der letzten Freigabe bleibt die Tafel
+   mindestens 20 Sekunden auf dem Gerät (davon 10 s mit freiem Blick auf alle Wertungen). Ohne große Einblendung (letzte
+   Übung in der Landesliga „kein Turner“) 10 Sekunden ab der Freigabe. Eine Freigabe am nächsten Gerät schaltet weiter
+   sofort um; ohne Reiterwechsel bleibt das Gerät ohnehin stehen.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
