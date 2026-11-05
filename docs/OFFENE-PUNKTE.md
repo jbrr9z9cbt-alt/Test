@@ -65,6 +65,14 @@
    nicht wieder aufgetreten. Zwei-Finger-Gesten am Handy wieder zu sperren, scheidet aus (entschieden 03.11.2026): Wer
    vorher groß gezoomt hat, sähe das Fenster ebenfalls vergrößert, „Abbrechen“ läge womöglich außerhalb des Bildschirms und
    man könnte nicht mehr zurückzoomen. Abwarten, ob es wieder vorkommt.
+10. **Anzeigetafel am Handy hochkant: beide Hälften der Duell-Karte gleich breit und einzeilig** (beschlossen 05.11.2026,
+    Variante B, gemeldet mit Foto): Die Hälften wurden nach Inhalt verteilt – der längere Name holte sich mehr Breite
+    (iPhone 164 zu 139 px), rechts brachen „+0,1“ und „Neutr. Abzug“ um, links nicht. Künftig:
+    - Beide Hälften immer gleich breit (unabhängig von den Namen); zu lange Namen enden mit „…“.
+    - Nur am Handy hochkant: Zeilen D-Note, E-Note, Neutr. Abzug etwa 8 % kleiner und etwas engerer Abstand vor dem Wert –
+      alles einzeilig, auch „D-Note +SB 1,0 +0,1“; die Karte wird rund 50 px niedriger. Name und Endnote unverändert.
+    - Gemessen (Vorschau): iPhone 390 px und Android 360 px einzeilig, kein Scrollen; iPad hochkant und Querformat
+      unverändert. Gilt auch für die Karte der Landesliga (gleicher Aufbau). Passung der Tafel beim Umsetzen erneut prüfen.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
