@@ -73,6 +73,12 @@
       alles einzeilig, auch „D-Note +SB 1,0 +0,1“; die Karte wird rund 50 px niedriger. Name und Endnote unverändert.
     - Gemessen (Vorschau): iPhone 390 px und Android 360 px einzeilig, kein Scrollen; iPad hochkant und Querformat
       unverändert. Gilt auch für die Karte der Landesliga (gleicher Aufbau). Passung der Tafel beim Umsetzen erneut prüfen.
+11. **Laufender Pause-Knopf unter dem Mauszeiger lesbar** (gemeldet 09.11.2026 mit Foto, Laptop): Fährt die Maus über den
+    laufenden Knopf „Wettkampfpause“, wird er hellgrau hinterlegt, die Schrift bleibt weiß und ist nicht lesbar. Ursache:
+    Der Pause-Knopf steckt mit der Auswahl der Pausendauer in einer eigenen Gruppe, dadurch setzt sich die Regel für den
+    Mauszeiger gegen „orange“ durch (beim Einturnzeit-Knopf nicht). Künftig bleibt ein laufender Timer-Knopf unter dem
+    Mauszeiger orange mit weißer Schrift, nur etwas dunkler als Rückmeldung – Wettkampfpause und Einturnzeit, Menüband und
+    Aufklappmenü. Andere Knöpfe unverändert.
 
 ## Liste nach Beta 81 – umgesetzt in Beta 82 (veröffentlicht 01.11.2026, Commit `fd2c4e0`)
 
