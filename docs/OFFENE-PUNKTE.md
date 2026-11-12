@@ -1,6 +1,8 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Nächste Liste (nach Beta 82 – wird gesammelt und dann auf einmal umgesetzt)
+## Liste nach Beta 82 – umgesetzt in Beta 83 (noch nicht veröffentlicht)
+
+Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
 
 1. **Rückfrage bei „Wertung 0,00“, wenn schon Werte eingetragen sind** (beschlossen 01.11.2026): Bis Beta 76 (Eingabe in
    der Kachel) fragte die App „Wertung 0,00: Die bereits eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?“

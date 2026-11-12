@@ -13,7 +13,7 @@ Mannschaften, Regeln und Anleitung nur, wenn man von einem Wettkampf kommt – a
 Fenster; vergessen auf der Startseite, beim Öffnen eines anderen Wettkampfs und in der anderen Liga). Im Setup gilt er wie
 „Abbrechen“ (bei ungespeicherten Änderungen die Frage „speichern oder verwerfen“). Auf der Wettkampfseite zusätzlich „Anzeigetafel“ und „Wettkampf“:
 am Laptop und iPad (ab 700 × 500 px) als **Menüband** – Reiter in der grauen Zeile, darunter immer (nicht einklappbar) eine Leiste
-mit den Knöpfen des gewählten Reiters (gemerkt je Gerät; iPad hoch mit kurzen Beschriftungen; läuft die Pause, trägt der Reiter
+mit den Knöpfen des gewählten Reiters (beim Öffnen eines Wettkampfs immer „Anzeigetafel“, innerhalb der Wettkampfseite bleibt die Wahl stehen; iPad hoch mit kurzen Beschriftungen; läuft die Pause, trägt der Reiter
 „Anzeigetafel“ die Restzeit, ebenso die Einturnzeit); am Handy als **Aufklappmenüs** („Oberliga ▾ | Tafel ▾ | Wettkampf ▾“, schließen nach der Auswahl
 bzw. beim Tipp daneben, ohne darunter etwas auszulösen; laufende Pause bzw. Einturnzeit orange am Menüknopf, z. B. „Pause 4:12“, „Einturnen 4:12“).
 Menü „Anzeigetafel“: Anzeigetafel öffnen · Hell/Dunkel · Turnervorstellung · Einturnzeit · Wettkampfpause · Ergebnis/Siegerehrung. „✓ gespeichert“ steht in der Kopfzeile.
@@ -49,8 +49,8 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
 - **Anzeigetafel folgt dem Reiter** (`boardApparatus`): Ist an einem Gerät schon freigegeben, aber noch nicht alles, steht die
   Tafel fest auf diesem Gerät (Oberliga ab dem ersten Duell auf der Tafel – der erste Turner eines Duells wird nur gespeichert;
   Landesliga ab der ersten freigegebenen Wertung), egal welcher Reiter gewählt ist; bei mehreren solchen Geräten (vergessene
-  Freigabe) auf dem mit der letzten Freigabe. Nach der letzten Freigabe eines Geräts bleibt es mindestens 10 Sekunden stehen
-  (Dauer der großen Einblendung). Sonst zeigt die Tafel das Gerät des zuletzt gewählten Reiters (gespeichert im Wettkampf als
+  Freigabe) auf dem mit der letzten Freigabe. Nach der letzten Freigabe eines Geräts bleibt es nach der großen Einblendung
+  (10 s) noch 10 Sekunden stehen, insgesamt 20 Sekunden (ohne Einblendung – Landesliga, letzte Übung „kein Turner“ – 10 s). Sonst zeigt die Tafel das Gerät des zuletzt gewählten Reiters (gespeichert im Wettkampf als
   `display.tab`, damit das Tafelfenster es kennt). Korrekturen verschieben die Tafel nicht. Ältere Wettkämpfe: der frühere
   Gerätestart (`started`) wird nicht mehr beachtet; ohne gemerkten Reiter zeigt die Tafel das Gerät mit der letzten Freigabe.
 - **Gerätereiter mit Abzeichen** (beide Ligen): ● Eingaben vorhanden (ab der ersten eingetragenen Wertung – Turnerauswahl und
@@ -108,12 +108,15 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
     getippten Anzahlen ≥ D (je 0,8), C (je 0,6), B (je 0,4), A (je 0,2) samt Teilsummen, „noch x Elemente möglich“
     („keine Elemente mehr möglich“, rot „x Elemente zu viel“), Summe, EG (Elementgruppen, eine Nachkommastelle,
     höchstens 2,3 – zu hoch: rot) und D-Note. Mehr als 8 Elemente oder EG über 2,3: rot,
-    „Übernehmen“ gesperrt. „Übernehmen“ trägt die D-Note ins Wertungsfenster ein (freigegeben wird dort); die Anzahlen
+    „Übernehmen“ gesperrt. Leere Felder zählen als 0: ohne Eingaben steht gleich „D-Note 0,0“, übernehmbar (z. B. nur Teile
+    unterhalb von A). Elemente ohne EG (leer oder 0,0): bei „Übernehmen“ Hinweis „Elementgruppen fehlen“ mit nur dem Knopf
+    „Elementgruppen eintragen“ (Auswahl danach im Feld EG; keine rote Markierung beim Tippen). Nach „Übernehmen“ steht die
+    Auswahl auf der D-Note („Weiter“ führt zum Standbonus). „Übernehmen“ trägt die D-Note ins Wertungsfenster ein (freigegeben wird dort); die Anzahlen
     werden mit der Wertung gespeichert (`dparts`, auch in der Datensicherung) – nur wenn sie zur freigegebenen D-Note
     passen – und stehen beim erneuten Öffnen wieder da (wurde die D-Note von Hand geändert, beginnt der Rechner leer).
     Handy: bildschirmfüllend, Kopf oben, Tastatur unten („Weiter“/„◀ Zurück“ im Kreis ≥ D → C → B → A → EG, Komma nur bei
-    EG, „Übernehmen“ antippen); Laptop: Tab ≥ D … EG → „Übernehmen“, Enter/→ bis EG und weiter auf „Übernehmen“ (Enter
-    übernimmt), ← zurück, Esc = Abbrechen.
+    EG, „Übernehmen“ antippen); Laptop: Tab ≥ D … EG → „Übernehmen“, Enter, → oder ↓ bis EG und weiter auf „Übernehmen“ (Enter
+    übernimmt), ← oder ↑ zurück (die Felder stehen untereinander), Esc = Abbrechen.
   - **„kein Turner“ direkt freigeben**: Ist in der Kachel „kein Turner“ gewählt, heißt der Knopf „Wertung freigeben“ und gibt
     ohne Fenster frei (Oberliga: Duell frei, wenn beide Turner fertig sind; sonst vermerkt, `dnsReleased`); danach
     „Wertung ändern“.
@@ -151,10 +154,15 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   Farbe der Mannschaft, die das Duell gewonnen hat (unentschieden: graue 0).
 - **Nicht angetreten** löscht Turner und bereits eingegebene Wertungen dieser Übung (nach Rückfrage).
 - **Wertung 0,00** (nur mit ausgewähltem Turner) gibt einem angetretenen Turner die Endnote 0; eine D-Note 0 wird dagegen ganz normal
-  mit den Abzügen berechnet.
+  mit den Abzügen berechnet. Sind im Fenster schon Werte eingetragen, fragt die App vorher „Wertung 0,00: Die bereits
+  eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?“ (Nein: Häkchen bleibt aus, Werte bleiben).
+- **„kein Turner“ auf der Tafel:** sofort „–“ statt des Namens (wie ein gewählter Name sofort erscheint); Endnote und Punkte erst
+  mit der Freigabe. In der Landesliga gibt es bei „kein Turner“ keine große Einblendung (bewusst, seit der ersten Version).
 - **Sturz-Timer** an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“. Der Knopf (Kachel und
   Wertungsfenster) ist wie die Turnerauswahl nach der Freigabe und bei „kein Turner“ gesperrt – ein noch laufender Timer bleibt
-  bis zum Stopp bzw. Ablauf bedienbar.
+  bis zum Stopp bzw. Ablauf bedienbar. Während des Laufs behält der Knopf seine Breite (Sekunden auf zwei festen Stellen,
+  Platz für „· Abzug 0,3“), in den letzten 10 Sekunden blinkt nur die Zahl (am iPad blieben sonst Reste der Umrandung stehen).
+  Laufende Timer-Knöpfe (Pause, Einturnzeit) bleiben unter dem Mauszeiger orange (etwas dunkler).
   **Einturnzeit** (seit Beta 82 im Menü „Anzeigetafel“ zwischen Turnervorstellung und Wettkampfpause): ein einziger Timer 6:40
   (8 Turner × 50 Sekunden) ohne Zuordnung zu einem Gerät – Reiterwechsel, Turner und Wertungen ändern nichts an ihm; kein
   automatischer Gerätestart mehr. Laufende Wettkampfpause und Einturnzeit schließen sich gegenseitig aus (Knopf grau).
@@ -194,7 +202,7 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   - Knopf „Turnervorstellung“: Titelseite und anwesende Turner (nach Startnummer) erst der Gast-, dann der Heimmannschaft, zum Schluss das Kampfgericht
     (E1/OK, neutraler E2, Vereinskampfrichter als D, E bzw. D/E nach Verein); in der App erscheint dasselbe Fenster wie auf der Tafel (über der ganzen Seite) mit ◀ ▶ ■ (zurück/weiter/beenden), Pfeiltasten, Leertaste, Bild auf/ab (Presenter) und Esc;
     währenddessen keine anderen Fenster auf der Tafel
-  - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an
+  - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an; Karte des aktuellen Duells: beide Hälften immer gleich breit (lange Namen mit „…“), am Handy hochkant Zeilen D-Note, E-Note, Neutr. Abzug etwas kleiner und einzeilig
   - Ergebnisse eines Duells erscheinen erst, wenn beide Turner im Wertungsfenster **„Wertung freigeben“** haben
     (bei „kein Turner“ ohne Turner und Wertung)
   - Dann werden die neuen Scorepunkte **10 Sekunden bildschirmfüllend** als Zahl in der Farbe der

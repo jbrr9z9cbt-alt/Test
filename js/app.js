@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '82';
+  var APP_BUILD = '83';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 10000;
@@ -532,6 +532,9 @@
     }
     // Reiter bzw. Menüs „Anzeigetafel“ und „Wettkampf“ nur auf der Wettkampfseite
     var onMatch = r.name === 'match' && !r.sub && !!match(r.id);
+    // Beim Öffnen eines Wettkampfs (aus der Liste, beim Start, mit „← zurück“) ist der Reiter „Anzeigetafel“ gewählt.
+    if (onMatch && ribbonMatchId !== r.id) ribbonChoice = 'board';
+    ribbonMatchId = onMatch ? r.id : null;
     var tabsEl = document.getElementById('topbar-tabs');
     if (tabsEl) tabsEl.innerHTML = onMatch ? '<button type="button" class="tb-menu tb-tab" id="tb-board" data-menu="board" aria-haspopup="true" aria-expanded="false"></button>' +
       '<button type="button" class="tb-menu tb-tab" data-menu="match" aria-haspopup="true" aria-expanded="false">Wettkampf<span class="car" aria-hidden="true">▾</span></button>' : '';
@@ -1520,40 +1523,48 @@
     return isClassic(m) ? !!(S.revOf(d, 'home').revealedAt || S.revOf(d, 'guest').revealedAt) : !!d.revealedAt;
   }
 
-  /** Nach der letzten Freigabe eines Geräts bleibt es so lange auf der Tafel (mindestens), wie die große Einblendung läuft. */
-  var BOARD_HOLD_MS = FLASH_MS;
+  /**
+   * Nach der letzten Freigabe eines Geräts bleibt es noch BOARD_HOLD_MS auf der Tafel – gezählt ab dem Ende der großen
+   * Einblendung (FLASH_MS), damit die Wertungen des Geräts danach frei zu sehen sind; ohne Einblendung (Landesliga,
+   * letzte Übung „kein Turner“) ab der Freigabe.
+   */
+  var BOARD_HOLD_MS = 10000;
 
-  /** Zeitpunkt der letzten (ersten) Freigabe am Gerät – Korrekturen zählen nicht. */
-  function appLastPerformed(m, key) {
-    var at = '';
+  /**
+   * Letzte (erste) Freigabe am Gerät: Zeitpunkt und ob dazu eine große Einblendung kam – in der Landesliga nicht bei
+   * „kein Turner“ (siehe classicBoardFlash), in der Oberliga immer (das ganze Duell wird eingeblendet).
+   */
+  function appLastRelease(m, key) {
+    var res = { at: '', flash: false };
     m.apparatus[key].duels.forEach(function (d) {
-      (isClassic(m) ? [S.revOf(d, 'home'), S.revOf(d, 'guest')] : [d]).forEach(function (u) {
+      (isClassic(m) ? ['home', 'guest'] : [null]).forEach(function (k) {
+        var u = k ? S.revOf(d, k) : d;
         var t = u.firstRevealedAt || u.revealedAt;
-        if (t && t > at) at = t;
+        if (t && t > res.at) res = { at: t, flash: !(k && u.shown && u.shown.dns) };
       });
     });
-    return at;
+    return res;
   }
 
   /**
    * Gerät der Anzeigetafel:
    * 1. Ist an einem Gerät schon freigegeben, aber noch nicht alles, steht die Tafel fest auf diesem Gerät
    *    (bei mehreren – etwa einer vergessenen Freigabe – auf dem mit der letzten Freigabe).
-   * 2. Nach der letzten Freigabe eines Geräts bleibt es mindestens BOARD_HOLD_MS stehen (Zeit zum Lesen).
+   * 2. Nach der letzten Freigabe eines Geräts bleibt es nach der großen Einblendung noch BOARD_HOLD_MS stehen (Zeit zum Lesen).
    * 3. Sonst folgt die Tafel dem zuletzt gewählten Gerätereiter (m.display.tab), ohne Auswahl dem ersten Gerät.
    *    Gesperrt wird dabei nichts; der frühere Gerätestart (m.started) wird nicht mehr beachtet.
    */
   function boardApparatus(m) {
-    var open = null, openAt = '', last = null, lastAt = '';
+    var open = null, openAt = '', last = null, lastAt = '', lastFlash = false;
     S.APPARATUS.forEach(function (a) {
-      var at = appLastPerformed(m, a.key);
+      var rel = appLastRelease(m, a.key), at = rel.at;
       if (!at) return;
       var done = m.apparatus[a.key].duels.every(function (d) { return rowRevealed(m, d); });
       if (!done && at > openAt) { open = a; openAt = at; }
-      if (at > lastAt) { last = a; lastAt = at; }
+      if (at > lastAt) { last = a; lastAt = at; lastFlash = rel.flash; }
     });
     if (open) return open;
-    if (last && Date.now() - Date.parse(lastAt) < BOARD_HOLD_MS) return last;
+    if (last && Date.now() - Date.parse(lastAt) < (lastFlash ? FLASH_MS : 0) + BOARD_HOLD_MS) return last;
     // Ältere Wettkämpfe ohne gemerkten Reiter: das Gerät mit der letzten Freigabe.
     var key = m.display && m.display.tab;
     return S.APPARATUS.filter(function (a) { return a.key === key; })[0] || last || S.APPARATUS[0];
@@ -1623,8 +1634,17 @@
   }
 
   /** Name in der Liste der Tafel: „–“ nur bei „nicht angetreten“, sonst leer, solange kein Turner gewählt ist. */
-  function boardName(side) {
-    return side.dns ? '–' : esc(gymnastLabel(side.number, side.name) || '');
+  /**
+   * Name auf der Tafel. live (optional): die noch nicht freigegebene Eingabe – wie ein gewählter Name erscheint auch
+   * „kein Turner“ sofort als „–“ (nur in der Anzeige; gezählt wird erst mit der Freigabe).
+   */
+  function boardName(side, live) {
+    return side.dns || (live && live.dns) ? '–' : esc(gymnastLabel(side.number, side.name) || '');
+  }
+
+  /** Noch nicht freigegebene Eingabe einer Übung (sonst null) – für boardName. */
+  function boardLive(m, appKey, idx, k) {
+    return sideShown(m, appKey, idx, k) ? null : m.apparatus[appKey].duels[idx][k];
   }
 
   /** Landesliga: Wertungen des laufenden Geräts je Startpaar, Streichwertung blass und durchgestrichen. */
@@ -1637,13 +1657,13 @@
       return ar[k].struck.indexOf(i) >= 0 ? '<span class="struck-val"><s>' + fmt(v) + '</s></span>'
         : '<span class="team-val" style="color:' + boardTone(m, k) + '">' + fmt(v) + '</span>';
     }
-    function name(k, d, right) {
-      return '<td class="bn' + (right ? ' right' : '') + '" style="--team:' + boardTone(m, k) + '">' + boardName(d[k]) + '</td>';
+    function name(k, d, right, i) {
+      return '<td class="bn' + (right ? ' right' : '') + '" style="--team:' + boardTone(m, k) + '">' + boardName(d[k], boardLive(m, current.key, i, k)) + '</td>';
     }
     return '<div class="board-detail"><h3>' + appIcon(current.key, 'bd-ico') + current.name + '</h3><table class="board-duels classic">' +
       app.duels.map(function (d, i) {
-        return '<tr>' + name('home', d, false) + '<td class="num">' + val('home', i) + '</td><td></td>' +
-          '<td class="num">' + val('guest', i) + '</td>' + name('guest', d, true) + '</tr>';
+        return '<tr>' + name('home', d, false, i) + '<td class="num">' + val('home', i) + '</td><td></td>' +
+          '<td class="num">' + val('guest', i) + '</td>' + name('guest', d, true, i) + '</tr>';
       }).join('') +
       '<tr class="bsum"><td class="sum-lbl">Summe (beste ' + m.rules.counting + ')</td><td class="num">' + teamValue(m, ar, 'home', true) + '</td><td></td>' +
       '<td class="num">' + teamValue(m, ar, 'guest', true) + '</td><td class="sum-lbl right">Summe (beste ' + m.rules.counting + ')</td></tr>' +
@@ -1700,11 +1720,11 @@
       detail = '<div class="board-detail"><h3>' + appIcon(current.key, 'bd-ico') + current.name + '</h3><table class="board-duels">' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
-          return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + homeColor + '">' + boardName(d.home) + '</td>' +
+          return '<tr><td class="bn ' + (dr.winner === 'home' ? 'win' : '') + '" style="--team:' + homeColor + '">' + boardName(d.home, boardLive(m, current.key, i, 'home')) + '</td>' +
             '<td class="num">' + (dr.home === null ? '' : fmt(dr.home)) + '</td>' +
             '<td class="num pts">' + (dr.complete ? ptsPair(m, dr.homePoints, dr.guestPoints, true, ' : ') : '') + '</td>' +
             '<td class="num mirror">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
-            '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + boardName(d.guest) + '</td></tr>';
+            '<td class="bn right ' + (dr.winner === 'guest' ? 'win' : '') + '" style="--team:' + guestColor + '">' + boardName(d.guest, boardLive(m, current.key, i, 'guest')) + '</td></tr>';
         }).join('') +
         '<tr class="bsum"><td class="sum-lbl">Summe Scorepunkte</td><td></td><td class="num pts">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ' : ') + '</td>' +
         '<td></td><td class="sum-lbl right">Summe Scorepunkte</td></tr>' +
@@ -2216,8 +2236,11 @@
     var fall = fallState(m), warm = warmupState(m);
     $app.querySelectorAll('[data-action="fall-timer"]').forEach(function (btn) {
       var on = !!fall && fall.t.appKey === btn.getAttribute('data-app') && String(fall.t.idx) === btn.getAttribute('data-duel') && fall.t.side === btn.getAttribute('data-side');
-      var label = on ? '⏱ ' + secs(fall.remaining) + (fall.phase === 2 ? ' · Abzug 0,3' : '') + ' – Stopp' : 'Sturz-Timer';
-      if (btn.textContent !== label) btn.textContent = label;
+      // Laufend: Sekunden auf festem Platz, unsichtbar darunter die längste Beschriftung – der Knopf behält während des
+      // ganzen Laufs seine Breite (am iPad blieben sonst Reste der alten Umrandung stehen); geblinkt wird nur die Zahl.
+      var label = on ? '<span class="fall-lbl"><span>⏱ <b class="fs">' + secs(fall.remaining) + '</b>' + (fall.phase === 2 ? ' · Abzug 0,3' : '') + ' – Stopp</span>' +
+        '<span class="sizer" aria-hidden="true">⏱ <b class="fs">00</b> · Abzug 0,3 – Stopp</span></span>' : 'Sturz-Timer';
+      if (btn.innerHTML !== label) btn.innerHTML = label;
       btn.classList.toggle('t-fall1', on && fall.phase === 1);
       btn.classList.toggle('t-fall2', on && fall.phase === 2);
       ['fz-0', 'fz-1', 'fz-2', 'fz-pulse'].forEach(function (c) { btn.classList.toggle(c, on && fallTone(fall).split(' ').indexOf(c) >= 0); });
@@ -2676,7 +2699,7 @@
         '<b>Geräte und Anzeigetafel</b>: Gesperrt wird nichts – jeder Gerätereiter ist jederzeit wählbar, Turner lassen sich jederzeit ändern und Wertungen jederzeit eintragen. ' +
           'Die Anzeigetafel folgt dem gewählten Gerätereiter, solange an keinem Gerät eine Wertung offen ist. ' +
           (classic ? 'Mit der ersten freigegebenen Wertung eines Geräts' : 'Sobald an einem Gerät das erste Duell freigegeben ist,') +
-          ' bleibt die Tafel auf diesem Gerät, bis dort alle Wertungen freigegeben sind – egal, welcher Reiter gewählt ist. Nach der letzten Freigabe bleibt sie noch mindestens 10 Sekunden stehen (so lange wie die große Einblendung) und wechselt dann zum gewählten Reiter. ' +
+          ' bleibt die Tafel auf diesem Gerät, bis dort alle Wertungen freigegeben sind – egal, welcher Reiter gewählt ist. Nach der letzten Freigabe bleibt sie nach der großen Einblendung noch 10 Sekunden stehen (insgesamt 20 Sekunden; ohne Einblendung – Landesliga, letzte Übung „kein Turner“ – 10 Sekunden) und wechselt dann zum gewählten Reiter. ' +
           'Sind an mehreren Geräten Wertungen offen (z. B. bei einer vergessenen Freigabe), zeigt die Tafel das Gerät mit der letzten Freigabe.',
         'Die Gerätereiter zeigen den Stand: ● an diesem Gerät ist schon eine Wertung eingetragen' + (classic ? '' : ' (auch der gespeicherte erste Turner eines Duells)') + ', ✓ alle Wertungen freigegeben (am Handy nur Logo und Abzeichen, die Ergebnisse stehen im Gerätebereich). Am Laptop bleibt der obere Bereich mit den Gerätereitern beim Scrollen stehen.',
 
@@ -2684,13 +2707,13 @@
           'Den Turner kann man vorab in der Kachel oder erst im Fenster wählen; vor der Freigabe ist er sofort gespeichert (auch bei „Abbrechen“). Ohne Turner sind die Notenfelder gesperrt. ' +
           'Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. 4,8 oder 1.3; E-Note und Endnote rechnet die App schon beim Tippen: E-Note = 10 − Mittelwert der Abzüge E1 und E2 (bei drei E-Kampfrichtern 10 − mittlerer Abzug, höchster und niedrigster gestrichen); Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. ' +
           'Bei wenig Platz stehen über allen Feldern Kurzformen: E1–E3 = Abzüge der E-Kampfrichter, Stand = Standbonus, NA = neutraler Abzug. Der Sturz-Timer ist auch im Fenster bedienbar (Knopf oben rechts).',
-        '<b>D-Note berechnen</b> (Knopf „berechnen“ unter der D-Note, nicht am Sprung): Anzahl der Elemente je Wertigkeit eintippen – ≥ D je 0,8, C je 0,6, B je 0,4, A je 0,2, höchstens 8 Elemente insgesamt – und die Elementgruppen (EG, höchstens 2,3). „Übernehmen“ trägt die D-Note ins Fenster ein; die Anzahlen werden mit der Wertung gespeichert und stehen beim erneuten Öffnen wieder da. Über den Feldern steht, wie viele Elemente noch möglich sind; bei mehr als 8 Elementen oder EG über 2,3 wird rot markiert, „Übernehmen“ geht dann nicht. Wurde die D-Note danach von Hand geändert, beginnt der Rechner wieder leer. Mit Tastatur: Enter/→ bis EG und weiter auf „Übernehmen“ (Enter übernimmt), ← zurück, Esc bricht ab.',
+        '<b>D-Note berechnen</b> (Knopf „berechnen“ unter der D-Note, nicht am Sprung): Anzahl der Elemente je Wertigkeit eintippen – ≥ D je 0,8, C je 0,6, B je 0,4, A je 0,2, höchstens 8 Elemente insgesamt – und die Elementgruppen (EG, höchstens 2,3). „Übernehmen“ trägt die D-Note ins Fenster ein; die Anzahlen werden mit der Wertung gespeichert und stehen beim erneuten Öffnen wieder da. Über den Feldern steht, wie viele Elemente noch möglich sind; bei mehr als 8 Elementen oder EG über 2,3 wird rot markiert, „Übernehmen“ geht dann nicht. Leere Felder zählen als 0 – ohne Eingaben ergibt der Rechner D-Note 0,0 (z. B. nur Teile unterhalb von A). Sind Elemente eingetragen, aber keine Elementgruppen, erinnert ein Hinweis daran (ein anerkanntes Element erfüllt immer auch eine Elementgruppe); übernommen wird dann nicht. Nach „Übernehmen“ steht die Auswahl auf der D-Note. Wurde die D-Note danach von Hand geändert, beginnt der Rechner wieder leer. Mit Tastatur: Enter, → oder ↓ bis EG und weiter auf „Übernehmen“ (Enter übernimmt), ← oder ↑ zurück, Esc bricht ab.',
         '<b>Wertung freigeben</b> im Fenster übernimmt die Werte; <b>Abbrechen</b> verwirft sie ohne Rückfrage. In der Kachel stehen die Werte danach als Text, der Knopf heißt dann „Wertung ändern“.',
         (classic ? 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.' : 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.') +
           ' Im Fenster führt Tab nur über Turner, Notenfelder, Stand und „Wertung freigeben“ (Umschalt+Tab rückwärts). → und Enter gehen ins nächste Feld, ← ins vorige – im Kreis E1 → … → Stand → NA → „Wertung freigeben“ (nur wenn vollständig) → E1; Enter auf „Wertung freigeben“ gibt frei. Den <b>Standbonus</b> schalten ↑ / ↓ (oder 1 = ja, 0 = nein); auf der D-Note wählt ↓ den Knopf „berechnen“ (Enter öffnet den Rechner, ↑ zurück). Esc bricht ab. Was mit der Tastatur ausgewählt ist, hat eine gelbe Umrandung. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
         '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0); ein Feld antippen macht es zum aktiven Feld. „Weiter ▶“ springt ins nächste Feld, „◀ Zurück“ ins vorige (im Kreis E1 → … → Stand → NA → E1); freigegeben wird durch Antippen von „Wertung freigeben“. Auch der <b>Standbonus</b> gehört zur Reihenfolge: Taste 1 = +0,1, Taste 0 oder ⌫ = kein Standbonus (die übrigen Tasten sind dann ausgegraut). Am Handy steht die Zahlentastatur unten – mit etwas Abstand zum Rand, damit der Daumen sie gut erreicht. ' +
           'Mit angeschlossener Tastatur verschwindet sie beim ersten Tastendruck. Einstellung unten im Fenster: automatisch, immer oder nie (gilt für dieses Gerät).',
-        '<b>kein Turner</b> (ganz oben in der Turnerauswahl, in der Kachel oder im Fenster, auch vorab wählbar): Die Übung zählt 0 Punkte. Der Knopf in der Kachel heißt dann „Wertung freigeben“ und gibt direkt frei, ohne Fenster (danach „Wertung ändern“). Bereits erfasste Werte werden nach Rückfrage gelöscht; auf Tafel und Protokoll erscheint die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0.',
+        '<b>kein Turner</b> (ganz oben in der Turnerauswahl, in der Kachel oder im Fenster, auch vorab wählbar): Die Übung zählt 0 Punkte. Der Knopf in der Kachel heißt dann „Wertung freigeben“ und gibt direkt frei, ohne Fenster (danach „Wertung ändern“). Bereits erfasste Werte werden nach Rückfrage gelöscht; auf der Tafel steht sofort „–“ statt des Namens, die Wertung 0,00 erscheint mit der Freigabe; im Protokoll steht die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0. Sind schon Werte eingetragen, fragt die App vorher nach, ob sie gelöscht werden sollen.',
         classic
           ? '<b>Mannschaftsabzug</b>: Die Links „Mannschaftsabzug Heim“ bzw. „Gast“ ganz unten im Gerätebereich öffnen die Eingabe des Abzugs in Punkten. Es gibt je Mannschaft nur einen Abzug für den ganzen Wettkampf – die Links unter allen Geräten sind dieselben. Der Abzug mindert nur die Gesamtpunktzahl, nicht die Geräteergebnisse; 0 oder leer entfernt ihn. Er erscheint auf der Anzeigetafel und – nur wenn eingetragen – im Protokoll.'
           : '<b>Mannschaftsabzüge</b> werden beim Turner als <b>neutraler Abzug</b> eingetragen, der zuletzt am Gerät war bzw. bei dem der Abzug zuerst aufgefallen ist.'
@@ -2712,7 +2735,7 @@
       ]) +
 
       sec('5. Anzeigetafel', [
-        'Alle Knöpfe zur Tafel stehen unter <b>„Anzeigetafel“</b> in der grauen Kopfzeile, die zum Wettkampf (Setup, Protokoll / Drucken, Wettkampf abschließen) unter <b>„Wettkampf“</b>. Am Laptop und iPad sind das Reiter eines Menübands: Die Leiste darunter zeigt immer die Knöpfe des gewählten Reiters (die App merkt sich die Wahl). Am Handy sind es Aufklappmenüs („Tafel ▾“, „Wettkampf ▾“), die nach der Auswahl schließen; eine laufende Wettkampfpause bzw. Einturnzeit steht dann am Menüknopf. Wettkämpfe, Mannschaften, Regeln und Anleitung stehen im Menü unter dem Liganamen. Von Wettkampf Setup und Protokoll – und von diesen Seiten, wenn man vom Wettkampf kommt – führt „← zurück“ oben links wieder zum Wettkampf; zur Startseite (Liga wechseln) führt das Logo links oben.',
+        'Alle Knöpfe zur Tafel stehen unter <b>„Anzeigetafel“</b> in der grauen Kopfzeile, die zum Wettkampf (Setup, Protokoll / Drucken, Wettkampf abschließen) unter <b>„Wettkampf“</b>. Am Laptop und iPad sind das Reiter eines Menübands: Die Leiste darunter zeigt immer die Knöpfe des gewählten Reiters; beim Öffnen eines Wettkampfs ist „Anzeigetafel“ gewählt. Am Handy sind es Aufklappmenüs („Tafel ▾“, „Wettkampf ▾“), die nach der Auswahl schließen; eine laufende Wettkampfpause bzw. Einturnzeit steht dann am Menüknopf. Wettkämpfe, Mannschaften, Regeln und Anleitung stehen im Menü unter dem Liganamen. Von Wettkampf Setup und Protokoll – und von diesen Seiten, wenn man vom Wettkampf kommt – führt „← zurück“ oben links wieder zum Wettkampf; zur Startseite (Liga wechseln) führt das Logo links oben.',
         '<b>Anzeigetafel öffnen</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort doppelt auf die Tafel klicken – das schaltet das Vollbild ein und aus.',
         '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Ergebnis/Siegerehrung</b> blendet ein bzw. aus (eingeblendet ist der Knopf dunkel hinterlegt) und zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Dasselbe Fenster liegt dann auch über der App, damit man die Siegerehrung am Gerät mitlesen kann; „Schließen“ (oder Esc) blendet es auch auf der Tafel aus. Beim Öffnen der Tafel ist es immer ausgeblendet. ' +
         '<b>Turnervorstellung</b> zeigt nacheinander die Gastmannschaft (Titelseite, dann die anwesenden Turner nach Startnummer), die Heimmannschaft und zum Schluss das Kampfgericht. Solange sie läuft, erscheint auch in der App dasselbe Fenster wie auf der Tafel, unten mit ◀ ▶ ■ (zurück, weiter, beenden); weiterschalten damit oder per Tastatur – Pfeil rechts, Leertaste oder Bild ab (auch mit einem Presenter), zurück mit Pfeil links oder Bild auf, Esc beendet. Während der Vorstellung sind keine anderen Fenster auf der Tafel möglich.',
@@ -3344,11 +3367,26 @@
       return;
     }
     if (f === 'zero') {
-      g.draft.zero = el.checked;
-      if (el.checked) { DLG_FIELDS.forEach(function (x) { g.text[x] = ''; }); g.draft.bonus = false; }
-      g.active = firstEmptyField(m);
-      g.buf = null;
-      showScoreDlg(true);
+      var setZero = function (on) {
+        g.draft.zero = on;
+        if (on) { DLG_FIELDS.forEach(function (x) { g.text[x] = ''; }); g.draft.bonus = false; g.draft.dparts = null; }
+        g.active = firstEmptyField(m);
+        g.buf = null;
+        showScoreDlg(true);
+      };
+      // Sind schon Werte eingetragen, erst nachfragen (wie bis Beta 76 und wie bei „kein Turner“).
+      var entered = el.checked && (g.draft.bonus || DLG_FIELDS.some(function (x) {
+        var t = String(g.text[x] || '').trim();
+        if (!t) return false;
+        var v = dlgValue(x, t);
+        return x === 'nd' ? !!v : true;
+      }));
+      if (!entered) { setZero(el.checked); return; }
+      el.checked = false;
+      askConfirm('Wertung 0,00: Die bereits eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?').then(function (yes) {
+        if (scoreDlg !== g) return;
+        if (yes) setZero(true); else showScoreDlg(true);
+      });
       return;
     }
     if (f === 'gymnast') {
@@ -3436,7 +3474,8 @@
     if (eg === null) eg = 0;
     if (Number.isNaN(eg) || eg % 100 !== 0 || eg > DC_MAX_EG) { bad.push('EG'); eg = NaN; }
     var over = total > DC_MAX_ELEMENTS;
-    var ok = !bad.length && !over && (total > 0 || eg > 0);
+    // Leere Felder zählen als 0: ohne Eingaben ergibt der Rechner D-Note 0,0 (z. B. nur Teile unterhalb von A).
+    var ok = !bad.length && !over;
     return { n: n, total: total, sum: sum, eg: eg, bad: bad, over: over, ok: ok, value: ok ? sum + eg : null };
   }
 
@@ -3568,11 +3607,23 @@
     commitCalcField();
     var st = dcState();
     if (!st.ok) return;
+    // Wird ein Element anerkannt, ist immer auch eine Elementgruppe anerkannt: ohne EG nicht übernehmen.
+    if (st.total > 0 && !st.eg) {
+      askChoice('Elementgruppen fehlen', 'Es sind Elemente eingetragen, aber keine Elementgruppen.', null,
+        [{ label: 'Elementgruppen eintragen', value: true, primary: true, focus: true, cancel: true }]).then(function () {
+        if (!scoreDlg || scoreDlg.calc !== c) return;
+        c.active = 'EG';
+        c.buf = null;
+        refreshCalc();
+        focusCalcField();
+      });
+      return;
+    }
     g.draft.dparts = { D: st.n.D, C: st.n.C, B: st.n.B, A: st.n.A, EG: st.eg };
     g.text.d = fmt1(st.value);
     g.calc = null;
-    var fs = dlgFields(m);
-    g.active = fs[fs.indexOf('d') + 1] || null;
+    // Die Auswahl bleibt auf der D-Note (die übernommene Note ist gleich zu sehen); „Weiter“ führt zum Standbonus.
+    g.active = 'd';
     g.buf = null;
     showScoreDlg(true);
   }
@@ -3586,7 +3637,7 @@
     if (b) b.focus({ preventScroll: true }); else focusDlgField();
   }
 
-  /** Tasten im Rechner (echte Tastatur): Enter/→ vorwärts, ← rückwärts (bis „Übernehmen“), Esc = Abbrechen, Tab bleibt im Rechner. */
+  /** Tasten im Rechner (echte Tastatur): Enter/→/↓ vorwärts, ←/↑ rückwärts (bis „Übernehmen“), Esc = Abbrechen, Tab bleibt im Rechner. */
   function calcKeydown(ev) {
     var box = document.getElementById('score-dlg'), el = ev.target;
     if (ev.key === 'Escape') { ev.preventDefault(); calcCancel(); return; }
@@ -3601,12 +3652,12 @@
       moveCalcActive(1, item);
       return;
     }
-    if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') && !ev.shiftKey) {
+    // Die Felder stehen untereinander: ↓ wie → (nächstes Feld), ↑ wie ← (voriges Feld), im selben Kreis.
+    if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft' || ev.key === 'ArrowDown' || ev.key === 'ArrowUp') && !ev.shiftKey) {
       ev.preventDefault();
-      moveCalcActive(ev.key === 'ArrowRight' ? 1 : -1, item);
+      moveCalcActive(ev.key === 'ArrowRight' || ev.key === 'ArrowDown' ? 1 : -1, item);
       return;
     }
-    if ((ev.key === 'ArrowUp' || ev.key === 'ArrowDown') && item !== 'ok') ev.preventDefault(); // kein ±1 mehr
   }
 
   /** Tab-Taste: Fokus bleibt im Fenster (win). */
@@ -3624,14 +3675,15 @@
   // Ab 700 × 500 px sind das Reiter eines Menübands: darunter immer eine Leiste mit den Knöpfen des gewählten Reiters
   // (nicht einklappbar). Kleiner (Handy) sind es Aufklappmenüs, die nach der Auswahl schließen. Die Knöpfe gibt es nur einmal.
   var RIBBON_MQ = window.matchMedia ? window.matchMedia('(min-width: 700px) and (min-height: 500px)') : null;
-  var RIBBON_KEY = 'wtb-menueband';
   var openMenu = null;
+  // Gewählter Reiter des Menübands: beim Öffnen eines Wettkampfs immer „Anzeigetafel“; innerhalb der Wettkampfseite
+  // bleibt die Wahl stehen (nicht mehr gespeichert – den früher gemerkten Wert räumen wir einmal weg).
+  var ribbonChoice = 'board', ribbonMatchId = null;
+  try { localStorage.removeItem('wtb-menueband'); } catch (e) { /* ohne Speicher nichts zu tun */ }
 
   function ribbonMode() { return !!(RIBBON_MQ && RIBBON_MQ.matches); }
 
-  function ribbonTab() {
-    try { return localStorage.getItem(RIBBON_KEY) === 'match' ? 'match' : 'board'; } catch (e) { return 'board'; }
-  }
+  function ribbonTab() { return ribbonChoice; }
 
   /** Gewählten Reiter des Menübands anzeigen (Leiste und Reiter). */
   function applyRibbonTab() {
@@ -3677,7 +3729,7 @@
     // Menüband: die Reiter schalten die Leiste um (sie bleibt immer sichtbar)
     if (ribbonMode() && (name === 'board' || name === 'match')) {
       closeMenus();
-      try { localStorage.setItem(RIBBON_KEY, name); } catch (e) { /* nur für diese Sitzung */ }
+      ribbonChoice = name;
       applyRibbonTab();
       closePauseMenu();
       syncTopbarHeight();
