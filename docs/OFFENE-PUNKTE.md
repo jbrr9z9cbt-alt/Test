@@ -3,6 +3,12 @@
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (noch nicht veröffentlicht)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
+Hinweise zur Umsetzung:
+- Punkt 9: Weil der Knopf während des ganzen Laufs so breit ist wie „⏱ 00 · Abzug 0,3 – Stopp“, steht der laufende
+  Sturz-Timer in der Kachel am iPhone (390 px) schon ab dem Start in einer eigenen Zeile über „Wertung eingeben“ (bisher
+  erst ab Sekunde 30); bei 360 px war das schon immer so. Laptop und iPad unverändert einzeilig.
+- Punkt 10: Am Handy hochkant wird die Karte rund 55 px niedriger; die Liste darunter bekommt den Platz (Tafel passt
+  weiter genau, gemessen 390 × 844).
 
 1. **Rückfrage bei „Wertung 0,00“, wenn schon Werte eingetragen sind** (beschlossen 01.11.2026): Bis Beta 76 (Eingabe in
    der Kachel) fragte die App „Wertung 0,00: Die bereits eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?“
