@@ -8,6 +8,8 @@ async function check(p, base, L) {
   await p.goto(base + hash + '/print'); await wait(p, 900);
   const t = await text(p, '#print-sheet');
   assert.match(t, /Wettkampfprotokoll/i);
+  assert.match(t, new RegExp((L === OL ? 'Oberliga ' : 'Landesliga ') + new Date().getFullYear()), 'Überschrift mit Wettkampfjahr');
+  assert.equal(await p.$$eval('#print-sheet .print-table td.gap', (x) => x.length) > 0, true, 'Heim und Gast getrennt');
   assert.match(t, /Boden/);
   assert.match(t, /12,90/, 'Endnoten im Protokoll');
   const fit = await p.evaluate(() => {

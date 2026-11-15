@@ -2430,8 +2430,19 @@
       '<button class="btn primary" data-action="print">Drucken / als PDF speichern</button></div>' +
       '<div class="print-page"><section class="print-sheet" id="print-sheet">' +
       '<div class="ps-head"><div class="ps-title">' + PRINT_LOGO +
-      '<div class="ps-titletext"><div class="ps-league">' + esc(matchLeague(m).short) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
-      '<div class="ps-meta"><strong>' + esc(teamName(m.homeTeamId)) + ' – ' + esc(teamName(m.guestTeamId)) + '</strong><br><strong>' + esc(fmtDate(m.date)) + '</strong></div></div>' + printPanel(m);
+      '<div class="ps-titletext"><div class="ps-league">' + esc(matchLeague(m).short + (matchYear(m) ? ' ' + matchYear(m) : '')) + '</div><div class="ps-doc">Wettkampfprotokoll</div></div></div>' +
+      '<div class="ps-meta"><strong>' + printTeam(m, 'home') + ' – ' + printTeam(m, 'guest') + '</strong><br><strong>' + esc(fmtDate(m.date)) + '</strong></div></div>' + printPanel(m);
+  }
+
+  /** Wettkampfjahr aus dem Datum (z. B. 2026) – für die Überschrift „Oberliga 2026“. */
+  function matchYear(m) {
+    var y = /^(\d{4})-/.exec(m.date || '');
+    return y ? y[1] : '';
+  }
+
+  /** Mannschaftsname im Protokoll in der Mannschaftsfarbe. */
+  function printTeam(m, sideKey) {
+    return '<span style="color:' + sideColor(m, sideKey).onLight + '">' + esc(teamName(sideKey === 'home' ? m.homeTeamId : m.guestTeamId)) + '</span>';
   }
 
   /** Notenspalten einer Übung im Protokoll (n.a. bzw. W0 statt Noten). */
@@ -2482,22 +2493,20 @@
       var ar = r.apparatus[a.key];
       running.home += ar.homeSum;
       running.guest += ar.guestSum;
-      function nameCell(d, i, k, right) {
-        var label = esc(gymnastLabel(d[k].number, d[k].name) || '–');
-        var pos = S.classicPosition(m, a.key, i, k) + '.';
-        return '<td class="pn' + (right ? ' right' : '') + '">' + (right ? label + ' ' + pos : pos + ' ' + label) + '</td>';
+      function nameCell(d, i, k) {
+        return '<td class="pn">' + S.classicPosition(m, a.key, i, k) + '. ' + esc(gymnastLabel(d[k].number, d[k].name) || '–') + '</td>';
       }
       return '<div class="print-app"><div class="pa-head"><strong>' + appIcon(a.key, 'pa-ico') + a.name + '</strong> <span>Gerätesumme ' + totalPair(m, ar) +
         (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
-        '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + printHeadCells(a.key, head) +
-        printHeadCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +
+        '<table class="print-table"><thead><tr><th>' + printTeam(m, 'home') + '</th>' + printHeadCells(a.key, head) +
+        '<th class="gap"></th><th>' + printTeam(m, 'guest') + '</th>' + printHeadCells(a.key, head) + '</tr></thead><tbody>' +
         app.duels.map(function (d, i) {
           // Bei einer Streichwertung wird nur die Endnote durchgestrichen.
-          function cells(k, reverse) {
-            var html = printCells(m, d[k], head, reverse);
+          function cells(k) {
+            var html = printCells(m, d[k], head, false);
             return ar[k].struck.indexOf(i) >= 0 ? html.replace('<td class="num"><strong>', '<td class="num ps-s"><strong>') : html;
           }
-          return '<tr>' + nameCell(d, i, 'home', false) + cells('home', false) + cells('guest', true) + nameCell(d, i, 'guest', true) + '</tr>';
+          return '<tr>' + nameCell(d, i, 'home') + cells('home') + '<td class="gap"></td>' + nameCell(d, i, 'guest') + cells('guest') + '</tr>';
         }).join('') + '</tbody></table>' +
         '<div class="pa-inter">Zwischenstand nach ' + a.name + ': <strong>' + totalPair(m, { homeSum: running.home, guestSum: running.guest }, false, ' : ') + '</strong></div></div>';
     }).join('');
@@ -2521,27 +2530,25 @@
     var r = S.matchResult(m);
     var three = S.eJudgeCount(m.rules) === 3;
     var head = ['D', 'SB', 'E1', 'E2'].concat(three ? ['E3'] : []).concat(['E', 'NA', 'End']);
-    var homeName = esc(teamName(m.homeTeamId)), guestName = esc(teamName(m.guestTeamId));
     var running = { home: 0, guest: 0 };
     var apps = S.APPARATUS.map(function (a) {
       var app = m.apparatus[a.key];
       var ar = r.apparatus[a.key];
       return '<div class="print-app"><div class="pa-head"><strong>' + appIcon(a.key, 'pa-ico') + a.name + '</strong> <span>Scorepunkte ' + ptsPair(m, ar.homePoints, ar.guestPoints) +
         (ar.complete ? ' · Gerätepunkte ' + ar.homeApp + ':' + ar.guestApp : '') + '</span></div>' +
-        '<table class="print-table"><thead><tr><th>' + homeName + '</th>' + printHeadCells(a.key, head) +
-        '<th class="num sp">SP</th>' + printHeadCells(a.key, head.slice().reverse()) + '<th class="right">' + guestName + '</th></tr></thead><tbody>' +
+        '<table class="print-table"><thead><tr><th>' + printTeam(m, 'home') + '</th>' + printHeadCells(a.key, head) + '<th class="num sp">SP</th>' +
+        '<th class="gap"></th><th>' + printTeam(m, 'guest') + '</th>' + printHeadCells(a.key, head) + '<th class="num sp">SP</th></tr></thead><tbody>' +
         app.duels.map(function (d, i) {
           var dr = ar.duels[i];
-          function cells(s, reverse) { return printCells(m, s, head, reverse); }
           var first = S.startOrder(m, a.key, i)[0];
-          function nameCell(k, right) {
+          // Jeder Turner gleich: Name, Noten, Endnote und seine Scorepunkte als einzelne Zahl.
+          function block(k) {
             var lead = first === k;
-            return '<td class="pn' + (right ? ' right' : '') + (lead ? ' lead' : '') + '">' + (lead && !right ? '▶ ' : '') +
-              esc(gymnastLabel(d[k].number, d[k].name) || '–') + (lead && right ? ' ◀' : '') + '</td>';
+            return '<td class="pn' + (lead ? ' lead' : '') + '">' + (lead ? '▶ ' : '') + esc(gymnastLabel(d[k].number, d[k].name) || '–') + '</td>' +
+              printCells(m, d[k], head, false) +
+              '<td class="num sp"><strong>' + (dr.complete ? pts(m, k, k === 'home' ? dr.homePoints : dr.guestPoints) : '') + '</strong></td>';
           }
-          return '<tr>' + nameCell('home', false) + cells(d.home, false) +
-            '<td class="num sp"><strong>' + (dr.complete ? ptsPair(m, dr.homePoints, dr.guestPoints) : '') + '</strong></td>' +
-            cells(d.guest, true) + nameCell('guest', true) + '</tr>';
+          return '<tr>' + block('home') + '<td class="gap"></td>' + block('guest') + '</tr>';
         }).join('') + '</tbody></table>' + intermediate(a, ar) + '</div>';
     }).join('');
 
@@ -2563,8 +2570,8 @@
       printResultLine(m, r) +
       apps +
       '<div class="pa-head"><strong>Topscorer</strong></div>' + printScorers(m) +
-      '<p class="ps-note">▶ ◀ = vorlegender Turner, n.a. = nicht angetreten, W0 = Wertung 0,00, D = D-Note, SB = Standbonus, E1–E' + (three ? '3' : '2') + ' = Abzüge der E-Kampfrichter, E = ' +
-      (three ? '10 − mittlerer Abzug' : '10 − Mittelwert') + ', NA = neutraler Abzug, SP = Scorepunkte (' + esc(th) + '); Gerätepunkte Sieg/Unentschieden ' +
+      '<p class="ps-note">▶ = vorlegender Turner, n.a. = nicht angetreten, W0 = Wertung 0,00, D = D-Note, SB = Standbonus, E1–E' + (three ? '3' : '2') + ' = Abzüge der E-Kampfrichter, E = ' +
+      (three ? '10 − mittlerer Abzug' : '10 − Mittelwert') + ', NA = neutraler Abzug, SP = Scorepunkte des Turners im Duell (' + esc(th) + '); Gerätepunkte Sieg/Unentschieden ' +
       m.rules.apparatusPoints.win + '/' + m.rules.apparatusPoints.draw + '. Status: ' + (m.status === 'final' ? 'abgeschlossen' : 'offen') +
       '. Stand: ' + esc(fmtDateTime(m.updatedAt || new Date().toISOString())) + '</p>' +
       '</section></div>';

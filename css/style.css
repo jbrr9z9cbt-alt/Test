@@ -434,6 +434,8 @@ select.picking { position: relative; z-index: 30; box-shadow: 0 6px 18px rgba(0,
 .print-table .pn { white-space: normal; width: 22%; line-height: 1.15; }
 .print-table .pn.lead { font-weight: 700; }
 .print-table .sp { text-align: center !important; background: #f0f0f0; }
+/* Zwischen Heim und Gast sind die Linien unterbrochen – dort beginnt der nächste Turner */
+.print-table .gap { width: 3mm; padding: 0; border-bottom: 0; }
 .scorer-table .pn { width: auto; }
 .ps-note { font-size: 6.5pt; color: #555; margin: 1mm 0 0; }
 .pa-inter { text-align: right; font-size: 7.5pt; margin-top: .6mm; }
