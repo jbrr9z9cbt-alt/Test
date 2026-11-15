@@ -1031,7 +1031,9 @@
       '<button class="btn mi-main" data-action="open-board"><span class="ml">Anzeigetafel öffnen</span><span class="ms">Öffnen</span></button>' +
       '<span class="mi-design"><span class="mi-lbl">Design</span><span class="bs-theme" role="group" aria-label="Design der Anzeigetafel">' +
       '<button class="toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
-      '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span></span><hr>' +
+      '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span>' +
+      // Große Tafel für kleine Leinwände: ein Umschalter (an = groß, aus = Standard)
+      '<span class="bs-theme"><button class="toggle' + (bigBoard(m) ? ' on' : '') + '" data-action="board-size" title="Große Anzeigetafel (für kleine Leinwände)">Groß</button></span></span><hr>' +
       // Reihenfolge wie im Ablauf: Turnervorstellung, Einturnzeit, Wettkampfpause, Ergebnis/Siegerehrung
       '<span data-out="intro">' + introControls(m) + '</span>' +
       '<button class="btn timer-btn" data-action="warmup-timer">' + warmupLabel(null) + '</button>' + pauseControls() +
@@ -1698,6 +1700,7 @@
       return '<div class="board board-standby">' +
         '<div class="standby"><img src="icons/icon.svg" alt="" width="120" height="120"><div>' + esc(matchLeague(m).name) + '</div></div></div>';
     }
+    if (bigBoard(m)) return viewBoardBig(m);
     var view = S.revealedView(m);
     var r = S.matchResult(view);
     var current = boardApparatus(m);
@@ -1737,6 +1740,197 @@
       '<tfoot><tr class="gp-row"><td>Gerätepunkte</td><td class="num"><span class="sp-num">' + r.homeApp + '</span></td><td class="num"><span class="sp-num">' + r.guestApp + '</span></td></tr></tfoot></table>' +
       '<div>' + (isClassic(m) ? currentExerciseCard(m, view, r) : currentDuelCard(m, view)) + detail + '</div></div>' +
       '</div>' + boardScorers(m, view) + '<div id="fall-box">' + fallBoxHtml(m) + '</div>' +
+      '<div id="intro-box">' + introBoxHtml(m) + '</div>';
+  }
+
+  // ---------- Große Anzeigetafel (für kleine Leinwände): weniger gleichzeitig, deutlich größere Schrift ----------
+  // Oben das nächste Duell bzw. der nächste Turner, darunter die Karte der letzten Wertung auf voller Breite, unten das
+  // Gerät mit Zwischenstand und die Gerätepunkte. Ohne laufendes Duell: Geräteergebnis bzw. in Pause und Einturnzeit
+  // die Übersicht aller Geräte mit der Uhr. Welches Gerät gezeigt wird, regelt boardApparatus wie bei der Standardtafel.
+
+  function bigBoard(m) {
+    return !!(m && m.display && m.display.size === 'big');
+  }
+
+  /** Zeitpunkt, zu dem ein Duell (Oberliga) bzw. eine Übung (Landesliga, k) zum ersten Mal gezeigt wurde. */
+  function shownAt(m, d, k) {
+    var u = k ? S.revOf(d, k) : d;
+    return u.firstRevealedAt || u.revealedAt || '';
+  }
+
+  /** Letztes vollständig fertiges Gerät (nach der Zeit der letzten Freigabe) – oder null. */
+  function lastFinishedApparatus(m) {
+    var best = null, bestAt = '';
+    S.APPARATUS.forEach(function (a) {
+      var ds = m.apparatus[a.key].duels;
+      if (!ds.length || !ds.every(function (d) { return rowRevealed(m, d); })) return;
+      var at = appLastRelease(m, a.key).at || '';
+      if (at > bestAt) { best = a; bestAt = at; }
+    });
+    return best;
+  }
+
+  /**
+   * Was die große Tafel zeigt: 'clock' (Einturnzeit/Pause), 'duel' (laufendes Gerät) oder 'result' (Geräteergebnis).
+   * Liefert { page, app }.
+   */
+  function bigBoardState(m) {
+    var cur = boardApparatus(m);
+    if (timerCardInner(m)) return { page: 'clock', app: cur };
+    var ds = m.apparatus[cur.key].duels;
+    var revealed = ds.filter(function (d) { return rowAnyRevealed(m, d); }).length;
+    var done = ds.length > 0 && ds.every(function (d) { return rowRevealed(m, d); });
+    var last = appLastRelease(m, cur.key);
+    var holding = done && last.at && Date.now() - Date.parse(last.at) < (last.flash ? FLASH_MS : 0) + BOARD_HOLD_MS;
+    if (revealed && (!done || holding)) return { page: 'duel', app: cur };
+    if (done) return { page: 'result', app: cur };
+    // Noch nichts freigegeben: Sobald am Gerät ein Turner gewählt oder etwas eingetragen ist, das Duell (mit dem nächsten
+    // Turner oben); davor das Ergebnis des zuletzt fertigen Geräts.
+    var fin = lastFinishedApparatus(m);
+    var begun = appHasInput(m, cur.key) || ds.some(function (d) { return d.home.gymnastId || d.home.dns || d.guest.gymnastId || d.guest.dns; });
+    if (!begun && fin) return { page: 'result', app: fin };
+    return { page: 'duel', app: cur };
+  }
+
+  function bigStateKey(m) {
+    var st = bigBoardState(m);
+    return st.page + ':' + st.app.key;
+  }
+
+  function bigTeam(m, k) {
+    return '<div class="gb-t ' + k + '" style="color:' + boardTone(m, k) + '"><span class="gb-fit">' + teamHtml(k === 'home' ? m.homeTeamId : m.guestTeamId) + '</span>' + boardDeduction(m, k) + '</div>';
+  }
+
+  function bigHead(m, r) {
+    return '<div class="gb-head' + (isClassic(m) ? ' ll' : '') + '">' + bigTeam(m, 'home') +
+      '<div class="gb-big">' + totalPair(m, r, true) + '</div>' + bigTeam(m, 'guest') + '</div>';
+  }
+
+  function bigFoot(m, r, appKey) {
+    return '<div class="gb-foot"><div>' + appIcon(appKey, 'gb-ico') + apparatusName(appKey) + '<span class="n">' + totalPair(m, r.apparatus[appKey], true) + '</span></div>' +
+      '<div><span class="lbl">Gerätepunkte</span><span class="n">' + pts(m, 'home', r.homeApp, true) + '<span class="sp-sep">:</span>' + pts(m, 'guest', r.guestApp, true) + '</span></div></div>';
+  }
+
+  /** Oberliga: nächstes Duell (erstes noch nicht gezeigtes) und Karte des zuletzt gezeigten Duells dieses Geräts. */
+  function bigDuelOL(m, view, appKey) {
+    var ds = m.apparatus[appKey].duels, vds = view.apparatus[appKey].duels;
+    var next = -1, latest = -1, latestAt = '';
+    ds.forEach(function (d, i) {
+      if (!rowRevealed(m, d) && next < 0) next = i;
+      var at = shownAt(m, d);
+      if (d.revealedAt && at > latestAt) { latestAt = at; latest = i; }
+    });
+    var nextHtml = '<div class="gb-next">' + (next < 0 ? '' :
+      '<div class="gb-nm h gb-fit" style="color:' + boardTone(m, 'home') + '">' + boardName(vds[next].home, boardLive(m, appKey, next, 'home')) + '</div>' +
+      '<div class="gb-mid">Duell ' + (next + 1) + '<br>als Nächstes</div>' +
+      '<div class="gb-nm g gb-fit" style="color:' + boardTone(m, 'guest') + '">' + boardName(vds[next].guest, boardLive(m, appKey, next, 'guest')) + '</div>') + '</div>';
+    var card;
+    if (latest < 0) {
+      card = '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' +
+        duelSideHtml(m, S.emptySide(), 'home', false) + '<div class="cd-pts single">' + pts(m, 'home', 0, true) + '</div>' +
+        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
+    } else {
+      var duel = vds[latest], res = S.duelResult(duel, m.rules);
+      card = '<div class="cur-duel"><div class="cd-head">' + appIcon(appKey, 'gb-ico') + apparatusName(appKey) + ' · Duell ' + (latest + 1) + '</div>' +
+        '<div class="cd-grid">' + duelSideHtml(m, duel.home, 'home', res.winner === 'home') +
+        '<div class="cd-pts single">' + duelPointsBig(m, res) + '</div>' +
+        duelSideHtml(m, duel.guest, 'guest', res.winner === 'guest') + '</div></div>';
+    }
+    return nextHtml + card;
+  }
+
+  /**
+   * Landesliga: nächster Turner (kleinste Startposition, die noch nicht gezeigt ist) auf der Seite seiner Mannschaft;
+   * Karte: die zuletzt gezeigte Übung auf ihrer Seite, gegenüber blass die letzte Übung der anderen Mannschaft.
+   */
+  function bigDuelLL(m, view, r, appKey) {
+    var ds = m.apparatus[appKey].duels, vds = view.apparatus[appKey].duels, ar = r.apparatus[appKey];
+    var next = null, latest = { home: null, guest: null }, latestAt = { home: '', guest: '' };
+    ds.forEach(function (d, i) {
+      ['home', 'guest'].forEach(function (k) {
+        var pos = S.classicPosition(m, appKey, i, k);
+        if (!S.revOf(d, k).revealedAt) { if (!next || pos < next.pos) next = { idx: i, k: k, pos: pos }; return; }
+        var at = shownAt(m, d, k);
+        if (at > latestAt[k]) { latestAt[k] = at; latest[k] = i; }
+      });
+    });
+    var nextHtml = '<div class="gb-next">' + (next ? (function () {
+      var nm = '<div class="gb-nm ' + next.k + ' gb-fit" style="color:' + boardTone(m, next.k) + '">' + boardName(vds[next.idx][next.k], boardLive(m, appKey, next.idx, next.k)) + '</div>';
+      var mid = '<div class="gb-mid">' + next.pos + '. Übung<br>als Nächstes</div>';
+      return next.k === 'home' ? nm + mid + '<div></div>' : '<div></div>' + mid + nm;
+    })() : '') + '</div>';
+    var newest = !latestAt.home && !latestAt.guest ? null : latestAt.home >= latestAt.guest ? 'home' : 'guest';
+    function side(k) {
+      if (latest[k] === null) return ghostSideHtml(m, k);
+      var html = duelSideHtml(m, vds[latest[k]][k], k, true);
+      if (ar[k].struck.indexOf(latest[k]) >= 0) html = html.replace('<div class="cd-final', '<div class="cd-final struck');
+      return k === newest ? html : html.replace('class="cd-side"', 'class="cd-side gb-old"');
+    }
+    var card;
+    if (!newest) {
+      card = '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' + duelSideHtml(m, S.emptySide(), 'home', false) + classicCardMiddle() +
+        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
+    } else {
+      var other = newest === 'home' ? 'guest' : 'home';
+      card = '<div class="cur-duel"><div class="cd-head gb-head2"><span>' + appIcon(appKey, 'gb-ico') + apparatusName(appKey) + ' · ' +
+        S.classicPosition(m, appKey, latest[newest], newest) + '. Übung</span><span>' +
+        (latest[other] !== null ? S.classicPosition(m, appKey, latest[other], other) + '. Übung' : '') + '</span></div>' +
+        '<div class="cd-grid">' + side('home') + classicCardMiddle() + side('guest') + '</div></div>';
+      if (newest === 'guest') card = card.replace('<div class="cd-head gb-head2"><span>', '<div class="cd-head gb-head2 rev"><span>');
+    }
+    return nextHtml + card;
+  }
+
+  /** Geräteergebnis: alle Duelle bzw. Übungen des Geräts in großer Schrift. */
+  function bigResult(m, view, r, appKey) {
+    var vds = view.apparatus[appKey].duels, ar = r.apparatus[appKey], classic = isClassic(m);
+    var rows = vds.map(function (d, i) {
+      if (classic) {
+        var v = function (k) {
+          var x = ar[k].values[i];
+          if (x === null) return '';
+          return ar[k].struck.indexOf(i) >= 0 ? '<s>' + fmt(x) + '</s>' : '<span style="color:' + boardTone(m, k) + '">' + fmt(x) + '</span>';
+        };
+        return '<tr><td class="gb-rn" style="color:' + boardTone(m, 'home') + '"><span class="gb-fit">' + boardName(d.home) + '</span></td><td class="num">' + v('home') + '</td><td class="c"></td>' +
+          '<td class="num">' + v('guest') + '</td><td class="gb-rn r" style="color:' + boardTone(m, 'guest') + '"><span class="gb-fit">' + boardName(d.guest) + '</span></td></tr>';
+      }
+      var dr = ar.duels[i];
+      return '<tr><td class="gb-rn' + (dr.winner === 'home' ? ' win' : '') + '" style="--team:' + boardTone(m, 'home') + '"><span class="gb-fit">' + boardName(d.home) + '</span></td>' +
+        '<td class="num">' + (dr.home === null ? '' : fmt(dr.home)) + '</td>' +
+        '<td class="c">' + (dr.complete ? ptsPair(m, dr.homePoints, dr.guestPoints, true, ':') : '') + '</td>' +
+        '<td class="num">' + (dr.guest === null ? '' : fmt(dr.guest)) + '</td>' +
+        '<td class="gb-rn r' + (dr.winner === 'guest' ? ' win' : '') + '" style="--team:' + boardTone(m, 'guest') + '"><span class="gb-fit">' + boardName(d.guest) + '</span></td></tr>';
+    }).join('');
+    var sum = classic
+      ? '<tr class="sum"><td>Summe (beste ' + m.rules.counting + ')</td><td class="num">' + teamValue(m, ar, 'home', true) + '</td><td class="c"></td><td class="num">' + teamValue(m, ar, 'guest', true) + '</td>'
+      : '<tr class="sum"><td>Scorepunkte</td><td></td><td class="c">' + ptsPair(m, ar.homePoints, ar.guestPoints, true, ':') + '</td><td></td>';
+    sum += '<td class="r">' + (ar.complete ? 'Gerätepunkte ' + pts(m, 'home', ar.homeApp, true) + '<span class="sp-sep">:</span>' + pts(m, 'guest', ar.guestApp, true) : '') + '</td></tr>';
+    return '<div class="gb-page"><div class="gb-ptitle">' + appIcon(appKey, 'gb-ico') + apparatusName(appKey) + ' – Ergebnis</div>' +
+      '<table class="gb-res' + (classic ? ' ll' : '') + '">' + rows + sum + '</table></div>';
+  }
+
+  /** Einturnzeit und Pause: Übersicht aller Geräte, daneben die Uhr. */
+  function bigOverview(m, r) {
+    var rows = S.APPARATUS.map(function (a) {
+      var ar = r.apparatus[a.key];
+      return '<tr class="' + (ar.started ? '' : 'dim') + '"><td>' + appIcon(a.key, 'gb-ico') + a.name + '</td>' +
+        '<td class="num">' + (ar.started ? teamValue(m, ar, 'home', true) : '') + '</td><td class="num">' + (ar.started ? teamValue(m, ar, 'guest', true) : '') + '</td></tr>';
+    }).join('');
+    return '<div class="gb-two"><table class="gb-ov"><thead><tr><th>Gerät</th><th class="num">Heim</th><th class="num">Gast</th></tr></thead><tbody>' + rows + '</tbody>' +
+      '<tfoot><tr><td>Gerätepunkte</td><td class="num">' + pts(m, 'home', r.homeApp, true) + '</td><td class="num">' + pts(m, 'guest', r.guestApp, true) + '</td></tr></tfoot></table>' +
+      '<div class="gb-clock">' + timerCardInner(m) + '</div></div>';
+  }
+
+  function viewBoardBig(m) {
+    var view = S.revealedView(m);
+    var r = S.matchResult(view);
+    var st = bigBoardState(m);
+    var body;
+    if (st.page === 'clock') body = bigOverview(m, r);
+    else if (st.page === 'result') body = bigResult(m, view, r, st.app.key);
+    else body = '<div class="gb-main">' + (isClassic(m) ? bigDuelLL(m, view, r, st.app.key) : bigDuelOL(m, view, st.app.key)) + '</div>' + bigFoot(m, r, st.app.key);
+    return '<div class="board gb gbp-' + st.page + '" data-app="' + boardApparatus(m).key + '" data-gb="' + st.page + ':' + st.app.key + '">' +
+      bigHead(m, r) + body + '</div>' + boardScorers(m, view) + '<div id="fall-box">' + fallBoxHtml(m) + '</div>' +
       '<div id="intro-box">' + introBoxHtml(m) + '</div>';
   }
 
@@ -2016,6 +2210,14 @@
 
   /** Zu lange Namen in der Karte werden nur in ihrem eigenen Feld kleiner (höchstens auf 60 %). */
   function fitNames(b) {
+    // Große Tafel: Mannschaften und Namen in ihrem Feld einpassen
+    b.querySelectorAll('.gb-fit').forEach(function (el) {
+      el.style.fontSize = '';
+      var box = getComputedStyle(el).display === 'inline' ? el.parentElement : el;
+      if (box.scrollWidth <= box.clientWidth + 1) return;
+      var base = parseFloat(getComputedStyle(el).fontSize);
+      el.style.fontSize = Math.max(base * 0.5, base * box.clientWidth / box.scrollWidth * 0.98) + 'px';
+    });
     b.querySelectorAll('.cd-name').forEach(function (el) {
       el.style.fontSize = '';
       if (el.scrollWidth <= el.clientWidth + 1) return;
@@ -2034,7 +2236,7 @@
     var box = document.querySelector('.so-box');
     if (!box) return;
     box.style.zoom = '';
-    var over = Math.max(box.getBoundingClientRect().height / (window.innerHeight * 0.96), box.getBoundingClientRect().width / (window.innerWidth * 0.98));
+    var over = Math.max(box.getBoundingClientRect().height / (window.innerHeight * 0.94), box.getBoundingClientRect().width / (window.innerWidth * 0.94));
     if (over > 1) box.style.zoom = 1 / over;
   }
   /** Wettkampfergebnis-Fenster: bei vielen Topscorern oder kleinen Bildschirmen als Ganzes verkleinern statt abschneiden. */
@@ -2232,6 +2434,7 @@
     $app.querySelectorAll('[data-action="theme"]').forEach(function (b) {
       b.classList.toggle('on', (b.getAttribute('data-theme') === 'light') === boardLight(m));
     });
+    $app.querySelectorAll('[data-action="board-size"]').forEach(function (b) { b.classList.toggle('on', bigBoard(m)); });
   }
 
   function tickTimers() {
@@ -2274,6 +2477,11 @@
       if (!tin) { if (tc) tc.remove(); }
       else if (!tc) cd.insertAdjacentHTML('beforeend', '<div class="tm-card">' + tin + '</div>');
       else if (tc.innerHTML !== tin) tc.innerHTML = tin;
+    }
+    var gclock = document.querySelector('.board .gb-clock');
+    if (gclock) {
+      var gin = timerCardInner(m);
+      if (gin && gclock.innerHTML !== gin) gclock.innerHTML = gin;
     }
     var fbox = document.getElementById('fall-box');
     if (fbox) {
@@ -2415,7 +2623,8 @@
     if (!document.body.classList.contains('board-mode')) return;
     var b = document.querySelector('.board[data-app]');
     var m = b && match(route().id);
-    if (m && boardApparatus(m).key !== b.getAttribute('data-app')) render();
+    if (!m) return;
+    if (boardApparatus(m).key !== b.getAttribute('data-app') || (b.hasAttribute('data-gb') && bigStateKey(m) !== b.getAttribute('data-gb'))) render();
   }
 
   setInterval(function () { tickTimers(); checkTimerSounds(); checkBoardApparatus(); }, 250);
@@ -4300,6 +4509,12 @@
       case 'theme':
         m.display = m.display || {};
         m.display.theme = btn.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        save('matches', m).then(function () { refreshDisplayButtons(m); });
+        refreshDisplayButtons(m);
+        break;
+      case 'board-size':
+        m.display = m.display || {};
+        if (bigBoard(m)) delete m.display.size; else m.display.size = 'big';
         save('matches', m).then(function () { refreshDisplayButtons(m); });
         refreshDisplayButtons(m);
         break;
