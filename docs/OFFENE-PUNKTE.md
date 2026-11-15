@@ -110,6 +110,34 @@ Beschlossen (Position wie Vorschaubilder 1 und 2 vom 15.11.2026, dort aber mit g
 Verworfen: am Handy eine eigene Zeile für den Sturz-Timer bzw. [Sturz-Timer] [Abbrechen] mit „Wertung freigeben“ darunter
 (Vorschaubilder 3–6) – beides hätte die Zahlentastatur um rund 30 px nach unten verschoben.
 
+### 6. Freigegebene Wertung wieder komplett zurücknehmen (ohne zusätzlichen Knopf)
+Anlass (Wettkampf 14.11.2026): Der Bediener hat sich mit der App vertraut gemacht und dazu im gleich beginnenden
+Wettkampf eine Wertung eingegeben und freigegeben – in dem Glauben, sie danach einfach wieder löschen zu können. Das geht
+bisher nicht (nur Korrektur, Notlösung „kein Turner“ – zählt aber als nicht angetreten). Am 11.11.2026 noch als zu
+kompliziert zurückgestellt, jetzt beschlossen; Ablauf wie damals ausgearbeitet:
+
+- **Bedienung ohne neuen Knopf:**
+  1. Bei der freigegebenen Wertung „Wertung ändern“ antippen.
+  2. In der Turnerauswahl ganz oben „– Turner –“ wählen. Damit leeren sich alle Felder (auch Standbonus und die
+     Anzahlen aus dem D-Note-Rechner); ohne Turner sind die Felder gesperrt.
+  3. Der vorhandene Knopf „Korrektur freigeben“ heißt dann **„Wertung zurücknehmen“**.
+  4. Rückfrage: „Wertung zurücknehmen? Die freigegebene Wertung verschwindet von der Anzeigetafel, die Kachel steht
+     danach wieder im Grundzustand.“ [Abbrechen] [Zurücknehmen].
+  5. Danach ist die Kachel wie neu: kein Turner gewählt, keine Werte, der Knopf heißt wieder „Wertung eingeben“.
+  „Abbrechen“ im Fenster stellt vorher jederzeit alles wieder her. „kein Turner“ bleibt davon getrennt (zählt weiter als
+  nicht angetreten).
+- **Anzeigetafel:** Die Wertung verschwindet ohne Einblendung, als wäre sie nie gezeigt worden. Summen, Scorepunkte,
+  Gerätepunkte, Topscorer und Protokoll rechnen sich sofort neu.
+- **Oberliga:** Auf die Tafel kommt immer das ganze Duell. Nimmt man einen Turner zurück, verschwindet das ganze Duell von
+  der Tafel; der andere Turner bleibt gespeichert. Ist das Duell wieder vollständig freigegeben, erscheint es erneut mit
+  großer Einblendung.
+- **Landesliga:** Es verschwindet nur diese Übung; die Streichwertung wird neu bestimmt.
+- **Gerätereiter:** Ein fertiges Gerät verliert den grünen Haken (gelber Punkt, wenn dort noch etwas eingetragen ist,
+  sonst keine Markierung). Bleiben an dem Gerät andere Freigaben, gilt es wieder als angefangen – nach der Tafel-Regel
+  aus Beta 82 kann die Tafel dann dorthin zurückspringen.
+- **Abgeschlossener Wettkampf:** Zurücknehmen erst nach „Wieder öffnen“.
+- Hilfetext und README ergänzen.
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
