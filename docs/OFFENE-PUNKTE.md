@@ -28,6 +28,15 @@ als 8 Elementen („1 Element zu viel“).
 Solange noch keine Wertung auf der Tafel ist, bleibt die Karte einfach leer – bei der Standardtafel und bei der großen
 Tafel. Größe und Aufteilung der Tafel bleiben gleich; mit der ersten Freigabe erscheint wie gewohnt das Duell bzw. die Übung.
 
+### 5. Laufende Timer lassen sich auch mit langem Klick stoppen
+Fehler: Wettkampfpause, Einturnzeit und Sturz-Timer ließen sich nur mit einem kurzen Klick stoppen; bei längerem Drücken
+(über den nächsten Sekundenwechsel) passierte nichts. Ursache: Die Beschriftung des laufenden Knopfs wird jede Sekunde neu
+geschrieben; dabei wird der Text im Knopf ausgetauscht, und der Browser verwirft den Klick, weil Drücken und Loslassen nicht
+mehr auf demselben Element liegen. Nachgestellt (1,6 s gedrückt: Pause und Sturz-Timer liefen weiter).
+Lösung: Klicks auf die Beschriftung zählen als Klick auf den Knopf selbst (Text im Knopf nicht anklickbar) – für Pause,
+Einturnzeit, Sturz-Timer (Kachel und Wertungsfenster) und den Menüknopf „Anzeigetafel“ mit der laufenden Zeit. Im Test mit
+dieser Änderung: alle drei Timer stoppen auch bei langem Klick.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
