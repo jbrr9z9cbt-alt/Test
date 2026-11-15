@@ -71,6 +71,25 @@ Beschlossen (Vorschaubild 8 für die Oberliga, Vorschaubild 10 für die Landesli
 Verworfen: große Tafel mit dem nächsten Duell unter der Wertung und nur Endnote/D/E nebeneinander (Vorschaubilder 1, 2, 5),
 Landesliga-Karte mit leerer zweiter Hälfte (Vorschaubild 9), Einstellung „Rand“ mit mehreren Stufen.
 
+### 3. Wettkampfprotokoll: alle Turner gleich dargestellt, Kopf mit Wettkampfjahr
+Heute ist im Protokoll jede Zeile ein Duell, die Spalten des Gasts sind gespiegelt
+(Name | D SB E1 E2 E3 E NA End | SP 2:0 | End NA E E3 E2 E1 SB D | Name). Das macht die DTL zwar auch so, gefällt aber
+nicht, und in der Landesliga hat es keinen besonderen Sinn.
+
+Beschlossen (beide Ligen):
+- **Jeder Turner wird gleich dargestellt:** In jeder Zeile stehen zwei gleich aufgebaute Blöcke nebeneinander, links
+  Heim, rechts Gast, jeweils von links nach rechts: Name, D, SB, E1, E2, (E3), E, NA, Endnote und – nur in der
+  Oberliga – die Scorepunkte des Turners als einzelne Zahl (z. B. Sieger 3, Verlierer 0; bei Unentschieden beide 0).
+  Die Spalte SP mit „2:0“ in der Mitte entfällt.
+- **Waagerechte Linien zwischen den beiden Blöcken unterbrochen**, damit man sieht, wo der nächste Turner anfängt.
+- **Landesliga:** gleich aufgebaut, Startposition vor dem Namen (z. B. „2. Wagner, Lukas“), keine Scorepunkte; die
+  Streichwertung bleibt durchgestrichen.
+- **Vorlegender Turner (Oberliga):** ▶ bleibt vor dem Namen; das gespiegelte ◀ hinter dem Namen entfällt.
+- **Spaltenüberschrift über den Namen** bleibt der Mannschaftsname, zusätzlich in der Mannschaftsfarbe.
+- **Kopf oben rechts:** die beiden Mannschaftsnamen der Begegnung in ihrer Mannschaftsfarbe.
+- **Überschrift neben dem WTB-Logo mit Wettkampfjahr:** „Oberliga 2026“ bzw. „Landesliga 2026“; das Jahr kommt
+  automatisch aus dem Wettkampfdatum.
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
