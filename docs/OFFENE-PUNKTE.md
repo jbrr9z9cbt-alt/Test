@@ -208,7 +208,7 @@ Sekundenangaben, wo welche Menüs liegen.
   beendet sie. Turnervorstellung weiter mit ◀ ▶, Pfeiltasten oder Presenter.
 
 *4. Timer*
-- **Einturnzeit** 6:40, **Wettkampfpause** 10/15/20 Minuten. In der Pause wird schon eingeturnt, deshalb laufen nie
+- **Einturnzeit** 4 Minuten (Punkt 10), **Wettkampfpause** 10/15/20 Minuten. In der Pause wird schon eingeturnt, deshalb laufen nie
   beide gleichzeitig.
 - **Sturz-Timer** (nicht an Boden und Sprung): nach 30 Sekunden 0,3 Abzug, nach 60 Sekunden ist die Übung beendet;
   erneuter Klick stoppt.
@@ -226,6 +226,11 @@ Sekundenangaben, wo welche Menüs liegen.
 
 Beim Umsetzen an den dann aktuellen Stand anpassen (Punkte 2, 5 und 6). Der Hinweis auf „Installation und
 Datensicherung“ oben bleibt.
+
+### 10. Einturnzeit wieder 4 Minuten
+Die Einturnzeit dauert seit Beta 60 6:40 (8 Turner × 50 Sekunden); künftig wieder **4:00 Minuten** wie vor Beta 60.
+Alles andere bleibt (ein einziger Timer im Menü Anzeigetafel, Schelle am Ende, „Einturnen beendet“, gegenseitige Sperre
+mit der Wettkampfpause). Hilfetext und README anpassen (dort steht 6:40 bzw. „8 Turner × 50 Sekunden“).
 
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
