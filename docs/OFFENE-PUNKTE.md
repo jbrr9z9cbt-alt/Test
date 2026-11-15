@@ -37,6 +37,14 @@ Lösung: Klicks auf die Beschriftung zählen als Klick auf den Knopf selbst (Tex
 Einturnzeit, Sturz-Timer (Kachel und Wertungsfenster) und den Menüknopf „Anzeigetafel“ mit der laufenden Zeit. Im Test mit
 dieser Änderung: alle drei Timer stoppen auch bei langem Klick.
 
+### 6. Ergebnis/Siegerehrung: lange Mannschaftsnamen über dem Ergebnis
+Beobachtet (Foto 15.11.2026, Landesliga, Laptop): Neben den breiten Summen („44,00 : 41,60“) bleibt für die Namen nur ein
+schmaler Streifen – „TSV Kierspe 2“ bricht auf drei Zeilen um, „Leopoldshöhe“ wird am Rand abgeschnitten. In der Oberliga
+kann es bei sehr langen Namen genauso passieren.
+Beschlossen: Die Mannschaftsnamen stehen **über** ihrem Ergebnis statt daneben, jeweils mittig über der Zahl, einzeilig in
+der Mannschaftsfarbe; ein zu langer Name wird nur selbst etwas kleiner, bis er passt (kein Umbruch, nichts abgeschnitten).
+Für beide Ligen, auf der Tafel (bildschirmfüllend) und im Fenster „Ergebnis/Siegerehrung“ in der App.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
