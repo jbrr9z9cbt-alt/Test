@@ -24,6 +24,10 @@ als 8 Elementen („1 Element zu viel“).
 - Die Dauer wird mit dem laufenden Timer im Wettkampf gespeichert (Tafelfenster kennt sie); ältere Wettkämpfe ohne Angabe: 4:00.
 - Hilfetext und README anpassen.
 
+### 4. Tafel: Hinweis „Noch keine Wertung angezeigt“ entfällt
+Solange noch keine Wertung auf der Tafel ist, bleibt die Karte einfach leer – bei der Standardtafel und bei der großen
+Tafel. Größe und Aufteilung der Tafel bleiben gleich; mit der ersten Freigabe erscheint wie gewohnt das Duell bzw. die Übung.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
