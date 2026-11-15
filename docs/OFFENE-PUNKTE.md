@@ -171,6 +171,62 @@ Beschlossen:
   erscheint sie weiterhin nicht.
 - Seiten ohne Zurück-Knopf bleiben unverändert.
 
+### 9. Anleitung Oberliga und Landesliga wesentlich kürzen
+Heute rund 1.800 Wörter je Liga (am Handy fast 8.000 px Scrollen). Ziel: etwa ein Viertel (rund 400 Wörter).
+
+**Grundsatz:** Drin bleibt nur, was man in der App nicht sieht oder leicht falsch macht (Regeln und Abläufe, z. B. wann
+die Tafel ein Duell zeigt, Korrektur, „kein Turner“ gegenüber „Wertung 0,00“, Mannschaftsabzüge, Tafelfenster auf den
+Beamer ziehen und Doppelklick). **Raus:** Erklärung einzelner Felder und Knöpfe, Tastatur- und Zahlentastatur-
+Bedienung, Rechenregeln des D-Note-Rechners, Formeln (stehen unter „Regeln“), Farben und Töne der Timer,
+Sekundenangaben, wo welche Menüs liegen.
+
+**Entwurf Oberliga (beschlossen als Grundlage, 15.11.2026):**
+
+*1. Vorbereitung*
+- Turnernamen und Startnummern unter **Mannschaften** pflegen.
+- **Neuer Wettkampf:** Mannschaften, anwesende Turner, Kampfgericht und die per Los beginnende Mannschaft eintragen –
+  die Startreihenfolge an allen Geräten ergibt sich daraus. Alles lässt sich später unter **Setup** ändern.
+
+*2. Wertungen*
+- Gerät oben wählen, **Wertung eingeben** antippen. E-Note und Endnote rechnet die App; **berechnen** unter der D-Note
+  hilft beim Zusammenzählen.
+- Die Wertung des ersten Turners eines Duells wird nur gespeichert. Erst mit der Freigabe des zweiten Turners zählen die
+  Scorepunkte und das Duell erscheint auf der Tafel.
+- **Korrektur:** Wertung ändern → Korrektur freigeben; die Tafel zeigt die Änderung an.
+- **Zurücknehmen:** Wertung ändern → „– Turner –“ wählen → Wertung zurücknehmen; die Kachel ist danach wieder leer.
+  (kommt mit Punkt 6)
+- **kein Turner** = nicht angetreten, zählt 0. **Wertung 0,00** = angetreten, Endnote 0.
+- **Mannschaftsabzüge** als neutralen Abzug beim Turner eintragen, der zuletzt am Gerät war bzw. bei dem der Abzug
+  aufgefallen ist.
+
+*3. Anzeigetafel*
+- **Anzeigetafel öffnen**, das Fenster auf Beamer oder Fernseher ziehen, Doppelklick = Vollbild. Hell oder Dunkel je
+  nach Raum, **Groß** für kleine Leinwände (kommt mit Punkt 2).
+- Die Tafel folgt dem gewählten Gerät. Ab der ersten Freigabe an einem Gerät bleibt sie dort, bis alles freigegeben ist,
+  und danach noch kurz.
+- Turnervorstellung, Einturnzeit, Wettkampfpause und Ergebnis/Siegerehrung im Menü Anzeigetafel; ein erneuter Klick
+  beendet sie. Turnervorstellung weiter mit ◀ ▶, Pfeiltasten oder Presenter.
+
+*4. Timer*
+- **Einturnzeit** 6:40, **Wettkampfpause** 10/15/20 Minuten. In der Pause wird schon eingeturnt, deshalb laufen nie
+  beide gleichzeitig.
+- **Sturz-Timer** (nicht an Boden und Sprung): nach 30 Sekunden 0,3 Abzug, nach 60 Sekunden ist die Übung beendet;
+  erneuter Klick stoppt.
+
+*5. Abschluss*
+- **Wettkampf abschließen** sperrt die Eingabe und bietet die Sicherung an; **Wieder öffnen** hebt das auf.
+- **Protokoll / Drucken** erstellt das Protokoll auf einer DIN-A4-Seite (auch als PDF).
+
+**Landesliga:** gleich aufgebaut, mit drei Unterschieden:
+- Geturnt wird abwechselnd; die Zahl vor dem Turner ist seine Startposition.
+- Jede Übung wird einzeln freigegeben und erscheint sofort auf der Tafel. Je Mannschaft und Gerät zählen die drei
+  höchsten Wertungen; die Streichwertung ist durchgestrichen.
+- **Mannschaftsabzug** über die Links unten im Gerätebereich: einer je Mannschaft für den ganzen Wettkampf, mindert nur
+  die Gesamtpunktzahl.
+
+Beim Umsetzen an den dann aktuellen Stand anpassen (Punkte 2, 5 und 6). Der Hinweis auf „Installation und
+Datensicherung“ oben bleibt.
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
