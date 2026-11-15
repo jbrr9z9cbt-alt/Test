@@ -126,6 +126,22 @@ Beschlossen:
 - Steht das iPhone auf lautlos, bleibt der Ton stumm (wie die Tastenklicks des iPhones).
 - Hilfetext und README anpassen.
 
+### 12. Zahlentastatur: Die Taste unter dem Finger zählt, sofort beim Berühren
+Beobachtet am Handy (15.11.2026): Ein Tipp in die Lücke zwischen 0 und 2 schrieb die 2, ohne dass sie grau wurde; ein
+anderes Mal wurde die 0 grau, geschrieben wurde aber die 2. Ursache: Das Grauwerden richtet sich nach dem Punkt unter der
+Fingerspitze, den Klick ordnet Safari dagegen mit seiner Tipp-Korrektur (ganze Fingerfläche) oft der Nachbartaste zu.
+Auf der Testseite mit Umschalter „wie bisher / neu“ am iPhone ausprobiert (15.11.2026): „neu“ funktioniert. Beschlossen:
+- Die Tasten reagieren **auf das Berühren selbst**, nicht mehr auf den Klick des Browsers: Die Ziffer erscheint sofort beim
+  Berühren (wie bei der Telefon-Tastatur des iPhones); der Tastenton (Punkt 11) klickt im selben Moment.
+- Welche Taste zählt, bestimmt die App **selbst aus der Fingerposition**: Liegt der Punkt auf einer Taste, ist es diese;
+  liegt er in einer Lücke, die nächstgelegene – die Lücken sind in der Mitte geteilt, kein Tipp geht verloren.
+- **Genau die getippte Taste wird grau** (eigene Markierung statt der Browser-Darstellung); das Grau bleibt auch bei sehr
+  schnellem Tippen kurz sichtbar (mindestens etwa 0,1 s) und verschwindet beim Loslassen.
+- Jeder Tipp zählt genau einmal (der nachfolgende Klick des Browsers wird für die Tastatur nicht mehr ausgewertet).
+- Gilt für die Zahlentastatur im Wertungsfenster und im D-Note-Rechner, mit dem Finger wie mit der Maus
+  („Zahlentastatur immer“ am Laptop).
+- In den Browser-Tests prüfen: Tipp auf Taste, Rand und Lücke (beide Seiten der Mitte), jeweils genau ein Zeichen.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
