@@ -1,6 +1,22 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Liste nach Beta 83
+## Liste nach Beta 83 – umgesetzt in Beta 84 (noch nicht veröffentlicht)
+
+Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
+Hinweise zur Umsetzung:
+- Punkt 7: 64 Selektoren mit toten Klassen und die Klasse `chip` entfernt, dazu die Funktion `colorChip`. Wirklich
+  überflüssig waren nur 3 überschriebene Angaben (`.topbar` gap/flex-wrap, eine Schriftgröße des Tafel-Titels) – die übrigen
+  Mehrfach-Festlegungen sind Varianten für Handy/iPad/Laptop und bleiben. Bildvergleich vorher/nachher (55 Aufnahmen):
+  pixelgleich bis auf Messrauschen (Speicheranzeige, Fokus). 21 Browser-Tests in `tests/e2e` (`npm run test:e2e`).
+- Punkt 2: Statt zweier Knöpfe „Standard / Groß“ ein Umschalter **„Groß“** (an = große Tafel), gespeichert im Wettkampf wie
+  Hell/Dunkel – mit zwei Knöpfen wäre das Menüband am iPad hochkant bei laufender Pause zu breit gewesen (am kleinen iPad
+  zusätzlich etwas engere Abstände). Das Geräteergebnis bleibt nach der Haltezeit stehen, bis am nächsten Gerät ein Turner
+  gewählt oder etwas eingetragen ist; dann zeigt die Tafel dort das Duell 1 „als Nächstes“. Am Handy hochkant funktioniert
+  die große Tafel, ist aber nicht dafür gedacht.
+- Punkt 1: Bildschirmfüllend nur auf der Tafel; in der App bleiben Turnervorstellung und Ergebnis Fenster. Die
+  Korrektur-Einblendung auf einer hochkant gestellten Tafel (Handy) war zu eng und passt jetzt.
+- Punkt 5: „Laptop und Tablet“ = Fenster ab 561 × 501 px; darunter (Handy hoch und quer) bleibt der Sturz-Timer oben rechts.
+- Punkt 9: Anleitung Oberliga 311, Landesliga 318 Wörter (vorher rund 1.800); am Handy rund 1.800 statt 7.900 px.
 
 ### 1. Einblendungen der Tafel auf großen Auflösungen (4K-Beamer mit 100 % Skalierung)
 Beobachtet im Wettkampf am 14.11.2026: Der Beamer lief mit 3840 × 2160 bei 100 % Skalierung. Die Tafel und die
