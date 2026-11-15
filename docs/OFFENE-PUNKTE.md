@@ -55,17 +55,21 @@ Beschlossen (Vorschaubild 8 für die Oberliga, Vorschaubild 10 für die Landesli
 - **Schriftgrößen im Entwurf** (Anteil an der Bildhöhe, Full HD): Namen in der Karte 7 %, D-/E-Note und Neutr. Abzug
   5,6 %, Endnote 9,8 %, Scorepunkte in der Mitte 22 %, nächstes Duell 6,2 %, Stand 16 % (Landesliga-Summen 12 %).
   Insgesamt etwa doppelt so groß wie heute. Sehr lange Namen werden so weit verkleinert, dass sie passen.
-- **Fester mittlerer Rand gegen Overscan:** rundum etwa 3 % je Seite frei (wie in den Entwürfen). Manche Beamer und
-  Fernseher schneiden ab Werk den Rand ab (beim Wettkampf am Beamer und an einem Fernseher nachgestellt). Es gibt dafür
-  keine Einstellung in der App.
+- **Seiten der großen Tafel, wenn kein Duell läuft** (Vorschaubilder 3, 4 Oberliga, 6, 7 Landesliga):
+  - Nach dem letzten Duell eines Geräts (nach der Haltezeit, bis das nächste Gerät beginnt): **Geräteergebnis** mit
+    allen Duellen bzw. Übungen in großer Schrift (Oberliga: Namen, Endnoten, Scorepunkte je Duell, darunter Summe
+    Scorepunkte und Gerätepunkte; Landesliga: Endnoten je Mannschaft, Streichwertung durchgestrichen, darunter
+    „Summe (beste 3)“ und Gerätepunkte).
+  - In der Wettkampfpause bzw. beim Einturnen: **Übersicht aller Geräte** mit den Ergebnissen je Gerät und den
+    Gerätepunkten, daneben die Uhr („Wettkampfpause und Einturnen“ bzw. „Einturnen“).
+- **Fester mittlerer Rand gegen Overscan – für beide Tafeln:** rundum etwa 3 % je Seite frei (wie in den Entwürfen),
+  bei der großen Tafel und auch bei der Standardtafel, und für alle Einblendungen (Scorepunkte, Turnervorstellung,
+  Ergebnis, Sturz-Timer, Korrektur). Manche Beamer und Fernseher schneiden ab Werk den Rand ab (beim Wettkampf am Beamer
+  und an einem Fernseher nachgestellt). Es gibt dafür keine Einstellung in der App. Die Standardtafel wird dadurch
+  rundum etwas kleiner (rund 6 %), ihre Aufteilung bleibt gleich.
 
 Verworfen: große Tafel mit dem nächsten Duell unter der Wertung und nur Endnote/D/E nebeneinander (Vorschaubilder 1, 2, 5),
 Landesliga-Karte mit leerer zweiter Hälfte (Vorschaubild 9), Einstellung „Rand“ mit mehreren Stufen.
-
-Noch zu klären:
-- Seiten, wenn kein Duell läuft (Vorschaubilder 3, 4, 6, 7): nach dem letzten Duell das Geräteergebnis mit allen Duellen,
-  in Pausen die Übersicht aller Geräte mit der Pausen- bzw. Einturnuhr.
-- Gilt der mittlere Rand auch für die Standardtafel und alle Einblendungen?
 
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
