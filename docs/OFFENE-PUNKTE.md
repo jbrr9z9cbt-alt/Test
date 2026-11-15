@@ -138,6 +138,28 @@ kompliziert zurückgestellt, jetzt beschlossen; Ablauf wie damals ausgearbeitet:
 - **Abgeschlossener Wettkampf:** Zurücknehmen erst nach „Wieder öffnen“.
 - Hilfetext und README ergänzen.
 
+### 7. Aufräumen und Tests sichern (ohne sichtbare Änderung) – als Erstes umsetzen
+Durchsicht am 15.11.2026 (Stand Beta 83): Keine Fehler aus Altlasten gefunden; Start/Sperre/Statuszeile sind aus der
+Programmlogik vollständig entfernt. Die 22 Tests der Wertungsberechnung laufen fehlerfrei.
+
+Beschlossen:
+- **Ungenutzten Code entfernen:** die nicht mehr aufgerufene Funktion `colorChip` und die Gestaltungsregeln für Elemente,
+  die es nicht mehr gibt (rund 25 Klassen, u. a. `board-bar`, `board-group`, `board-sub`, `board-switch`, `bs-main`,
+  `pw-title`, `pw-sub`, `pw-score`, `export-box`, `export-grid`, `inline-form`, `judge-hint`, `seg`, `score-field`,
+  `score-grp`, `struck-tag`, `ps-struck`, `print-scorers`, `cd-dns`, `bonus-box`, `hidden-keep`, `tool-right`,
+  `team-name`, `radio-row`, `color-pick`, `duel-sep` – vor dem Löschen jeweils noch einmal prüfen, dass sie wirklich
+  nirgends erzeugt werden; `phase1/2`, `st-done/run` und `menu-open-…` werden zusammengesetzt und bleiben).
+- **Gestaltungsdatei zusammenfassen**, wo spätere Regeln frühere nur überschreiben (rund 150 mehrfach festgelegte
+  Elemente, ein Teil davon zu Recht für Handy/iPad/Laptop).
+- **Bleibt:** die Lesbarkeit alter Daten (Wettkämpfe ohne Liga oder Anwesenheitsliste, altes E-Noten-Format, ältere
+  verschlüsselte Sicherungsdateien, ältere Sicherungspunkte).
+- **Browser-Tests ins Projekt** (`tests/`): ein kompakter Satz von etwa 10–15 Kernabläufen, der auch in späteren
+  Sitzungen läuft – u. a. Freigabe in beiden Ligen, Tafel mit Haltezeit, Korrektur, Einturnzeit/Pause/Sturz-Timer,
+  Turnervorstellung, Ergebnis, Protokoll, Datensicherung, Passung der Tafel auf Laptop/iPad/Handy. Bisher liegen die
+  Browser-Tests nur im temporären Arbeitsordner der jeweiligen Sitzung.
+- **Prüfung:** Bildvergleich vorher/nachher – Tafel, Wertungsfenster und Protokoll müssen pixelgleich bleiben.
+- **Reihenfolge:** als Erstes umsetzen, vor den Punkten 1–6.
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
