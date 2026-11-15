@@ -98,6 +98,33 @@ zu erstellen. Nicht in der App der Vereine, sondern auf einer **eigenen, nicht v
   - **Ab Seite 2:** je Wettkampf das Wettkampfprotokoll auf einer eigenen DIN-A4-Seite, nach Datum; oben ein kleiner
     anklickbarer Rücksprung „↑ Saisonübersicht“.
 
+### 10. Zahlentastatur: automatisches Komma wieder einführen
+Am iPhone auf der Testseite ausprobiert (15.11.2026) und für gut befunden; es war in Beta 77 schon einmal drin (in Beta 78
+entfernt). Beschlossen:
+- **Nur auf der Bildschirm-Zahlentastatur** (Wertungsfenster und D-Note-Rechner); mit der Hardware-Tastatur am Laptop
+  bleibt alles wie heute („4“ = 4,0, Komma/Punkt selbst tippen).
+- Regel wie in Beta 77: **Die letzte getippte Ziffer ist die Nachkommastelle** – „1 7“ = 1,7; „8“ = 0,8; „4 0“ = 4,0;
+  „1 3 5“ = 13,5 (höchstens drei Ziffern). Ein **getipptes Komma gilt wie getippt** („4 , 5“ = 4,5), wer das Komma gewohnt
+  ist, kann also weiter so tippen.
+- Gilt für alle Felder mit einer Nachkommastelle: Abzüge E1–E3, D-Note, neutraler Abzug, im D-Note-Rechner das Feld EG.
+  Nicht betroffen: Anzahlen im D-Note-Rechner (ganze Zahlen) und der Standbonus (1 = ja, 0 = nein).
+- Die Anzeige über der Tastatur zeigt den Wert, wie er übernommen wird (nach „4“ also 0,4). Der erste Tastendruck in einem
+  Feld ersetzt wie heute den alten Wert.
+- Keine Einstellung zum Ein-/Ausschalten.
+- Hilfetext und README anpassen.
+
+### 11. Zahlentastatur: Tastenton
+Auf der Testseite ausprobiert (15.11.2026): Ton „Klick“ in mittlerer Lautstärke passt. Vibration geht am iPhone nicht
+(Apple lässt sie für Webseiten seit iOS 26.5 nicht mehr zu); Android ließ sich nicht testen – die Vibration entfällt daher.
+Beschlossen:
+- Ein kurzer, leiser **Klick bei jedem Tastendruck** auf der Bildschirm-Zahlentastatur (Wertungsfenster und D-Note-Rechner);
+  nicht bei der Hardware-Tastatur und nicht bei anderen Knöpfen.
+- **Einstellung „Tastenton“ an/aus je Gerät** (gemerkt wie die Zahlentastatur), in der Zeile „Zahlentastatur“ unter der
+  Tastatur – in derselben Zeile, damit sich die Tastatur am Handy nicht verschiebt.
+- **Grundeinstellung: aus** (ein iPad am Beamer könnte den Ton sonst über die Hallenlautsprecher ausgeben).
+- Steht das iPhone auf lautlos, bleibt der Ton stumm (wie die Tastenklicks des iPhones).
+- Hilfetext und README anpassen.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
