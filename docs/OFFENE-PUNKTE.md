@@ -160,6 +160,17 @@ Beschlossen:
 - **Prüfung:** Bildvergleich vorher/nachher – Tafel, Wertungsfenster und Protokoll müssen pixelgleich bleiben.
 - **Reihenfolge:** als Erstes umsetzen, vor den Punkten 1–6.
 
+### 8. „← zurück“ bleibt beim Scrollen stehen
+Beschlossen:
+- **Seiten:** alle Seiten mit „← zurück“ – Wettkämpfe, Datensicherung, Mannschaften, Regeln und Anleitung (wenn man vom
+  Wettkampf kommt), Setup und Protokoll.
+- **Verhalten:** Die Zeile mit „← zurück“ bleibt beim Scrollen direkt unter der dunklen Kopfzeile stehen (wie der obere
+  Bereich der Wettkampfseite), mit Seitenhintergrund, damit der Inhalt sauber darunter durchläuft. Handy, iPad und
+  Laptop.
+- **Protokoll:** Die ganze Zeile mit „← zurück“ und „Drucken / als PDF speichern“ bleibt stehen; auf dem Ausdruck
+  erscheint sie weiterhin nicht.
+- Seiten ohne Zurück-Knopf bleiben unverändert.
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
