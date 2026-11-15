@@ -13,6 +13,17 @@ Bei genau 8 Elementen steht „keine Elemente mehr möglich“ heute dunkelorang
 regulärer Fall. Künftig genauso wie „noch 3 Elemente möglich“ (normal, schwarz). Rot bleibt nur der Fehlerfall mit mehr
 als 8 Elementen („1 Element zu viel“).
 
+### 3. Einturnzeit mit Auswahl der Dauer (wie bei der Wettkampfpause)
+- Ein Klick auf **„Einturnzeit“** öffnet ein kleines Menü wie bei der Pause: **4 Minuten** · **Andere Zeit …** und – wenn es
+  sie gibt – die **zuletzt gewählte eigene Zeit** als dritter Eintrag (z. B. „6:40 (zuletzt)“, auf dem Gerät gemerkt).
+- „4 Minuten“ bzw. die zuletzt gewählte Zeit starten sofort.
+- **„Andere Zeit …“** öffnet ein kleines Fenster „Einturnzeit in Minuten“: Eingabe z. B. `5` oder `6:40`
+  (Minuten:Sekunden), erlaubt 1 bis 30 Minuten; [Abbrechen] [Starten] – „Starten“ startet sofort.
+- Gleich bleibt: Restzeit im Knopf, Klick auf den laufenden Knopf beendet; Tafel („Einturnen“ mit Uhr, auch auf der großen
+  Tafel), Schelle am Ende, gegenseitige Sperre mit der Wettkampfpause. Am Handy im Aufklappmenü „Tafel“ wie die Pause.
+- Die Dauer wird mit dem laufenden Timer im Wettkampf gespeichert (Tafelfenster kennt sie); ältere Wettkämpfe ohne Angabe: 4:00.
+- Hilfetext und README anpassen.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
