@@ -13,7 +13,8 @@
   var FLASH_MS = 8000;             // Einblendung der Scorepunkte bzw. der Wertung auf der Tafel
   var CORRECTION_MS = 8000;        // Einblendung einer Korrektur
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
-  var WARMUP_MS = 4 * 60 * 1000;   // Einturnzeit: 4 Minuten
+  var WARMUP_MS = 4 * 60 * 1000;   // Einturnzeit: 4 Minuten (Standard; eigene Zeit wählbar, im Timer gespeichert)
+  var WARMUP_LAST_KEY = 'wtb-einturnzeit'; // zuletzt gewählte eigene Einturnzeit (ms) auf diesem Gerät
   var PAUSE_MINUTES = [10, 15, 20]; // Pause-Timer, groß in der Detailkarte der Tafel
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
   // Ligen aus js/config.js; die aktuelle Liga ergibt sich aus der Adresse (#/oberliga/…, #/landesliga/…).
@@ -215,14 +216,14 @@
   }
 
   /** Abfrage eines Werts (Text) mit „Speichern“ und „Abbrechen“; liefert den Text oder null. */
-  function askValue(title, text, value, hint) {
+  function askValue(title, text, value, hint, okLabel) {
     return new Promise(function (resolve) {
       var wrap = document.createElement('div');
       wrap.className = 'modal-backdrop';
       wrap.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><h3 id="modal-title">' + esc(title) + '</h3>' +
         '<form class="stack"><label>' + esc(text) + '<input type="text" inputmode="decimal" autocomplete="off" value="' + esc(value) + '"></label>' +
         (hint ? '<p class="muted small">' + esc(hint) + '</p>' : '') +
-        '<div class="actions wrap"><button type="button" class="btn" data-answer="cancel">Abbrechen</button><button type="submit" class="btn primary">Speichern</button></div></form></div>';
+        '<div class="actions wrap"><button type="button" class="btn" data-answer="cancel">Abbrechen</button><button type="submit" class="btn primary">' + esc(okLabel || 'Speichern') + '</button></div></form></div>';
       document.body.appendChild(wrap);
       var inp = wrap.querySelector('input');
       function close(v) { document.removeEventListener('keydown', onKey, true); wrap.remove(); resolve(v); }
@@ -1031,12 +1032,10 @@
       '<button class="btn mi-main" data-action="open-board"><span class="ml">Anzeigetafel öffnen</span><span class="ms">Öffnen</span></button>' +
       '<span class="mi-design"><span class="mi-lbl">Design</span><span class="bs-theme" role="group" aria-label="Design der Anzeigetafel">' +
       '<button class="toggle' + (boardLight(m) ? ' on' : '') + '" data-action="theme" data-theme="light">Hell</button>' +
-      '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span>' +
-      // Große Tafel für kleine Leinwände: ein Umschalter (an = groß, aus = Standard)
-      '<span class="bs-theme"><button class="toggle' + (bigBoard(m) ? ' on' : '') + '" data-action="board-size" title="Große Anzeigetafel (für kleine Leinwände)">Groß</button></span></span><hr>' +
+      '<button class="toggle' + (boardLight(m) ? '' : ' on') + '" data-action="theme" data-theme="dark">Dunkel</button></span></span><hr>' +
       // Reihenfolge wie im Ablauf: Turnervorstellung, Einturnzeit, Wettkampfpause, Ergebnis/Siegerehrung
       '<span data-out="intro">' + introControls(m) + '</span>' +
-      '<button class="btn timer-btn" data-action="warmup-timer">' + warmupLabel(null) + '</button>' + pauseControls() +
+      warmupControls() + pauseControls() +
       '<button class="btn toggle' + (m.display && m.display.scorers ? ' on' : '') + '" data-action="toggle-scorers">' + scorersLabel() + '</button></div>' +
       '<div class="menu-pop" id="menu-match" role="group" aria-label="Wettkampf">' +
       (locked ? '' : '<a class="btn" href="#/edit/' + m.id + '"><span class="ml">Wettkampf Setup</span><span class="ms">Setup</span></a>') +
@@ -1076,9 +1075,53 @@
       }).join('') + '</div></span>';
   }
 
+  /**
+   * Einturnzeit: ein Knopf wie bei der Pause; ein Klick öffnet die Auswahl (4 Minuten, Andere Zeit …, zuletzt gewählte
+   * eigene Zeit), die Wahl startet sofort. Läuft die Einturnzeit, beendet ein Klick sie.
+   */
+  function warmupControls() {
+    return '<span class="pause-ctl warmup-ctl"><button class="btn timer-btn" data-action="warmup-timer" aria-haspopup="menu">' + warmupLabel(null) + '</button>' +
+      '<div class="pause-menu" role="menu" hidden>' + warmupMenuItems() + '</div></span>';
+  }
+
+  function warmupMenuItems() {
+    var last = lastWarmupMs();
+    return '<div class="pm-head">Dauer wählen</div>' +
+      '<button class="btn" role="menuitem" data-action="warmup-start" data-ms="' + WARMUP_MS + '">4 Minuten</button>' +
+      '<button class="btn" role="menuitem" data-action="warmup-custom">Andere Zeit …</button>' +
+      (last ? '<button class="btn" role="menuitem" data-action="warmup-start" data-ms="' + last + '">' + warmupDurationText(last) + ' (zuletzt)</button>' : '');
+  }
+
+  /** „5 Minuten“ bzw. „6:40“ */
+  function warmupDurationText(ms) {
+    return ms % 60000 === 0 ? (ms / 60000) + ' Minuten' : clock(ms);
+  }
+
+  function lastWarmupMs() {
+    var v = 0;
+    try { v = parseInt(localStorage.getItem(WARMUP_LAST_KEY), 10) || 0; } catch (e) { /* ohne Speicher keine Vorgabe */ }
+    return v >= 60000 && v <= 30 * 60000 && v !== WARMUP_MS ? v : 0;
+  }
+
+  /** Eingabe „5“ oder „6:40“ (auch „6,40“ bzw. „6.40“) → Millisekunden; 1 bis 30 Minuten, sonst null. */
+  function parseWarmupTime(txt) {
+    var mt = /^\s*(\d{1,2})(?:\s*[:.,]\s*(\d{2}))?\s*(?:min)?\s*$/i.exec(String(txt || ''));
+    if (!mt) return null;
+    var sec = parseInt(mt[2] || '0', 10);
+    if (sec >= 60) return null;
+    var ms = (parseInt(mt[1], 10) * 60 + sec) * 1000;
+    return ms >= 60000 && ms <= 30 * 60000 ? ms : null;
+  }
+
+  function startWarmup(m, ms) {
+    m.timers = m.timers || {};
+    m.timers.warmup = { start: Date.now(), ms: ms };
+    save('matches', m).then(tickTimers);
+    tickTimers();
+  }
+
   function closePauseMenu() {
-    var pm = $app.querySelector('.pause-menu');
-    if (pm) pm.hidden = true;
+    $app.querySelectorAll('.pause-menu').forEach(function (pm) { pm.hidden = true; });
   }
 
   /** Gleiche Beschriftung in beiden Zuständen; eingeblendet zeigt der Knopf dunkel hinterlegt (wie Hell/Dunkel). */
@@ -1619,7 +1662,7 @@
     if (!latest.appKey) {
       return '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' +
         duelSideHtml(m, S.emptySide(), 'home', false) + classicCardMiddle() +
-        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
+        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div></div>';
     }
     var k = latest.side;
     var s = view.apparatus[latest.appKey].duels[latest.idx][k];
@@ -1672,10 +1715,10 @@
   function currentDuelCard(m, view) {
     var latest = latestPerformed(m);
     if (!latest.appKey) {
-      // Gleiche Größe wie eine gefüllte Karte: Platzhalter unsichtbar, Hinweis darüber.
+      // Gleiche Größe wie eine gefüllte Karte, Inhalt unsichtbar (die Karte bleibt bis zur ersten Freigabe leer).
       return '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' +
         duelSideHtml(m, S.emptySide(), 'home', false) + '<div class="cd-pts single">' + pts(m, 'home', 0, true) + '</div>' +
-        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
+        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div></div>';
     }
     var duel = view.apparatus[latest.appKey].duels[latest.idx];
     var res = S.duelResult(duel, m.rules);
@@ -1700,7 +1743,7 @@
       return '<div class="board board-standby">' +
         '<div class="standby"><img src="icons/icon.svg" alt="" width="120" height="120"><div>' + esc(matchLeague(m).name) + '</div></div></div>';
     }
-    if (bigBoard(m)) return viewBoardBig(m);
+    if (bigBoard()) return viewBoardBig(m);
     var view = S.revealedView(m);
     var r = S.matchResult(view);
     var current = boardApparatus(m);
@@ -1743,13 +1786,17 @@
       '<div id="intro-box">' + introBoxHtml(m) + '</div>';
   }
 
-  // ---------- Große Anzeigetafel (für kleine Leinwände): weniger gleichzeitig, deutlich größere Schrift ----------
+  // ---------- Große Anzeigetafel (Querformat: Beamer, Fernseher, Laptop): weniger gleichzeitig, deutlich größere Schrift ----------
   // Oben das nächste Duell bzw. der nächste Turner, darunter die Karte der letzten Wertung auf voller Breite, unten das
   // Gerät mit Zwischenstand und die Gerätepunkte. Ohne laufendes Duell: Geräteergebnis bzw. in Pause und Einturnzeit
-  // die Übersicht aller Geräte mit der Uhr. Welches Gerät gezeigt wird, regelt boardApparatus wie bei der Standardtafel.
+  // die Übersicht aller Geräte mit der Uhr. Welches Gerät gezeigt wird, regelt boardApparatus wie bei der ausführlichen Tafel.
+  // Die Tafel wählt ihre Form nach der Ausrichtung des Fensters: quer die große Tafel, hochkant (Handy, Tablet) die
+  // ausführliche Tafel. Gleiche Grenze wie im Stylesheet (Seitenverhältnis 1:1).
+  var BOARD_PORTRAIT_MQ = window.matchMedia('(max-aspect-ratio: 1/1)');
+  BOARD_PORTRAIT_MQ.addEventListener('change', function () { if (document.body.classList.contains('board-mode')) render(); });
 
-  function bigBoard(m) {
-    return !!(m && m.display && m.display.size === 'big');
+  function bigBoard() {
+    return !BOARD_PORTRAIT_MQ.matches;
   }
 
   /** Zeitpunkt, zu dem ein Duell (Oberliga) bzw. eine Übung (Landesliga, k) zum ersten Mal gezeigt wurde. */
@@ -1828,7 +1875,7 @@
     if (latest < 0) {
       card = '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' +
         duelSideHtml(m, S.emptySide(), 'home', false) + '<div class="cd-pts single">' + pts(m, 'home', 0, true) + '</div>' +
-        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
+        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div></div>';
     } else {
       var duel = vds[latest], res = S.duelResult(duel, m.rules);
       card = '<div class="cur-duel"><div class="cd-head">' + appIcon(appKey, 'gb-ico') + apparatusName(appKey) + ' · Duell ' + (latest + 1) + '</div>' +
@@ -1869,7 +1916,7 @@
     var card;
     if (!newest) {
       card = '<div class="cur-duel empty"><div class="cd-head">&nbsp;</div><div class="cd-grid">' + duelSideHtml(m, S.emptySide(), 'home', false) + classicCardMiddle() +
-        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div><div class="cd-empty">Noch keine Wertung angezeigt</div></div>';
+        duelSideHtml(m, S.emptySide(), 'guest', false) + '</div></div>';
     } else {
       var other = newest === 'home' ? 'guest' : 'home';
       card = '<div class="cur-duel"><div class="cd-head gb-head2"><span>' + appIcon(appKey, 'gb-ico') + apparatusName(appKey) + ' · ' +
@@ -1945,7 +1992,7 @@
     var PT = 'Wettkampfpause und Einturnen';
     if (warm) return card('Einturnen', '<div class="tm-clock">' + fixedDigits(clock(warm.remaining)) + '</div>');
     if (p) return card(PT, '<div class="tm-clock">' + fixedDigits(clock(p.remaining)) + '</div>');
-    if (timerEnded(t.warmup, WARMUP_MS, WARMUP_END_MS)) return card('Einturnen', '<div class="tm-clock tm-end">Einturnen beendet</div>');
+    if (timerEnded(t.warmup, warmupMs(t.warmup), WARMUP_END_MS)) return card('Einturnen', '<div class="tm-clock tm-end">Einturnen beendet</div>');
     if (t.pause && timerEnded(t.pause, t.pause.ms, PAUSE_END_MS)) return card(PT, '<div class="tm-clock tm-end">Zeit abgelaufen</div>');
     return '';
   }
@@ -2127,9 +2174,11 @@
     var list = S.topScorers(view, 3);
     var classic = isClassic(m);
     return '<div class="scorer-overlay"><div class="so-box"><div class="so-title">' + (r.complete ? 'Wettkampfergebnis' : 'Zwischenstand') + '</div>' +
-      '<div class="so-result"><div class="t" style="color:' + boardTone(m, 'home') + '">' + teamHtml(m.homeTeamId) + '</div>' +
-      '<div class="big">' + totalPair(m, r, true) + '</div>' +
-      '<div class="t" style="color:' + boardTone(m, 'guest') + '">' + teamHtml(m.guestTeamId) + '</div></div>' +
+      // Namen über ihrem Ergebnis (einzeilig, zu lange werden kleiner – fitResultNames)
+      '<div class="so-result"><div class="t h" style="color:' + boardTone(m, 'home') + '">' + teamHtml(m.homeTeamId) + '</div>' +
+      '<div class="t g" style="color:' + boardTone(m, 'guest') + '">' + teamHtml(m.guestTeamId) + '</div>' +
+      '<div class="big h">' + teamValue(m, r, 'home', true) + '</div><div class="big sep"><span class="sp-sep">:</span></div>' +
+      '<div class="big g">' + teamValue(m, r, 'guest', true) + '</div></div>' +
       '<div class="so-sub">Gerätepunkte ' + r.homeApp + ':' + r.guestApp + (r.complete ? ' · Wettkampfpunkte ' + r.homeMatch + ':' + r.guestMatch : '') + (deductionsText(m) ? ' · ' + esc(deductionsText(m)) : '') + '</div>' +
       '<div class="so-title so-h">Topscorer</div>' +
       (list.length ? '<table class="so-table">' + list.map(function (x) {
@@ -2169,14 +2218,6 @@
     // Passt der Inhalt nicht in gleich hohe Zeilen, wird die Tafel insgesamt verkleinert (fitBoard).
     var each = t.getBoundingClientRect().height / rows.length;
     rows.forEach(function (tr) { tr.style.height = each + 'px'; });
-    // Linke Tabelle: Zeile „Gerätepunkte“ so hoch wie die Summenzeile daneben, die Geräte teilen sich den Rest.
-    var lt = b.querySelector('.board-table');
-    if (!lt || getComputedStyle(lt).display !== 'table') return;
-    var gp = lt.querySelector('.gp-row'), body = lt.querySelectorAll('tbody tr');
-    body.forEach(function (tr) { tr.style.height = ''; });
-    gp.style.height = each + 'px';
-    var rest = lt.getBoundingClientRect().height - lt.querySelector('thead').getBoundingClientRect().height - each;
-    body.forEach(function (tr) { tr.style.height = (rest / body.length) + 'px'; });
   }
 
   // Vollbild per Doppelklick irgendwo auf die Tafel; solange kein Vollbild, kurz ein Hinweis.
@@ -2231,11 +2272,22 @@
     return [].some.call(b.querySelectorAll('.board-grid > *, .board-detail'), function (el) { return el.scrollHeight > el.clientHeight + 1; });
   }
 
+  /** Ergebnis/Siegerehrung: Mannschaftsnamen einzeilig über ihrem Ergebnis – ein zu langer Name wird nur selbst kleiner. */
+  function fitResultNames(box) {
+    box.querySelectorAll('.so-result .t').forEach(function (el) {
+      el.style.fontSize = '';
+      if (el.scrollWidth <= el.clientWidth + 1) return;
+      var base = parseFloat(getComputedStyle(el).fontSize);
+      el.style.fontSize = (base * el.clientWidth / el.scrollWidth * 0.98) + 'px';
+    });
+  }
+
   /** Das Ergebnis-Fenster liegt über der Tafel (nicht mitverkleinert) und schrumpft nur, wenn es sonst nicht passt. */
   function fitResultBox() {
     var box = document.querySelector('.so-box');
     if (!box) return;
     box.style.zoom = '';
+    fitResultNames(box);
     var over = Math.max(box.getBoundingClientRect().height / (window.innerHeight * 0.94), box.getBoundingClientRect().width / (window.innerWidth * 0.94));
     if (over > 1) box.style.zoom = 1 / over;
   }
@@ -2244,6 +2296,7 @@
     var box = document.querySelector('.so-box');
     if (!box) return;
     box.style.transform = '';
+    fitResultNames(box);
     var rc = box.getBoundingClientRect();
     // Auf der Tafel innerhalb des festen Rands (3 % je Seite), in der App wie bisher fast bis an den Rand.
     var board = document.body.classList.contains('board-mode');
@@ -2390,12 +2443,17 @@
     return { t: t, phase: phase, step: Math.floor(el / 10000), remaining: phase * FALL_PHASE_MS - el };
   }
 
+  /** Dauer einer Einturnzeit (im Timer gespeichert; ältere Wettkämpfe ohne Angabe: 4 Minuten). */
+  function warmupMs(t) {
+    return (t && t.ms) || WARMUP_MS;
+  }
+
   function warmupState(m) {
     var t = m && m.timers && m.timers.warmup;
     if (!t) return null;
     var el = Date.now() - t.start;
-    if (el < 0 || el >= WARMUP_MS) return null;
-    return { t: t, remaining: WARMUP_MS - el };
+    if (el < 0 || el >= warmupMs(t)) return null;
+    return { t: t, remaining: warmupMs(t) - el };
   }
 
   function pauseState(m) {
@@ -2434,7 +2492,6 @@
     $app.querySelectorAll('[data-action="theme"]').forEach(function (b) {
       b.classList.toggle('on', (b.getAttribute('data-theme') === 'light') === boardLight(m));
     });
-    $app.querySelectorAll('[data-action="board-size"]').forEach(function (b) { b.classList.toggle('on', bigBoard(m)); });
   }
 
   function tickTimers() {
@@ -2600,10 +2657,10 @@
     state.matches.forEach(function (m) {
       var tm = m.timers;
       if (!tm) return;
-      if (tm.warmup && now - tm.warmup.start < WARMUP_MS + 6000) active = true;
+      if (tm.warmup && now - tm.warmup.start < warmupMs(tm.warmup) + 6000) active = true;
       if (tm.fall && now - tm.fall.start < 2 * FALL_PHASE_MS + 3000) active = true;
       if (tm.pause && now - tm.pause.start < tm.pause.ms + 3000) active = true;
-      [['warmup', WARMUP_MS, 'bell'], ['fall', FALL_PHASE_MS, 'beep'], ['fall', 2 * FALL_PHASE_MS, 'error'], ['pause', tm.pause && tm.pause.ms, 'error']].forEach(function (c) {
+      [['warmup', warmupMs(tm.warmup), 'bell'], ['fall', FALL_PHASE_MS, 'beep'], ['fall', 2 * FALL_PHASE_MS, 'error'], ['pause', tm.pause && tm.pause.ms, 'error']].forEach(function (c) {
         var t = tm[c[0]];
         if (!t) return;
         var el = now - t.start;
@@ -3755,7 +3812,7 @@
     if (sum) sum.classList.toggle('bad', st.over);
     var left = DC_MAX_ELEMENTS - st.total;
     var elw = function (n) { return '<b>' + n + '</b> ' + (n === 1 ? 'Element' : 'Elemente'); };
-    out('sum', '<span' + (left === 0 ? ' class="full"' : '') + '>' + (st.over ? elw(-left) + ' zu viel' : left === 0 ? 'keine Elemente mehr möglich' : 'noch ' + elw(left) + ' möglich') +
+    out('sum', '<span>' + (st.over ? elw(-left) + ' zu viel' : left === 0 ? 'keine Elemente mehr möglich' : 'noch ' + elw(left) + ' möglich') +
       '</span><span>Summe <b>' + fmt1(st.sum) + '</b></span>');
     out('val', st.value === null ? '–' : fmt1(st.value));
     DC_FIELDS.forEach(function (f) {
@@ -4010,11 +4067,11 @@
     if (!pop) { closeMenus(); return; }
     var item = ev.target.closest('a, button');
     if (!item) return;
-    // Hell/Dunkel und das Aufklappen der Pausendauer lassen das Menü offen; alles andere schließt es.
+    // Hell/Dunkel und das Aufklappen der Dauer (Pause, Einturnzeit) lassen das Menü offen; alles andere schließt es.
     if (item.getAttribute('data-action') === 'theme') return;
     setTimeout(function () {
-      var pm = document.querySelector('#menu-board .pause-menu');
-      if (item.getAttribute('data-action') === 'pause-timer' && pm && !pm.hidden) return;
+      var act = item.getAttribute('data-action'), pm = item.parentNode.querySelector('.pause-menu');
+      if ((act === 'pause-timer' || act === 'warmup-timer') && pm && !pm.hidden) return;
       closeMenus();
     }, 0);
   });
@@ -4460,8 +4517,9 @@
           save('matches', m).then(tickTimers);
           tickTimers();
         } else {
-          var pm = btn.parentNode.querySelector('.pause-menu');
-          pm.hidden = !pm.hidden;
+          var pm = btn.parentNode.querySelector('.pause-menu'), pOpen = pm.hidden;
+          closePauseMenu();
+          pm.hidden = !pOpen;
           if (!pm.hidden && lastInputKeyboard) pm.querySelector('button').focus();
         }
         break;
@@ -4476,12 +4534,6 @@
       case 'theme':
         m.display = m.display || {};
         m.display.theme = btn.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-        save('matches', m).then(function () { refreshDisplayButtons(m); });
-        refreshDisplayButtons(m);
-        break;
-      case 'board-size':
-        m.display = m.display || {};
-        if (bigBoard(m)) delete m.display.size; else m.display.size = 'big';
         save('matches', m).then(function () { refreshDisplayButtons(m); });
         refreshDisplayButtons(m);
         break;
@@ -4512,17 +4564,43 @@
       case 'warmup-timer':
         if (!m) return;
         // Ein einziger Einturn-Timer ohne Gerät: Reiterwechsel, Turner und Wertungen ändern nichts an ihm.
-        m.timers = m.timers || {};
+        // Läuft er, beendet der Knopf ihn; sonst öffnet bzw. schließt er die Auswahl der Dauer.
         if (warmupState(m)) {
           m.timers.warmup = null;
-        } else {
-          if (pauseState(m)) { toast('Erst die Wettkampfpause beenden.', 'error'); return; }
-          if (introBlocks(m)) return;
-          closePauseMenu();
-          m.timers.warmup = { start: Date.now() };
+          save('matches', m).then(tickTimers);
+          tickTimers();
+          return;
         }
-        save('matches', m).then(tickTimers);
-        tickTimers();
+        if (pauseState(m)) { toast('Erst die Wettkampfpause beenden.', 'error'); return; }
+        if (introBlocks(m)) return;
+        var wm = btn.parentNode.querySelector('.pause-menu'), wOpen = wm.hidden;
+        closePauseMenu();
+        if (wOpen) {
+          wm.innerHTML = warmupMenuItems(); // „zuletzt“ immer aktuell
+          wm.hidden = false;
+          if (lastInputKeyboard) wm.querySelector('button').focus();
+        }
+        break;
+      case 'warmup-start':
+        closePauseMenu();
+        if (warmupState(m)) return;
+        if (pauseState(m)) { toast('Erst die Wettkampfpause beenden.', 'error'); return; }
+        startWarmup(m, parseInt(btn.getAttribute('data-ms'), 10) || WARMUP_MS);
+        break;
+      case 'warmup-custom':
+        closePauseMenu();
+        if (warmupState(m)) return;
+        if (pauseState(m)) { toast('Erst die Wettkampfpause beenden.', 'error'); return; }
+        askValue('Einturnzeit', 'Einturnzeit in Minuten', lastWarmupMs() ? clock(lastWarmupMs()) : '',
+          'Minuten (z. B. 5) oder Minuten:Sekunden (z. B. 6:40), 1 bis 30 Minuten.', 'Starten').then(function (txt) {
+          if (txt === null) return;
+          var ms = parseWarmupTime(txt);
+          if (!ms) { toast('Bitte eine Zeit von 1 bis 30 Minuten eingeben, z. B. 5 oder 6:40.', 'error'); return; }
+          var cur = match(m.id) || m;
+          if (warmupState(cur) || pauseState(cur)) return;
+          if (ms !== WARMUP_MS) { try { localStorage.setItem(WARMUP_LAST_KEY, String(ms)); } catch (e) { /* nur für diese Sitzung */ } }
+          startWarmup(cur, ms);
+        });
         break;
       case 'start-team':
         var sf = btn.closest('form');

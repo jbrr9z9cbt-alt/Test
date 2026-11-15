@@ -246,6 +246,9 @@ body.board-mode:not(.board-light) .draw0 { color: #fff !important; }
 
 /* Timer */
 .timer-btn { font-variant-numeric: tabular-nums; }
+/* Laufende Timer schreiben ihre Beschriftung jede Sekunde neu. Die Teile darin sind nicht anklickbar, damit ein langer Klick
+   (Drücken und Loslassen über einen Sekundenwechsel) trotzdem beim Knopf selbst ankommt und den Timer stoppt. */
+.timer-btn *, .tb-menu * { pointer-events: none; }
 /* Sturz-Timer im Knopf: wie das Fenster auf der hellen Tafel (hellgelb, dann hellrot; Zahl schwarz → ocker → rot) */
 .timer-btn.t-fall1 { background: #fef3c7; border-color: #d97706; font-weight: 700; }
 .timer-btn.t-fall2 { background: #fee2e2; border-color: #dc2626; font-weight: 700; }
@@ -281,21 +284,17 @@ body.board-mode .topbar { display: none; }
 body.board-mode main { max-width: none; padding: 0; }
 .board { color: #fafafa; padding: 1.5rem 2rem; }
 .board-title { text-align: center; font-size: 1.8rem; color: #a3a3a3; }
-.board-score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 2rem; margin: 1rem 0; }
-.board-team { font-size: clamp(1.5rem, 4vw, 3rem); font-weight: 800; }
-.board-team:first-child { text-align: right; color: #fafafa; }
+.board-score { display: grid; align-items: center; }
+.board-team { font-weight: 800; }
+.board-team:first-child { color: #fafafa; }
 .board-team:last-child { color: #d4d4d4; }
-.board-big { font-size: clamp(4rem, 14vw, 11rem); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+.board-big { font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
 .board-big span { color: #525252; margin: 0 .1em; }
-.board-grid { display: grid; grid-template-columns: minmax(0, .6fr) minmax(0, 2.4fr); gap: 1.5rem; }
+.board-grid { display: grid; }
 .board-table, .board-duels { width: 100%; border-collapse: collapse; }
-.board-table { font-size: clamp(1.1rem, 2.1vw, 1.8rem); }
-.board-duels { font-size: clamp(1.4rem, 2.9vw, 2.55rem); }
-.board-table td, .board-table th, .board-duels td { padding: .45rem .6rem; border-bottom: 1px solid #2e2e2e; }
-.board-table td, .board-table th { padding: .5rem .35rem; }
-.board-table th { color: #737373; font-weight: 600; text-align: left; }
+.board-duels td { border-bottom: 1px solid #2e2e2e; }
 .board-table tr.current { background: #2e2e2e; }
-.board-detail h3 { margin-top: 0; font-size: 2.4rem; color: #e5e5e5; }
+.board-detail h3 { color: #e5e5e5; }
 .board-duels .bn { color: #d4d4d4; }
 .board-duels .bn.win { color: var(--team, #fff); font-weight: 800; }
 .board-duels .right { text-align: right; }
@@ -337,8 +336,6 @@ body.board-mode .update-banner { display: none; }
 .cd-tag { font-size: .65em; color: #a3a3a3; font-weight: 600; text-transform: uppercase; }
 .cur-duel { position: relative; }
 .cur-duel.empty .cd-grid, .cur-duel.empty .cd-head { visibility: hidden; }
-.cd-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #737373; font-size: 1.2rem; }
-.cur-duel:not(.empty) .cd-empty { display: none; }
 
 /* Topscorer-Overlay auf der Tafel */
 .scorer-overlay { position: fixed; inset: 0; z-index: 180; display: flex; align-items: center; justify-content: center; background: rgba(10,10,10,.8); }
@@ -523,14 +520,13 @@ body.board-mode.board-light { background: #f4f4f4; }
 body.board-light .board { color: #171717; }
 body.board-light .board-title { color: #525252; }
 body.board-light .board-big .sp-sep, body.board-light .cd-pts .sp-sep { color: #a3a3a3; }
-body.board-light .board-table td, body.board-light .board-table th, body.board-light .board-duels td { border-bottom-color: #d4d4d4; }
-body.board-light .board-table th { color: #737373; }
+body.board-light .board-duels td { border-bottom-color: #d4d4d4; }
 body.board-light .board-table tr.current { background: #e5e5e5; }
 body.board-light .board-detail h3 { color: #262626; }
 body.board-light .board-duels .bn:not(.win) { color: #404040; }
 body.board-light .board-duels .pts { color: #171717; }
 body.board-light .cur-duel { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-body.board-light .cur-duel.empty, body.board-light .cd-empty { color: #737373; }
+body.board-light .cur-duel.empty { color: #737373; }
 body.board-light .cd-head, body.board-light .cd-row span, body.board-light .cd-final span, body.board-light .cd-tag { color: #525252; }
 body.board-light .cd-final { border-top-color: #404040; }
 body.board-light .cd-row.nd strong { color: #b91c1c; }
@@ -572,7 +568,6 @@ body.board-light .standby img { opacity: .8; }
 }
 
 /* ---------- Landesliga: Anzeigetafel ---------- */
-.board-big.sums { font-size: clamp(3rem, 8vw, 7rem); }
 .cd-pts.single { font-size: clamp(4.8rem, 11vw, 9.6rem); text-align: center; }
 .cd-pts.none { min-width: 2rem; }
 .cd-side.ghost { visibility: hidden; }
@@ -619,10 +614,14 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
 /* Knöpfe zur Anzeigetafel als Gruppe */
 
 /* Fenster „Wettkampfergebnis“ / „Zwischenstand“ auf der Tafel */
-.so-result { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1.5rem; margin: .3rem 0 .2rem; }
-.so-result .t { font-size: min(3.4rem, 4.4vw, 6vh); font-weight: 800; }
-.so-result .t:first-child { text-align: right; }
-.so-result .big { font-size: min(9rem, 11vw, 15vh); font-weight: 900; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* Mannschaftsnamen einzeilig mittig über ihrem Ergebnis, dazwischen der Doppelpunkt. Beide Spalten gleich breit (nach dem
+   längeren Namen bzw. der breiteren Zahl); ein zu langer Name wird per Skript (fitResultNames) kleiner, bis er passt. */
+.so-result { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "th . tg" "nh sep ng";
+  align-items: end; column-gap: 1.5rem; row-gap: .1rem; width: fit-content; max-width: 100%; margin: .3rem auto .2rem; }
+.so-result .t { font-size: min(3.4rem, 4.4vw, 6vh); font-weight: 800; white-space: nowrap; text-align: center; min-width: 0; line-height: 1.25; }
+.so-result .t.h { grid-area: th; } .so-result .t.g { grid-area: tg; }
+.so-result .big { font-size: min(9rem, 11vw, 15vh); font-weight: 900; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; text-align: center; }
+.so-result .big.h { grid-area: nh; } .so-result .big.g { grid-area: ng; } .so-result .big.sep { grid-area: sep; }
 .so-result .big .sp-sep { color: #a3a3a3; margin: 0 .1em; }
 .so-sub { text-align: center; font-size: min(2.4rem, 3.8vw, 4vh); }
 /* Überschrift „Topscorer“ wie die Fensterüberschrift, mit etwa einer Zeile Abstand zu den Gerätepunkten */
@@ -642,7 +641,7 @@ body.board-light .board-duels tr.bsum td { color: #404040; }
   .tab .tab-ico { margin-bottom: 0; }
 }
 /* 2: Anzeigetafel – Tabelle (laufendes Gerät voll, andere abgeschwächt), Geräteüberschrift, Timer */
-.board-table .bt-ico { width: 1.5em; height: 1.5em; margin-right: .45em; opacity: .55; }
+.board-table .bt-ico { opacity: .55; }
 .board-table tr.current .bt-ico { opacity: 1; }
 .board-detail h3 { display: flex; align-items: center; }
 .board-detail .bd-ico { width: 1.8em; height: 1.8em; margin-right: .5em; }
@@ -704,72 +703,52 @@ body.board-light .fall-win.phase2 .fw-note, body.board-light .fall-win.ended .pw
 .tab.st-run .tab-badge::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
 
 /* ---------- Anzeigetafel: feste Aufteilung des Bildschirms ----------
-   Alle Größen hängen nur von der Fenstergröße ab (Einheit --u = 1 % der Höhe bei 16:9), nicht vom Inhalt.
-   Die Tafel füllt immer das ganze Fenster; --k verkleinert nur im Notfall, falls etwas nicht passt. */
-/* Gemeinsam für Quer- und Hochformat: alle Größen in der Einheit --u, nichts hat eine feste Größe. */
-.board:not(.board-standby) { height: 100vh; height: 100dvh; box-sizing: border-box; display: flex; flex-direction: column;
-  padding: calc(var(--u) * 1.2) calc(var(--u) * 2.2); overflow: hidden; }
-.board-duels .pts { white-space: nowrap; }
-.board:not(.board-standby) .board-score { margin: calc(var(--u) * .4) 0; gap: calc(var(--u) * 3); }
+   Die Tafel wählt ihre Form nach der Ausrichtung des Fensters (app.js, bigBoard): quer die große Tafel (.board.gb, weiter
+   unten), hochkant (Handy, Tablet) die ausführliche Tafel. Alle Größen hängen nur von der Fenstergröße ab (Einheit --u nach
+   der Breite, bei der großen Tafel --g), nicht vom Inhalt; --k verkleinert nur im Notfall, falls etwas nicht passt. */
+/* Gemeinsam für beide Formen (die große Tafel überschreibt die Größen der Karte mit --g) */
+.board:not(.board-standby) { height: 100vh; height: 100dvh; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
+.board:not(.board-standby) .cur-duel { flex: 0 0 auto; padding: calc(var(--u) * 2) calc(var(--u) * 2.5); margin-bottom: calc(var(--u) * 1.6); border-radius: calc(var(--u) * 1.2); }
+.board:not(.board-standby) .cd-grid { gap: calc(var(--u) * 1.5); }
+.board:not(.board-standby) .cd-head { font-size: calc(var(--u) * 3); margin-bottom: calc(var(--u) * .5); }
+.board:not(.board-standby) .cd-side { font-size: calc(var(--u) * 4.2); border-top-width: calc(var(--u) * .5); }
+/* Unterlängen (g, j, p, q, y): Einzeilige Namensfelder, die Überstehendes abschneiden, reichen unten etwas weiter
+   (Innenabstand), ein gleich großer negativer Außenabstand hält die Aufteilung unverändert. */
+.board:not(.board-standby) .cd-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-bottom: .2em; margin-bottom: calc(.35rem - .2em); }
+.board:not(.board-standby) .cd-pts { font-size: calc(var(--u) * 9); }
+.board:not(.board-standby) .cd-pts.single { font-size: calc(var(--u) * 12); }
+
+/* Ausführliche Tafel (hochkant): oben die Mannschaften nebeneinander, darunter groß der Stand; dann die Geräte als
+   kompakte Zeile (Symbol, darunter Heim und Gast) und die Gerätepunkte; darunter die Karte der letzten Wertung und die
+   Liste des laufenden Geräts. */
+.board:not(.board-standby) .board-score { margin: calc(var(--u) * .4) 0 calc(var(--u) * 2); grid-template-columns: 1fr 1fr; grid-template-areas: "home guest" "big big"; gap: calc(var(--u) * 1) calc(var(--u) * 3); }
 .board:not(.board-standby) .board-team { font-size: calc(var(--u) * 4.6); }
-.board:not(.board-standby) .board-big { font-size: calc(var(--u) * 14); }
-.board:not(.board-standby) .board-big.sums { font-size: calc(var(--u) * 10); }
-.board:not(.board-standby) .board-grid { flex: 1 1 auto; min-height: 0; gap: calc(var(--u) * 2.2); grid-template-columns: minmax(min-content, .6fr) minmax(0, 2.4fr); }
+.board-score .board-team:first-child { grid-area: home; text-align: left; }
+.board-score .board-big { grid-area: big; text-align: center; }
+.board-score .board-team:last-child { grid-area: guest; text-align: right; }
+.board:not(.board-standby) .board-big { font-size: calc(var(--u) * 20); }
+.board:not(.board-standby) .board-big.sums { font-size: calc(var(--u) * 14); }
+.board:not(.board-standby) .board-grid { flex: 1 1 auto; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: calc(var(--u) * 2.5); }
 .board-grid > * { min-height: 0; }
 .board:not(.board-standby) .board-grid > div { display: flex; flex-direction: column; }
-.board:not(.board-standby) .board-table { height: 100%; font-size: calc(var(--u) * 2.8); }
-.board:not(.board-standby) .board-table td, .board:not(.board-standby) .board-table th { padding: calc(var(--u) * .5) calc(var(--u) * .4); }
-.board:not(.board-standby) .board-table td:first-child { white-space: nowrap; }
-.board:not(.board-standby) .cur-duel { flex: 0 0 auto; padding: calc(var(--u) * 1.6) calc(var(--u) * 2.2); margin-bottom: calc(var(--u) * 1.6); border-radius: calc(var(--u) * 1.2); }
-.board:not(.board-standby) .cd-grid { gap: calc(var(--u) * 1.5); }
-.board:not(.board-standby) .cd-head { font-size: calc(var(--u) * 2.4); margin-bottom: calc(var(--u) * .5); }
-.board:not(.board-standby) .cd-side { font-size: calc(var(--u) * 4.1); border-top-width: calc(var(--u) * .5); }
-.board:not(.board-standby) .cd-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.board:not(.board-standby) .cd-pts { font-size: calc(var(--u) * 7); }
-.board:not(.board-standby) .cd-pts.single { font-size: calc(var(--u) * 13); }
-.board:not(.board-standby) .cd-empty { font-size: calc(var(--u) * 2.4); }
+.board:not(.board-standby) .board-table { display: block; height: auto; font-size: calc(var(--u) * 3); }
+.board:not(.board-standby) .board-table thead { display: none; }
+.board:not(.board-standby) .board-table tbody { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: calc(var(--u) * 1); }
+.board:not(.board-standby) .board-table tr { display: flex; flex-direction: column; align-items: center; border-radius: calc(var(--u) * 1.2); padding: calc(var(--u) * .8) 0; }
+.board:not(.board-standby) .board-table td { border: 0; padding: 0; text-align: center; }
+.board:not(.board-standby) .board-table td:first-child { white-space: nowrap; font-size: 0; }
+.board-table td:first-child .bt-ico { width: calc(var(--u) * 7); height: calc(var(--u) * 7); margin: 0 0 calc(var(--u) * .5); }
+/* Gerätepunkte als eigene Zeile unter den Geräten: „Gerätepunkte 2 : 0“ */
+.board:not(.board-standby) .board-table tfoot { display: block; margin-top: calc(var(--u) * 1.5); }
+.board:not(.board-standby) .board-table tfoot tr { flex-direction: row; justify-content: center; align-items: baseline; gap: calc(var(--u) * 2); padding: 0; }
+.board:not(.board-standby) .board-table tfoot td { font-size: calc(var(--u) * 3.4); }
+.board:not(.board-standby) .board-table tfoot td:first-child { font-size: calc(var(--u) * 3.4); }
+.board:not(.board-standby) .board-table tfoot td:nth-child(2)::after { content: ' :'; color: #a3a3a3; }
 .board:not(.board-standby) .board-detail { flex: 1 1 auto; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
-.board:not(.board-standby) .board-detail h3 { font-size: calc(var(--u) * 3.3); margin: 0 0 calc(var(--u) * .6); }
+.board:not(.board-standby) .board-detail h3 { font-size: calc(var(--u) * 4.2); margin: 0 0 calc(var(--u) * .6); }
 .board:not(.board-standby) .board-duels { height: 100%; font-size: calc(var(--u) * 3.6); }
-.board:not(.board-standby) .board-duels td { padding: calc(var(--u) * .6) calc(var(--u) * .8); }
-.board:not(.board-standby) .board-duels .bn { white-space: nowrap; }
-
-/* A: Querformat (Laptop, Beamer, Fernseher, Fenster, Handy quer) – Einheit nach Höhe bzw. Breite (16:9) */
-@media (min-aspect-ratio: 1/1) {
-  .board:not(.board-standby) { --u: calc(min(1vh, 100vw / 177.78) * .8 * var(--k, 1)); }
-}
-
-/* B: Hochformat (Handy, Tablet hochkant) – eigene schmale Aufteilung, Einheit nach der Breite */
-@media (max-aspect-ratio: 1/1) {
-  .board:not(.board-standby) { --u: calc(min(1vw, 100vh / 177.78) * var(--k, 1)); padding: calc(var(--u) * 2) calc(var(--u) * 3); }
-  .board:not(.board-standby) .board-title { font-size: calc(var(--u) * 3.2); }
-  /* Mannschaften nebeneinander, darunter groß der Stand */
-  .board:not(.board-standby) .board-score { grid-template-columns: 1fr 1fr; grid-template-areas: "home guest" "big big"; gap: calc(var(--u) * 1) calc(var(--u) * 3); }
-  .board:not(.board-standby) .board-team { font-size: calc(var(--u) * 4.6); }
-  .board-score .board-team:first-child { grid-area: home; text-align: left; }
-  .board-score .board-big { grid-area: big; text-align: center; }
-  .board-score .board-team:last-child { grid-area: guest; text-align: right; }
-  .board:not(.board-standby) .board-big { font-size: calc(var(--u) * 20); }
-  .board:not(.board-standby) .board-big.sums { font-size: calc(var(--u) * 14); }
-  .board:not(.board-standby) .board-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: calc(var(--u) * 2.5); }
-  /* Geräte als kompakte Zeile: Symbol, darunter Heim und Gast */
-  .board:not(.board-standby) .board-table { height: auto; font-size: calc(var(--u) * 3); display: block; }
-  .board:not(.board-standby) .board-table thead { display: none; }
-  .board:not(.board-standby) .board-table tbody { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: calc(var(--u) * 1); }
-  .board:not(.board-standby) .board-table tr { display: flex; flex-direction: column; align-items: center; border-radius: calc(var(--u) * 1.2); padding: calc(var(--u) * .8) 0; }
-  .board:not(.board-standby) .board-table td { border: 0; padding: 0; text-align: center; }
-  .board:not(.board-standby) .board-table td:first-child { font-size: 0; }
-  .board-table td:first-child .bt-ico { width: calc(var(--u) * 7); height: calc(var(--u) * 7); margin: 0 0 calc(var(--u) * .5); }
-  .board:not(.board-standby) .cur-duel { padding: calc(var(--u) * 2) calc(var(--u) * 2.5); }
-  .board:not(.board-standby) .cd-head { font-size: calc(var(--u) * 3); }
-  .board:not(.board-standby) .cd-side { font-size: calc(var(--u) * 4.2); }
-  .board:not(.board-standby) .cd-pts { font-size: calc(var(--u) * 9); }
-  .board:not(.board-standby) .cd-pts.single { font-size: calc(var(--u) * 12); }
-  .board:not(.board-standby) .board-detail h3 { font-size: calc(var(--u) * 4.2); }
-  .board:not(.board-standby) .board-duels { font-size: calc(var(--u) * 3.6); }
-  .board:not(.board-standby) .board-duels td { padding: calc(var(--u) * .8) calc(var(--u) * .6); }
-  .board:not(.board-standby) .board-duels .bn { white-space: normal; }
-}
+.board:not(.board-standby) .board-duels td { padding: calc(var(--u) * .8) calc(var(--u) * .6); }
+.board-duels .pts { white-space: nowrap; }
 /* Handy hochkant: Zeilen der Duell-Karte etwas kleiner und mit engerem Abstand – alles einzeilig, auch „D-Note +SB 1,0 +0,1“ */
 @media (max-aspect-ratio: 1/1) and (max-width: 600px) {
   .board:not(.board-standby) .cd-row { font-size: .92em; gap: .5em; white-space: nowrap; }
@@ -811,31 +790,14 @@ body.board-light .cd-final.struck strong { color: #8a8a8a !important; }
 /* Anzeigetafel: Kopf ohne Gerätepunkte, Liga und Datum größer und fett */
 .board:not(.board-standby) .board-title { font-size: calc(var(--u) * 3.4); font-weight: 700; color: #e5e5e5; margin-top: calc(var(--u) * .6); }
 body.board-light .board:not(.board-standby) .board-title { color: #262626; }
-.board:not(.board-standby) .board-score { margin-bottom: calc(var(--u) * 2); }
-/* Gerätepunkte als letzte Zeile der Gerätetabelle, Linie auf Höhe der Linie über der Summe */
-.board-table tfoot td { border-top: calc(var(--u, 10px) * .45) solid #a3a3a3; border-bottom: 0; }
 .board-duels tr.bsum td.sum-lbl { font-weight: 400; }
-body.board-light .board-table tfoot td { border-top-color: #525252; }
 /* Scorepunkte der einzelnen Duelle nicht fett (wie die Wertungen der Landesliga); nur die Summe bleibt fett */
 .board-duels tr:not(.bsum) .pts { font-weight: 600; }
-/* Hochformat: Gerätepunkte als eigene Zeile unter den Geräten */
-@media (max-aspect-ratio: 1/1) {
-  .board:not(.board-standby) .board-table tfoot { display: block; margin-top: calc(var(--u) * 1.5); }
-  .board:not(.board-standby) .board-table tfoot tr { display: flex; justify-content: center; gap: calc(var(--u) * 2); }
-  .board:not(.board-standby) .board-table tfoot td { border-top: 0; font-size: calc(var(--u) * 3.4); padding: 0; }
-}
 /* Hinweis „Doppelklick für Vollbild“ (liegt über der Tafel, verändert die Aufteilung nicht) */
 #fs-hint { position: fixed; left: 50%; bottom: 6vh; transform: translateX(-50%); z-index: 250; pointer-events: none;
   background: rgba(23,23,23,.85); color: #fff; font-size: min(3.2vh, 3vw); font-weight: 700; padding: .6em 1.2em; border-radius: 12px;
   opacity: 0; transition: opacity .4s; }
 #fs-hint.show { opacity: 1; }
-@media (max-aspect-ratio: 1/1) {
-  .board:not(.board-standby) .board-table tfoot td:nth-child(2)::after { content: ' :'; color: #a3a3a3; }
-}
-@media (max-aspect-ratio: 1/1) {
-  .board:not(.board-standby) .board-table tfoot tr { flex-direction: row; align-items: baseline; padding: 0; }
-  .board:not(.board-standby) .board-table tfoot td:first-child { font-size: calc(var(--u) * 3.4); }
-}
 
 /* Turnervorstellung: Fenster so groß wie das Pausenfenster, für alle Seiten gleich groß */
 .tv-win { width: min(1135px, 88vw); height: min(702px, 88vh); min-width: 0; box-sizing: border-box; padding: 2rem 3.5rem 2.2rem; display: flex; flex-direction: column; overflow: hidden; }
@@ -903,12 +865,10 @@ body.board-light .tm-card { background: #fff; color: #171717; }
 .tm-card .tm-clock .dg-sep { display: inline-block; width: .32em; text-align: center; }
 .tm-card .tm-end { font-size: calc(var(--u, 10px) * 6); padding: .3em 0; animation: flash-blink 1s ease-in-out infinite; }
 
-/* Wettkampfergebnis-Fenster hochkant: Mannschaften nebeneinander, der Stand darunter über die ganze Breite */
+/* Wettkampfergebnis-Fenster hochkant: Stand etwas größer (nach der Breite), Topscorer kleiner */
 @media (orientation: portrait) {
-  .so-result { grid-template-columns: 1fr 1fr; gap: .4rem 1rem; }
-  .so-result .t:first-child { text-align: left; }
-  .so-result .t:last-child { text-align: right; }
-  .so-result .big { grid-column: 1 / -1; grid-row: 2; text-align: center; font-size: min(9rem, 14vw, 15vh); }
+  .so-result { column-gap: 1rem; }
+  .so-result .big { font-size: min(9rem, 14vw, 15vh); }
   .so-table { font-size: min(3rem, 5vw, 4vh); }
   .so-app { padding-right: 1em !important; }
 }
@@ -1086,8 +1046,7 @@ html.sd-open, body.sd-open { overflow: hidden; }
 .dc-sum { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: .5rem; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; padding: .35rem 0;
   font-size: .95rem; color: #404040; white-space: nowrap; }
 .dc-sum b { font-variant-numeric: tabular-nums; }
-.dc-sum .full { color: #b45309; font-weight: 600; }
-.dc-sum.bad, .dc-sum.bad .full { color: var(--danger); font-weight: 600; }
+.dc-sum.bad { color: var(--danger); font-weight: 600; }
 .dc-res { display: flex; justify-content: space-between; align-items: baseline; margin-top: .6rem; padding: .45rem .7rem; background: #f5f5f5; border-radius: 10px; }
 .dc-res span { font-size: 1rem; color: #404040; }
 .dc-res b { font-size: 2.1rem; font-variant-numeric: tabular-nums; }
@@ -1267,12 +1226,7 @@ body.scorers-open { overflow: hidden; }
    Manche Beamer und Fernseher schneiden ab Werk den Bildrand ab. Tafel und alle Einblendungen lassen deshalb rundum
    3 % frei (Aufteilung unverändert, alles gleichmäßig 6 % kleiner). --ovk (per Skript): 1 bis Full HD, darüber
    wächst es mit (4K bei 100 % = 2) – Sturz-Timer und Korrektur sehen dann aus wie bei Full HD. */
-@media (min-aspect-ratio: 1/1) {
-  .board:not(.board-standby) { --u: calc(min(1vh, 100vw / 177.78) * .8 * .94 * var(--k, 1)); padding: calc(3vh + var(--u) * 1.2) calc(3vw + var(--u) * 2.2); }
-}
-@media (max-aspect-ratio: 1/1) {
-  .board:not(.board-standby) { --u: calc(min(1vw, 100vh / 177.78) * .94 * var(--k, 1)); padding: calc(3vh + var(--u) * 2) calc(3vw + var(--u) * 3); }
-}
+.board:not(.board-standby) { --u: calc(min(1vw, 100vh / 177.78) * .94 * var(--k, 1)); padding: calc(3vh + var(--u) * 2) calc(3vw + var(--u) * 3); }
 #score-flash { box-sizing: border-box; padding: 3vh 3vw; }
 #correction-overlay { padding: 3vh 3vw; }
 body.board-mode #correction-overlay .corr-box, body.board-mode .fall-overlay .fall-win { transform: scale(var(--ovk, 1)); }
@@ -1298,7 +1252,7 @@ body.board-light .tv-overlay:not(.app-tv) { background: #f4f4f4; }
 body.board-light .scorer-overlay:not(.app-so) { background: #f4f4f4; }
 .scorer-overlay:not(.app-so) .so-box { border: 0; border-radius: 0; background: transparent; min-width: 0; width: min(100%, 170vh); padding: 0 2vw; }
 .scorer-overlay:not(.app-so) .so-title { font-size: min(4.6vw, 6vh); margin-bottom: 1vh; }
-.scorer-overlay:not(.app-so) .so-result { gap: 3vw; margin: 1vh 0; }
+.scorer-overlay:not(.app-so) .so-result { column-gap: 3vw; margin: 1vh auto; }
 .scorer-overlay:not(.app-so) .so-result .t { font-size: min(5vw, 7vh); }
 .scorer-overlay:not(.app-so) .so-result .big { font-size: min(14vw, 18vh); }
 .scorer-overlay:not(.app-so) .so-sub { font-size: min(3.4vw, 4.5vh); }
@@ -1318,13 +1272,16 @@ body.board-mode .fall-win { max-width: 94vw; max-height: 94vh; }
   body.board-mode .corr-box .cd-grid { gap: 2.5vw; }
 }
 
-/* ---------- Große Anzeigetafel (Menü Anzeigetafel: Standard / Groß) ----------
+/* ---------- Große Anzeigetafel (Querformat: Beamer, Fernseher, Laptop) ----------
    Einheit --g = 1 % der Bildhöhe bei 16:9 (bei schmalen Fenstern nach der Breite); --k verkleinert nur im Notfall. */
 .board.gb { --g: calc(min(1vh, 100vw / 177.78) * var(--k, 1)); padding: calc(3vh + var(--g) * .8) calc(3vw + var(--g) * 1.6); gap: calc(var(--g) * 1.8); }
 .gb .gb-fit { white-space: nowrap; }
 .gb-head { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: calc(var(--g) * 3); }
-.gb-t { font-size: calc(var(--g) * 5.6); font-weight: 800; min-width: 0; overflow: hidden; white-space: nowrap; position: relative; }
+/* Mannschaftsnamen nur seitlich begrenzen (zu lange Namen werden per Skript kleiner); nach unten frei, damit Unterlängen
+   und der Hinweis „inkl. Abzug“ darunter sichtbar bleiben. */
+.gb-t { font-size: calc(var(--g) * 5.6); font-weight: 800; min-width: 0; overflow-x: clip; overflow-y: visible; white-space: nowrap; position: relative; }
 .gb-t.home { text-align: right; } .gb-t.guest { text-align: left; }
+.gb-nm { padding-bottom: .2em; margin-bottom: -.2em; }
 .gb-big { font-size: calc(var(--g) * 16); font-weight: 900; line-height: 1; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .gb-big .sp-sep { color: #a3a3a3; margin: 0 .1em; }
 .gb-head.ll { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "h g" "b b"; row-gap: calc(var(--g) * .3); }
@@ -1332,9 +1289,11 @@ body.board-mode .fall-win { max-width: 94vw; max-height: 94vh; }
 .gb-head.ll .gb-big { grid-area: b; text-align: center; font-size: calc(var(--g) * 12); }
 .gb .board-ded { font-size: .4em; }
 .gb-main { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: calc(var(--g) * 2); }
+/* Kasten „als Nächstes“: Hintergrund, Ecken und Schatten wie die Karte darunter (Rand unsichtbar, Größe unverändert) */
 .gb-next { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: calc(var(--g) * 3);
-  min-height: calc(var(--g) * 8.6); box-sizing: border-box; border: calc(var(--g) * .3) dashed #525252; border-radius: calc(var(--g) * 1.6); padding: calc(var(--g) * 1) calc(var(--g) * 2.6); }
-body.board-light .gb-next { border-color: #bdbdbd; }
+  min-height: calc(var(--g) * 8.6); box-sizing: border-box; border: calc(var(--g) * .3) solid transparent; border-radius: calc(var(--g) * 1.6); padding: calc(var(--g) * 1) calc(var(--g) * 2.6);
+  background: #262626; }
+body.board-light .gb-next { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
 .gb-nm { font-size: calc(var(--g) * 6.2); font-weight: 700; line-height: 1.15; min-width: 0; overflow: hidden; }
 .gb-next .gb-nm.guest { text-align: right; }
 .gb-mid { text-align: center; font-size: calc(var(--g) * 2.6); color: #a3a3a3; font-weight: 600; line-height: 1.25; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
@@ -1346,14 +1305,13 @@ body.board-light .gb-mid { color: #737373; }
 .board.gb .cd-head.gb-head2 > span { display: inline-flex; align-items: center; gap: calc(var(--g) * 1); }
 .board.gb .cd-grid { flex: 1 1 auto; min-height: 0; gap: calc(var(--g) * 4); }
 .board.gb .cd-side { font-size: calc(var(--g) * 5.6); border-top-width: calc(var(--g) * .7); padding-top: calc(var(--g) * .8); }
-.board.gb .cd-name { font-size: 1.25em; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: clip; margin-bottom: calc(var(--g) * .3); }
+.board.gb .cd-name { font-size: 1.25em; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: clip; padding-bottom: .2em; margin-bottom: calc(var(--g) * .3 - .2em); }
 .board.gb .cd-row { line-height: 1.22; gap: calc(var(--g) * 2); }
 .board.gb .cd-final { padding-top: calc(var(--g) * .6); border-top-width: calc(var(--g) * .25); align-items: baseline; }
 .board.gb .cd-final strong { font-size: 1.75em; line-height: 1; }
 .board.gb .cd-pts.single { font-size: calc(var(--g) * 22); line-height: 1; }
 .board.gb .cd-pts.none { min-width: calc(var(--g) * 4); }
 .board.gb .cd-side.gb-old { opacity: .45; }
-.board.gb .cd-empty { font-size: calc(var(--g) * 3.4); }
 .gb-ico { width: 1.2em; height: 1.2em; vertical-align: -.22em; margin-right: .35em; }
 .gb-foot { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; border-top: calc(var(--g) * .45) solid #a3a3a3; padding-top: calc(var(--g) * 1.2); font-size: calc(var(--g) * 4.6); font-weight: 700; }
 .gb-foot .n { font-weight: 900; font-variant-numeric: tabular-nums; margin-left: .6em; }
@@ -1395,19 +1353,3 @@ body.board-light .gb-clock { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,
 .gb-clock .tm-clock .dg { display: inline-block; width: .62em; text-align: center; }
 .gb-clock .tm-clock .dg-sep { display: inline-block; width: .32em; text-align: center; }
 .gb-clock .tm-end { font-size: calc(var(--g) * 6); padding: .3em 0; white-space: normal; animation: flash-blink 1s ease-in-out infinite; }
-/* Große Tafel hochkant (Handy, Tablet): Einheit nach der Breite, damit die Fläche genutzt wird */
-@media (max-aspect-ratio: 1/1) {
-  .board.gb { --g: calc(min(1vh, .9vw) * var(--k, 1)); }
-  .board.gb .gb-head:not(.ll) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "h g" "b b"; row-gap: calc(var(--g) * .3); }
-  .board.gb .gb-head:not(.ll) .gb-t.home { grid-area: h; text-align: left; } .board.gb .gb-head:not(.ll) .gb-t.guest { grid-area: g; text-align: right; }
-  .board.gb .gb-head:not(.ll) .gb-big { grid-area: b; text-align: center; }
-  .board.gb .gb-two { grid-template-columns: 1fr; }
-  .board.gb .cd-side { font-size: calc(var(--g) * 4.6); }
-  .board.gb .cd-final strong { font-size: 1.45em; }
-  .board.gb .cd-grid { gap: calc(var(--g) * 2.5); }
-}
-/* Menüband am kleinen iPad hochkant: etwas engere Abstände, damit auch mit laufender Pause alles in eine Zeile passt */
-@media (min-width: 700px) and (max-width: 800px) {
-  body.match-page .tb-ribbon .menu-pop { gap: .3rem; }
-  .tb-ribbon .menu-pop hr { margin: 0 .1rem; }
-}
