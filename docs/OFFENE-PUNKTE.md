@@ -45,6 +45,13 @@ Beschlossen: Die Mannschaftsnamen stehen **über** ihrem Ergebnis statt daneben,
 der Mannschaftsfarbe; ein zu langer Name wird nur selbst etwas kleiner, bis er passt (kein Umbruch, nichts abgeschnitten).
 Für beide Ligen, auf der Tafel (bildschirmfüllend) und im Fenster „Ergebnis/Siegerehrung“ in der App.
 
+### 7. Unterlängen (g, j, p, q, y) nicht abschneiden
+Beobachtet (Foto 15.11.2026, große Tafel, Laptop mit Windows): Im Kasten „als Nächstes“ fehlt beim „g“ in „Berg“ die
+Unterlänge. Ursache: Die einzeiligen Namensfelder der großen Tafel sind genau eine Zeile hoch und schneiden Überstehendes ab;
+die Windows-Schrift (Segoe UI) hat tiefere Unterlängen als die Testumgebung.
+Lösung: Diese Felder bekommen etwas mehr Höhe nach unten (Namen im Kasten „als Nächstes“, in der Karte, Mannschaftsnamen
+oben, Namen im Geräteergebnis), Aufteilung unverändert. Standardtafel und Einblendungen dabei mitprüfen.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
