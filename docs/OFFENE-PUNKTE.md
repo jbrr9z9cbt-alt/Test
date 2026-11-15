@@ -24,6 +24,49 @@ Beschlossen:
   bleibt alles genau wie jetzt (Laptop, iPad, normaler Beamer). Darüber wächst alles gleichmäßig mit, sodass das
   Fenster bei 4K mit 100 % genauso aussieht wie heute bei Full HD.
 
+### 2. Zweite Anzeigetafel „Groß“ für kleine Leinwände
+Beobachtet im Wettkampf am 14.11.2026: Auf der relativ kleinen Leinwand waren die kleinen Schriften (die Liste der
+8 Turner mit ihren Wertungen und die Gerätespalte links) aus dem Zuschauerraum nicht lesbar. Größere Beamer oder
+Fernseher kann man in den Hallen nicht voraussetzen. Heutige Schriftgrößen (Anteil an der Bildhöhe, Full HD):
+Gerätespalte 2,2 %, Liste der Duelle 2,9 %, Duell-Karte 3,3 %, Mannschaftsnamen 3,7 %, Stand 11,2 %.
+
+Beschlossen (Vorschaubild 8 für die Oberliga, Vorschaubild 10 für die Landesliga, Entwürfe vom 15.11.2026):
+- **Die heutige Tafel bleibt unverändert.** Zusätzlich gibt es eine große Tafel mit weniger Informationen gleichzeitig,
+  dafür deutlich größerer Schrift. Umschaltung im Menü Anzeigetafel: Standard / Groß.
+- **Aufbau der großen Tafel** (von oben nach unten):
+  - Keine Zeile mit Liga und Datum.
+  - Kopf: Mannschaften und Stand. Oberliga in einer Zeile (Heim · Stand · Gast). Landesliga: die Mannschaften oben in den
+    Ecken, die Summen groß darunter (die Summen sind zu breit für eine Zeile).
+  - Keine Gerätespalte links und keine Liste der Duelle.
+  - **Nächstes Duell bzw. nächster Turner oben** in einem gestrichelten Rahmen, eine Zeile hoch: Namen links und rechts in
+    der Mannschaftsfarbe, in der Mitte klein „Duell 4 · als Nächstes“ bzw. „4. Übung · als Nächstes“. In der Landesliga
+    steht der nächste Turner allein auf der Seite seiner Mannschaft. Die Namen erscheinen, sobald sie eingetragen sind.
+  - **Darunter die heutige Duell-Karte, vergrößert auf die volle Breite:** je Seite Name, D-Note (mit +SB), E-Note,
+    Neutr. Abzug und Endnote untereinander. Die Zeile Neutr. Abzug erscheint wie heute nur, wenn es einen Abzug gibt
+    (der Platz bleibt frei). Oberliga: Scorepunkte als einzelne Zahl in der Mitte, in der Farbe des Siegers.
+  - **Landesliga-Karte:** die letzte Übung auf der Seite ihrer Mannschaft. Auf der anderen Seite bleibt die letzte Übung
+    der Gegenmannschaft blass stehen (oben rechts deren Übungsnummer, z. B. „2. Übung“). In der Mitte keine Scorepunkte.
+  - Fußzeile wie im Entwurf: links das Gerät mit seinem Zwischenstand (Oberliga Scorepunkte, Landesliga Summen), rechts
+    die Gerätepunkte.
+- **Ablauf:** Bei einer Freigabe kommt wie gewohnt die Scorepunkte-Einblendung. Danach rückt das freigegebene Duell in die
+  Karte, und oben erscheint das folgende. Damit bleibt die vorige Wertung sichtbar, während das nächste Duell bzw. der
+  nächste Turner turnt. Am Anfang eines Geräts steht oben Duell 1, die Karte zeigt „Noch keine Wertung angezeigt“.
+  Nach dem letzten Duell bleibt der Rahmen oben leer.
+- **Schriftgrößen im Entwurf** (Anteil an der Bildhöhe, Full HD): Namen in der Karte 7 %, D-/E-Note und Neutr. Abzug
+  5,6 %, Endnote 9,8 %, Scorepunkte in der Mitte 22 %, nächstes Duell 6,2 %, Stand 16 % (Landesliga-Summen 12 %).
+  Insgesamt etwa doppelt so groß wie heute. Sehr lange Namen werden so weit verkleinert, dass sie passen.
+- **Fester mittlerer Rand gegen Overscan:** rundum etwa 3 % je Seite frei (wie in den Entwürfen). Manche Beamer und
+  Fernseher schneiden ab Werk den Rand ab (beim Wettkampf am Beamer und an einem Fernseher nachgestellt). Es gibt dafür
+  keine Einstellung in der App.
+
+Verworfen: große Tafel mit dem nächsten Duell unter der Wertung und nur Endnote/D/E nebeneinander (Vorschaubilder 1, 2, 5),
+Landesliga-Karte mit leerer zweiter Hälfte (Vorschaubild 9), Einstellung „Rand“ mit mehreren Stufen.
+
+Noch zu klären:
+- Seiten, wenn kein Duell läuft (Vorschaubilder 3, 4, 6, 7): nach dem letzten Duell das Geräteergebnis mit allen Duellen,
+  in Pausen die Übersicht aller Geräte mit der Pausen- bzw. Einturnuhr.
+- Gilt der mittlere Rand auch für die Standardtafel und alle Einblendungen?
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
