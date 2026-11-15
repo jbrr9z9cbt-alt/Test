@@ -10,10 +10,10 @@
   var APP_BUILD = '83';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
-  var FLASH_MS = 10000;
-  var CORRECTION_MS = 10000;
+  var FLASH_MS = 8000;             // Einblendung der Scorepunkte bzw. der Wertung auf der Tafel
+  var CORRECTION_MS = 8000;        // Einblendung einer Korrektur
   var FALL_PHASE_MS = 30000;       // Sturz-Timer: 30 s gelb, dann 30 s rot (Abzug 0,3)
-  var WARMUP_MS = 8 * 50 * 1000;   // Einturnzeit je Gerät: 8 Turner × 50 Sekunden = 6:40
+  var WARMUP_MS = 4 * 60 * 1000;   // Einturnzeit: 4 Minuten
   var PAUSE_MINUTES = [10, 15, 20]; // Pause-Timer, groß in der Detailkarte der Tafel
   var FALL_TIMER_APPARATUS = ['PH', 'SR', 'PB', 'HB']; // nicht an Boden und Sprung
   // Ligen aus js/config.js; die aktuelle Liga ergibt sich aus der Adresse (#/oberliga/…, #/landesliga/…).
@@ -3034,11 +3034,17 @@
       }).join('') + '</div></div>';
   }
 
+  var TIMER_ROW_MQ = window.matchMedia('(min-width: 561px) and (min-height: 501px)');
+  TIMER_ROW_MQ.addEventListener('change', function () { if (scoreDlg) showScoreDlg(false); });
+
   function scoreDlgHtml(m) {
     var g = scoreDlg, a = g.appKey, classic = isClassic(m), kp = keypadOn(), edit = dlgEditable();
     var color = sideColor(m, g.sideKey);
     // Per Tab erreichbar sind nur Turner, Notenfelder, Stand und „Wertung freigeben“ (Esc = Abbrechen).
     var timer = FALL_TIMER_APPARATUS.indexOf(a) >= 0 ? fallButton(m, a, g.idx, g.sideKey, sideShown(m, a, g.idx, g.sideKey) || !!g.draft.dns) : '';
+    // Laptop und Tablet: Sturz-Timer in der Knopfzeile links neben „Abbrechen“; am Handy (hoch und quer) oben rechts,
+    // damit die Zahlentastatur dort an ihrer Stelle bleibt (wie im D-Note-Rechner).
+    var timerInRow = TIMER_ROW_MQ.matches;
     // Mit Zahlentastatur sind die Felder Schaltflächen (iOS behandelt Tipps auf schreibgeschützte Eingabefelder unzuverlässig).
     var field = function (f) {
       var v = g.text[f] || '';
@@ -3055,7 +3061,7 @@
     var set = keypadSetting();
     var opt = function (v, l) { return '<option value="' + v + '"' + (set === v ? ' selected' : '') + '>' + l + '</option>'; };
     return '<div class="sd-backdrop"><div class="sd-win' + (kp ? ' kp' : '') + '" role="dialog" aria-modal="true" aria-label="Wertung" tabindex="-1" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' +
-      '<div class="sd-main"><div class="sd-head"><span class="sd-where">' + dlgWhere(m, g) + '</span>' + timer + '</div>' +
+      '<div class="sd-main"><div class="sd-head"><span class="sd-where">' + dlgWhere(m, g) + '</span>' + (timerInRow ? '' : timer) + '</div>' +
       '<div class="sd-gym"><span class="sd-tag">' + teamHtml(g.sideKey === 'home' ? m.homeTeamId : m.guestTeamId) + '</span>' +
       '<select class="sd-gsel" data-dlg="gymnast" aria-label="Turner">' + gymnastOptions(m, a, g.idx, g.sideKey, g.draft) + '</select></div>' +
       '<div class="sd-fields" style="--n:' + n + '">' + fs.map(field).join('') + bonus + field('nd') + '</div>' +
@@ -3063,7 +3069,7 @@
       '<span class="sd-n">' + (classic ? '' : '<span class="pv" data-dlg-out="pvbox" title="Vorschau: Scorepunkte des Duells">Duell <b data-dlg-out="prev"></b></span>') +
       '<span>E-Note <b data-dlg-out="enote"></b></span><span class="fin">Endnote <b data-dlg-out="final"></b></span></span></div>' +
       '<div class="sd-hint" data-dlg-out="hint"></div>' +
-      '<div class="sd-btns"><button type="button" class="btn" tabindex="-1" data-action="sd-cancel">Abbrechen</button>' +
+      '<div class="sd-btns">' + (timerInRow ? timer : '') + '<button type="button" class="btn" tabindex="-1" data-action="sd-cancel">Abbrechen</button>' +
       '<button type="button" class="btn primary" data-action="sd-release">' + (g.correction ? 'Korrektur freigeben' : 'Wertung freigeben') + '</button></div>' +
       '<div class="sd-set"><label>Zahlentastatur <select tabindex="-1" data-dlg="keypad">' + opt('auto', 'automatisch') + opt('on', 'immer') + opt('off', 'nie') + '</select></label></div>' +
       '</div>' + (kp ? keypadHtml('sd') : '') + '</div></div>' + (g.calc ? calcHtml(m) : '');
