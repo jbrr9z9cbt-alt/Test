@@ -8,6 +8,11 @@ des aktuellen Duells: hell weiß mit dem leichten Schatten der Karte, dunkel dun
 Linie entfällt. Inhalt, Größe und Position bleiben gleich (Unterscheidung über „Duell 4 · als Nächstes“ in der Mitte und
 nur die Namen).
 
+### 2. D-Note-Rechner: „keine Elemente mehr möglich“ normal statt farbig
+Bei genau 8 Elementen steht „keine Elemente mehr möglich“ heute dunkelorange und fett – 8 Elemente sind aber ein
+regulärer Fall. Künftig genauso wie „noch 3 Elemente möglich“ (normal, schwarz). Rot bleibt nur der Fehlerfall mit mehr
+als 8 Elementen („1 Element zu viel“).
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
