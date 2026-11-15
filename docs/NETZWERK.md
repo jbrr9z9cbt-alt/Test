@@ -67,10 +67,20 @@ App-Entwicklung.
 2. Am Eingabegerät gibt man im Menü Anzeigetafel unter „Tafel verbinden …“ den Code ein oder scannt den QR-Code mit Tablet
    oder Handy.
 
+**Bis zu 3 Tafeln je Wettkampf** (festgelegt 15.11.2026)
+- Technisch verteilt der Dienst den Stand an beliebig viele lesende Geräte; mehrere Tafeln kosten weder Leistung noch Geld.
+  Begrenzt wird auf 3, damit die Übersicht am Eingabegerät handlich bleibt.
+- Beispiele: Beamer plus zweiter Bildschirm an der anderen Hallenseite, ein Tablet für Kampfrichter oder Mannschaftsführer
+  am Tisch, ein hochkant aufgestelltes Tablet mit der ausführlichen Tafel.
+- Jede weitere Tafel zeigt wie die erste ihren eigenen Code; am Eingabegerät „Weitere Tafel verbinden …“ und Code eintippen
+  bzw. scannen.
+- Das Eingabegerät listet alle verbundenen Tafeln mit Status und kann jede einzeln trennen.
+- Jede Tafel richtet sich nach ihrer eigenen Ausrichtung: Querformat zeigt die große Tafel, Hochformat die ausführliche.
+
 **Betrieb**
 - Das Eingabegerät steuert die Tafel wie heute das zweite Fenster: Turnervorstellung, Einturnzeit, Pause, Ergebnis und
   Siegerehrung, Hell und Dunkel.
-- Beide Geräte zeigen ihren **Status**, z. B. „Tafel verbunden“ bzw. „Verbindung unterbrochen – letzter Stand 14:32“. Bei
+- Eingabegerät und Tafeln zeigen ihren **Status**, z. B. „Tafel verbunden“ bzw. „Verbindung unterbrochen – letzter Stand 14:32“. Bei
   einer Unterbrechung zeigt die Tafel den letzten Stand weiter.
 - **Automatisches Wiederverbinden** nach Aussetzer, Neustart oder Akkuwechsel, ohne neuen Code.
 - Die Kopplung gilt für diesen Wettkampf und endet mit dem Abschluss oder per „Tafel trennen“.
@@ -104,7 +114,7 @@ Später hinzu kommen:
 ## Datenschutz (wird noch besprochen)
 
 - **Schritt 1:** Die Daten bleiben inhaltlich in der Halle. Der Dienst sieht nur verschlüsselte Daten und die IP-Adressen
-  der beiden Geräte.
+  der beteiligten Geräte (Eingabegerät und bis zu 3 Tafeln).
 - **Schritt 2:** Namen und Noten werden für jeden mit dem Link sichtbar, also faktisch veröffentlicht. Zu klären mit Liga
   und WTB:
   - Freigabe der Live-Veröffentlichung.
