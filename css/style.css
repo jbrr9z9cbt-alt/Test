@@ -1262,3 +1262,58 @@ body.scorers-open { overflow: hidden; }
 .app-so.so-light .so-box { background: #fff; border-color: #a3a3a3; color: #171717; }
 .app-so.so-light .so-table td { border-bottom-color: #e5e5e5; }
 .app-so .tv-ctl-bar .btn { font-size: 1.1rem; padding: .55rem 1.6rem; }
+
+/* ---------- Anzeigetafel: fester Rand gegen Overscan, große Auflösungen ----------
+   Manche Beamer und Fernseher schneiden ab Werk den Bildrand ab. Tafel und alle Einblendungen lassen deshalb rundum
+   3 % frei (Aufteilung unverändert, alles gleichmäßig 6 % kleiner). --ovk (per Skript): 1 bis Full HD, darüber
+   wächst es mit (4K bei 100 % = 2) – Sturz-Timer und Korrektur sehen dann aus wie bei Full HD. */
+@media (min-aspect-ratio: 1/1) {
+  .board:not(.board-standby) { --u: calc(min(1vh, 100vw / 177.78) * .8 * .94 * var(--k, 1)); padding: calc(3vh + var(--u) * 1.2) calc(3vw + var(--u) * 2.2); }
+}
+@media (max-aspect-ratio: 1/1) {
+  .board:not(.board-standby) { --u: calc(min(1vw, 100vh / 177.78) * .94 * var(--k, 1)); padding: calc(3vh + var(--u) * 2) calc(3vw + var(--u) * 3); }
+}
+#score-flash { box-sizing: border-box; padding: 3vh 3vw; }
+#correction-overlay { padding: 3vh 3vw; }
+body.board-mode #correction-overlay .corr-box, body.board-mode .fall-overlay .fall-win { transform: scale(var(--ovk, 1)); }
+
+/* Turnervorstellung auf der Tafel bildschirmfüllend (in der App bleibt sie ein Fenster mit ◀ ▶ ■) */
+.tv-overlay:not(.app-tv) { background: #171717; padding: 3vh 3vw; box-sizing: border-box; }
+body.board-light .tv-overlay:not(.app-tv) { background: #f4f4f4; }
+.tv-overlay:not(.app-tv) .tv-win { width: 100%; height: 100%; max-width: none; max-height: none; border: 0; border-radius: 0; background: transparent; padding: 1vh 2vw 2vh; }
+.tv-overlay:not(.app-tv) .tv-top { font-size: min(1.75vw, 3vh); padding-bottom: 1.2vh; margin-bottom: 1.5vh; }
+.tv-overlay:not(.app-tv) .tv-label { font-size: min(2.8vw, 5vh); }
+.tv-overlay:not(.app-tv) .tv-big-team { font-size: min(9.8vw, 14vh); }
+.tv-overlay:not(.app-tv) .tv-big-team.tv-kg { font-size: min(7vw, 12vh); }
+.tv-overlay:not(.app-tv) .tv-cap { font-size: min(3vw, 5.6vh); }
+.tv-overlay:not(.app-tv) .tv-count { font-size: min(2.2vw, 3.9vh); margin-top: 1vh; }
+.tv-overlay:not(.app-tv) .tv-team { font-size: min(4.2vw, 7.5vh); }
+.tv-overlay:not(.app-tv) .tv-num { font-size: min(19vw, 36vh); }
+.tv-overlay:not(.app-tv) .tv-name { font-size: min(6.2vw, 11vh); }
+.tv-overlay:not(.app-tv) .tv-judges { font-size: min(3.6vw, 6.4vh); margin-top: 1vh; }
+.tv-overlay:not(.app-tv) .tv-judges.many { font-size: min(2.9vw, 5.2vh); }
+
+/* Wettkampfergebnis / Zwischenstand auf der Tafel bildschirmfüllend (in der App bleibt es ein Fenster) */
+.scorer-overlay:not(.app-so) { background: #171717; padding: 3vh 3vw; box-sizing: border-box; }
+body.board-light .scorer-overlay:not(.app-so) { background: #f4f4f4; }
+.scorer-overlay:not(.app-so) .so-box { border: 0; border-radius: 0; background: transparent; min-width: 0; width: min(100%, 170vh); padding: 0 2vw; }
+.scorer-overlay:not(.app-so) .so-title { font-size: min(4.6vw, 6vh); margin-bottom: 1vh; }
+.scorer-overlay:not(.app-so) .so-result { gap: 3vw; margin: 1vh 0; }
+.scorer-overlay:not(.app-so) .so-result .t { font-size: min(5vw, 7vh); }
+.scorer-overlay:not(.app-so) .so-result .big { font-size: min(14vw, 18vh); }
+.scorer-overlay:not(.app-so) .so-sub { font-size: min(3.4vw, 4.5vh); }
+.scorer-overlay:not(.app-so) .so-table { font-size: min(4.4vw, 6vh); }
+.scorer-overlay:not(.app-so) .so-table td { padding: .6vh 1vw; }
+.scorer-overlay:not(.app-so) .so-empty { font-size: min(3vw, 4vh); }
+@media (orientation: portrait) {
+  .scorer-overlay:not(.app-so) .so-result .big { font-size: min(14vw, 15vh); }
+}
+body.board-mode .fall-win { max-width: 94vw; max-height: 94vh; }
+/* Korrektur auf einer hochkant gestellten Tafel (Handy, Tablet): Schrift nach der Breite, damit beide Seiten passen */
+@media (max-aspect-ratio: 1/1) {
+  body.board-mode .corr-box { padding: 3vw 4vw; }
+  body.board-mode .corr-box .cd-head { font-size: 4.2vw; }
+  body.board-mode .corr-box .cd-side { font-size: 3.4vw; }
+  body.board-mode .corr-box .cd-pts.single { font-size: 9vw; }
+  body.board-mode .corr-box .cd-grid { gap: 2.5vw; }
+}

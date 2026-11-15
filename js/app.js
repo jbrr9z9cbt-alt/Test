@@ -2043,7 +2043,9 @@
     if (!box) return;
     box.style.transform = '';
     var rc = box.getBoundingClientRect();
-    var k = Math.min(1, innerHeight * 0.96 / rc.height, innerWidth * 0.98 / rc.width);
+    // Auf der Tafel innerhalb des festen Rands (3 % je Seite), in der App wie bisher fast bis an den Rand.
+    var board = document.body.classList.contains('board-mode');
+    var k = Math.min(1, innerHeight * (board ? 0.94 : 0.96) / rc.height, innerWidth * (board ? 0.94 : 0.98) / rc.width);
     if (k < 1) box.style.transform = 'scale(' + k.toFixed(3) + ')';
   }
 
@@ -2057,7 +2059,14 @@
     document.documentElement.style.setProperty('--topbar-h', (tb.offsetHeight + rbh) + 'px');
   }
 
-  window.addEventListener('resize', function () { fitBoard(); fitIntro(); fitScorers(); syncTopbarHeight(); fitFieldLabels(); fitDlgFont(); });
+  /** Einblendungen der Tafel (Sturz-Timer, Korrektur) wachsen über Full HD mit: --ovk = 1 bis 1920 × 1080, bei 4K (100 %) = 2. */
+  function syncOverlayScale() {
+    var k = Math.max(1, Math.min(innerWidth / 1920, innerHeight / 1080));
+    document.documentElement.style.setProperty('--ovk', k.toFixed(4));
+  }
+  syncOverlayScale();
+
+  window.addEventListener('resize', function () { syncOverlayScale(); fitBoard(); fitIntro(); fitScorers(); syncTopbarHeight(); fitFieldLabels(); fitDlgFont(); });
 
   /** Nach jedem Aufbau der Anzeigetafel prüfen, ob eine neue Wertung freigegeben wurde. */
   function checkBoardFlash(m) {
