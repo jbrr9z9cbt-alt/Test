@@ -67,6 +67,37 @@ Beschlossen:
   ausführliche Version.
 - Hilfetext und README anpassen; Punkte 1, 4, 6, 7 dieser Liste entsprechend für die verbleibenden Formen umsetzen.
 
+### 9. Ligabericht: eigene Seite für den Ligaleiter (Saisonübersicht als PDF)
+Bis zur Netzwerkfunktion braucht der Ligaleiter eine Möglichkeit, die Wettkämpfe einer Saison einzulesen und daraus ein PDF
+zu erstellen. Nicht in der App der Vereine, sondern auf einer **eigenen, nicht verlinkten Seite** im selben Projekt
+(z. B. `…/Test/bericht.html`), nur für den Ligaleiter. Vorschaubilder vom 15.11.2026 (Oberliga und Landesliga, zweite Fassung).
+- **Technik:** läuft im Browser am PC (Chrome/Edge), auch ohne Internet; die Daten bleiben auf dem Rechner (nichts wird
+  hochgeladen). Gleiche Rechenlogik und gleiche Protokoll-Darstellung wie die App.
+- **Einlesen:** Die Vereine schicken die Sicherungsdatei des Wettkampfs („Sichern“ in der Zeile auf der Seite Wettkämpfe →
+  `…EINZELWETTKAMPF_….json`; Gesamtsicherungen gehen auch). Alle Dateien auf einmal hineinziehen. Doppelte Wettkämpfe: der
+  neueste Stand zählt. Nicht abgeschlossene Wettkämpfe werden markiert und zählen nicht.
+- **Ein PDF je Liga und Saison** (Saison = Kalenderjahr des Wettkampfdatums; je Liga und Jahr nur eine Saison).
+- **Kommende Wettkämpfe:** vom Ligaleiter eingetragen (Datum, Heim, Gast), im Browser gespeichert und zur Sicherheit als
+  Datei sicher- und einlesbar. Kommt später die Datei zu einem eingetragenen Termin, wird aus der Terminzeile die
+  Ergebniszeile (erkannt an Datum, Heim, Gast).
+- **PDF (über „Drucken → Als PDF speichern“):**
+  - **Seite 1 – Saisonübersicht:** Kopf wie im Protokoll (WTB-Logo, „Oberliga 2026 · Saisonübersicht“, rechts „Stand …“
+    und „x von y Wettkämpfen gewertet“).
+    - **Wettkämpfe** – eine gemeinsame Tabelle mit gewerteten und kommenden Wettkämpfen, nach Datum: Datum, Heim, Gast
+      (Sieger fett), Ergebnis (Oberliga Scorepunkte, Landesliga Punktsummen), Gerätepunkte, Wettkampfpunkte, **Seite** des
+      Protokolls (im PDF anklickbar, springt zum Protokoll). Kommende Wettkämpfe ohne Werte, etwas heller. Sehr lange
+      Vereinsnamen brechen um.
+    - **Tabelle:** Pl., Mannschaft, Wettk., S, U, N, Gerätepunkte (a:b), Diff., Wettkampfpunkte (nur gewonnene Punkte, keine
+      Minuspunkte); Landesliga zusätzlich **Gesamtpunkte** (Summe, ohne Bedeutung für die Platzierung).
+    - **Reihenfolge:** Wettkampfpunkte (gewonnene), dann Differenz der Gerätepunkte, dann direkter Vergleich (nur wenn
+      schon gegeneinander geturnt; steht er aus oder unentschieden: gleicher Platz mit Hinweis; bei drei oder mehr nur die
+      Wettkämpfe untereinander). Scorepunkte und Gesamtpunkte spielen keine Rolle.
+    - **Doppelpunkte untereinander** in allen „a:b“-Spalten (Ergebnis, Gerätepunkte, Wettkampfpunkte), auch bei gemischt
+      ein- und zweistelligen Zahlen.
+    - Tabellen gleichmäßig über die Seite verteilt; wird es zu lang, wird die Schrift wie beim Protokoll etwas kleiner.
+  - **Ab Seite 2:** je Wettkampf das Wettkampfprotokoll auf einer eigenen DIN-A4-Seite, nach Datum; oben ein kleiner
+    anklickbarer Rücksprung „↑ Saisonübersicht“.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
