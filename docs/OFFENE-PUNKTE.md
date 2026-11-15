@@ -1,5 +1,29 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## Liste nach Beta 83
+
+### 1. Einblendungen der Tafel auf großen Auflösungen (4K-Beamer mit 100 % Skalierung)
+Beobachtet im Wettkampf am 14.11.2026: Der Beamer lief mit 3840 × 2160 bei 100 % Skalierung. Die Tafel und die
+Scorepunkte-Einblendung passten, die übrigen Einblendungen waren aber zu klein, und in der Turnervorstellung passte der
+Text nicht mehr ins Fenster (der Mannschaftsname oben war abgeschnitten).
+
+Ursache: Tafel und Scorepunkte wachsen mit der Bildschirmgröße. Die Fenster haben dagegen eine feste Höchstgröße in
+Pixeln, die auf Full HD ausgelegt ist. Nachgestellt (Anteil am Bild):
+
+| Fenster | Full HD | 4K bei 100 % |
+|---|---|---|
+| Turnervorstellung | 59 % × 65 % | 30 % × 33 %, Text abgeschnitten |
+| Sturz-Timer | 57 % × 57 % | 29 % × 29 % |
+| Wettkampfergebnis | 89 % × 60 % | 44 % × 30 % |
+| Korrektur | ebenso betroffen | |
+
+Beschlossen:
+- **Turnervorstellung und Wettkampfergebnis/Zwischenstand werden bildschirmfüllend**, wie die Scorepunkte-Einblendung.
+  Zu diesem Zeitpunkt muss der Wettkampf im Hintergrund nicht zu sehen sein. Das gilt auf allen Bildschirmen.
+- **Sturz-Timer und Korrektur bleiben Fenster über der Tafel, wachsen aber mit der Bildschirmgröße mit.** Bis Full HD
+  bleibt alles genau wie jetzt (Laptop, iPad, normaler Beamer). Darüber wächst alles gleichmäßig mit, sodass das
+  Fenster bei 4K mit 100 % genauso aussieht wie heute bei Full HD.
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
