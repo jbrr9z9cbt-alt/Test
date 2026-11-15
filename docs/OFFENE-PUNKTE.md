@@ -90,6 +90,11 @@ Beschlossen (beide Ligen):
 - **Überschrift neben dem WTB-Logo mit Wettkampfjahr:** „Oberliga 2026“ bzw. „Landesliga 2026“; das Jahr kommt
   automatisch aus dem Wettkampfdatum.
 
+### 4. Wertungs- und Korrektureinblendung 8 statt 10 Sekunden
+Die Scorepunkte- bzw. Wertungseinblendung und die Korrektureinblendung auf der Tafel dauern heute je 10 Sekunden; künftig
+je **8 Sekunden**. Die Haltezeit von 10 Sekunden danach bleibt (Beta 83): Nach der letzten Freigabe eines Geräts bleibt
+die Tafel damit 8 + 10 = 18 Sekunden auf diesem Gerät (bisher 20). Hilfetexte und README entsprechend anpassen.
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
