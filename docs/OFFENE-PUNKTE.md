@@ -95,6 +95,20 @@ Die Scorepunkte- bzw. Wertungseinblendung und die Korrektureinblendung auf der T
 je **8 Sekunden**. Die Haltezeit von 10 Sekunden danach bleibt (Beta 83): Nach der letzten Freigabe eines Geräts bleibt
 die Tafel damit 8 + 10 = 18 Sekunden auf diesem Gerät (bisher 20). Hilfetexte und README entsprechend anpassen.
 
+### 5. Wertungsfenster: Sturz-Timer größer und neben „Abbrechen“ (Laptop und Tablet)
+Heute steht der Knopf „Sturz-Timer“ klein oben rechts im Wertungsfenster (neben „Ringe · Duell 1 · 1.“).
+
+Beschlossen (Vorschaubilder 1 und 2 vom 15.11.2026):
+- **Laptop und Tablet (iPad quer und hochkant):** Der Knopf wird so groß wie „Abbrechen“ und steht in der Knopfzeile
+  links neben „Abbrechen“: [Sturz-Timer] [Abbrechen] [Wertung freigeben]. Der laufende Timer („⏱ 23 · Abzug 0,3 – Stopp“,
+  gelb bzw. rot) passt in die Zeile; die Breite bleibt während des Laufs gleich. Das Fenster wird nicht höher. An Boden
+  und Sprung gibt es den Knopf wie bisher nicht.
+- **Handy (hochkant und quer): alles bleibt wie heute** – der Sturz-Timer bleibt klein oben rechts. Die Zahlentastatur
+  darf sich am Handy nicht verschieben und muss an derselben Stelle bleiben wie im D-Note-Rechner.
+
+Verworfen: am Handy eine eigene Zeile für den Sturz-Timer bzw. [Sturz-Timer] [Abbrechen] mit „Wertung freigeben“ darunter
+(Vorschaubilder 3–6) – beides hätte die Zahlentastatur um rund 30 px nach unten verschoben.
+
 ## Liste nach Beta 82 – umgesetzt in Beta 83 (veröffentlicht 12.11.2026, Commit `1c44a76`)
 
 Umgesetzt 12.11.2026 (Punkte 1–11). Rückkehrpunkt: Beta 82 (Commit `fd2c4e0`).
