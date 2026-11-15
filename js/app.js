@@ -7,7 +7,7 @@
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
   var APP_VERSION = 2;
-  var APP_BUILD = '83';
+  var APP_BUILD = '84';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 8000;             // Einblendung der Scorepunkte bzw. der Wertung auf der Tafel
@@ -2298,7 +2298,7 @@
       team: gymnastLabel(side.number, side.name) ? teamName(k === 'home' ? m.homeTeamId : m.guestTeamId) : '' };
   }
 
-  /** Landesliga: neue Endnote 10 Sekunden groß in Mannschaftsfarbe mit Turner darüber, Korrekturen 10 Sekunden. */
+  /** Landesliga: neue Endnote 8 Sekunden groß in Mannschaftsfarbe mit Turner darüber, Korrekturen 8 Sekunden. */
   function classicBoardFlash(m, latest) {
     var k = latest.side;
     var rev = S.revOf(m.apparatus[latest.appKey].duels[latest.idx], k);
@@ -2319,7 +2319,7 @@
 
   var correctionTimer = null;
 
-  /** Korrigierte Wertung 10 Sekunden als Overlay über der Anzeigetafel zeigen (alt → neu). */
+  /** Korrigierte Wertung 8 Sekunden als Overlay über der Anzeigetafel zeigen (alt → neu). */
   function showCorrection(m, appKey, idx, duel, prev) {
     var res = S.duelResult(duel, m.rules);
     var prevRes = null;
@@ -2336,7 +2336,7 @@
       ptsPair(m, res.homePoints, res.guestPoints, true) + '</div>' + col('guest') + '</div>');
   }
 
-  /** Korrektur-Overlay 10 Sekunden über der Anzeigetafel. */
+  /** Korrektur-Overlay 8 Sekunden über der Anzeigetafel. */
   function showOverlay(inner) {
     var el = document.getElementById('correction-overlay');
     if (!el) {
@@ -2901,75 +2901,42 @@
     var sec = helpSec;
     var lg = leagueOf(currentLeague);
     var classic = lg.model === 'classic';
+    // Kurz gehalten: nur, was man in der App nicht sieht oder leicht falsch macht (Felder und Knöpfe erklären sich selbst).
     return '<section class="card rules"><h2>Anleitung ' + esc(lg.short) + '</h2>' +
       '<p class="muted">Kurzanleitung für den Wettkampftag. Installation, Datensicherung und Updates stehen auf der Startseite unter ' + INFO_LINK + '.</p>' +
 
-      sec('1. Wettkampf anlegen', [
-        'Vorab lassen sich unter <b>Mannschaften</b> Turnernamen korrigieren und freie Startnummern belegen. Jede Änderung wird sofort gespeichert.',
-        'Unter <b>Wettkämpfe</b> auf „Neuer Wettkampf“ tippen, Datum, Heim- und Gastmannschaft sowie die Farben wählen.',
-        'Bei <b>Anwesende Turner</b> sind zunächst alle Turner abgehakt; fehlende Turner abwählen. Namen lassen sich dort auch korrigieren oder ergänzen.',
-        'Mannschaftsführer und Kampfgericht eintragen (Pflichtfelder *: Mannschaftsführer, E1 und – bei „Ja“ – der neutrale E2). Bei „Neutraler Kampfrichter E2: Nein“ werden E2 (Heim) und E3 (Gast) mit D1 bzw. D2 vorausgefüllt und lassen sich frei ändern.',
-        'Die per Los bestimmte <b>beginnende Mannschaft</b> wählen. Die Startreihenfolge an allen Geräten ergibt sich daraus automatisch.',
-        'Alle Angaben lassen sich später über <b>Wettkampf Setup</b> ändern. Änderungen dort gelten erst mit <b>Speichern</b> (Knopf fest am unteren Rand); wer die Seite vorher verlässt, wird gefragt, ob gespeichert oder verworfen werden soll.'
+      sec('1. Vorbereitung', [
+        'Turnernamen und Startnummern unter <b>Mannschaften</b> pflegen.',
+        '<b>Neuer Wettkampf</b>: Mannschaften, anwesende Turner, Kampfgericht und die per Los beginnende Mannschaft eintragen – die Startreihenfolge an allen Geräten ergibt sich daraus. Alles lässt sich später unter <b>Setup</b> ändern.'
       ]) +
 
-      sec('2. Wertungen erfassen', [
+      sec('2. Wertungen', [
+        'Gerät oben wählen, <b>Wertung eingeben</b> antippen. E-Note und Endnote rechnet die App' + ' – <b>berechnen</b> unter der D-Note hilft beim Zusammenzählen.',
         classic
-          ? 'Oben das Gerät wählen. Links stehen die Turner der am Gerät beginnenden Mannschaft, rechts die der anderen; die Zahl vor dem Turner ist seine Startposition (geturnt wird abwechselnd).'
-          : 'Oben das Gerät wählen. Je Duell steht der vorlegende Turner links bzw. oben und ist mit „legt vor“ markiert.',
-        '<b>Geräte und Anzeigetafel</b>: Gesperrt wird nichts – jeder Gerätereiter ist jederzeit wählbar, Turner lassen sich jederzeit ändern und Wertungen jederzeit eintragen. ' +
-          'Die Anzeigetafel folgt dem gewählten Gerätereiter, solange an keinem Gerät eine Wertung offen ist. ' +
-          (classic ? 'Mit der ersten freigegebenen Wertung eines Geräts' : 'Sobald an einem Gerät das erste Duell freigegeben ist,') +
-          ' bleibt die Tafel auf diesem Gerät, bis dort alle Wertungen freigegeben sind – egal, welcher Reiter gewählt ist. Nach der letzten Freigabe bleibt sie nach der großen Einblendung noch 10 Sekunden stehen (insgesamt 20 Sekunden; ohne Einblendung – Landesliga, letzte Übung „kein Turner“ – 10 Sekunden) und wechselt dann zum gewählten Reiter. ' +
-          'Sind an mehreren Geräten Wertungen offen (z. B. bei einer vergessenen Freigabe), zeigt die Tafel das Gerät mit der letzten Freigabe.',
-        'Die Gerätereiter zeigen den Stand: ● an diesem Gerät ist schon eine Wertung eingetragen' + (classic ? '' : ' (auch der gespeicherte erste Turner eines Duells)') + ', ✓ alle Wertungen freigegeben (am Handy nur Logo und Abzeichen, die Ergebnisse stehen im Gerätebereich). Am Laptop bleibt der obere Bereich mit den Gerätereitern beim Scrollen stehen.',
-
-        'Je Turner: <b>Wertung eingeben</b> – es öffnet sich das Wertungsfenster: oben der Turner (Auswahl wie in der Kachel), darunter Abzüge E1, E2 (ggf. E3), D-Note, Standbonus und neutraler Abzug. ' +
-          'Den Turner kann man vorab in der Kachel oder erst im Fenster wählen; vor der Freigabe ist er sofort gespeichert (auch bei „Abbrechen“). Ohne Turner sind die Notenfelder gesperrt. ' +
-          'Eingabe mit Komma oder Punkt und einer Nachkommastelle, z. B. 4,8 oder 1.3; E-Note und Endnote rechnet die App schon beim Tippen: E-Note = 10 − Mittelwert der Abzüge E1 und E2 (bei drei E-Kampfrichtern 10 − mittlerer Abzug, höchster und niedrigster gestrichen); Endnote = D-Note + Standbonus + E-Note − neutraler Abzug. ' +
-          'Bei wenig Platz stehen über allen Feldern Kurzformen: E1–E3 = Abzüge der E-Kampfrichter, Stand = Standbonus, NA = neutraler Abzug. Der Sturz-Timer ist auch im Fenster bedienbar (Knopf oben rechts).',
-        '<b>D-Note berechnen</b> (Knopf „berechnen“ unter der D-Note, nicht am Sprung): Anzahl der Elemente je Wertigkeit eintippen – ≥ D je 0,8, C je 0,6, B je 0,4, A je 0,2, höchstens 8 Elemente insgesamt – und die Elementgruppen (EG, höchstens 2,3). „Übernehmen“ trägt die D-Note ins Fenster ein; die Anzahlen werden mit der Wertung gespeichert und stehen beim erneuten Öffnen wieder da. Über den Feldern steht, wie viele Elemente noch möglich sind; bei mehr als 8 Elementen oder EG über 2,3 wird rot markiert, „Übernehmen“ geht dann nicht. Leere Felder zählen als 0 – ohne Eingaben ergibt der Rechner D-Note 0,0 (z. B. nur Teile unterhalb von A). Sind Elemente eingetragen, aber keine Elementgruppen, erinnert ein Hinweis daran (ein anerkanntes Element erfüllt immer auch eine Elementgruppe); übernommen wird dann nicht. Nach „Übernehmen“ steht die Auswahl auf der D-Note. Wurde die D-Note danach von Hand geändert, beginnt der Rechner wieder leer. Mit Tastatur: Enter, → oder ↓ bis EG und weiter auf „Übernehmen“ (Enter übernimmt), ← oder ↑ zurück, Esc bricht ab.',
-        '<b>Wertung freigeben</b> im Fenster übernimmt die Werte; <b>Abbrechen</b> verwirft sie ohne Rückfrage. In der Kachel stehen die Werte danach als Text, der Knopf heißt dann „Wertung ändern“.',
-        (classic ? 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.' : 'Mit der <b>Tab-Taste</b> geht es in der Seite von der Turnerauswahl zu „Wertung eingeben“ und weiter zum nächsten Turner.') +
-          ' Im Fenster führt Tab nur über Turner, Notenfelder, Stand und „Wertung freigeben“ (Umschalt+Tab rückwärts). → und Enter gehen ins nächste Feld, ← ins vorige – im Kreis E1 → … → Stand → NA → „Wertung freigeben“ (nur wenn vollständig) → E1; Enter auf „Wertung freigeben“ gibt frei. Den <b>Standbonus</b> schalten ↑ / ↓ (oder 1 = ja, 0 = nein); auf der D-Note wählt ↓ den Knopf „berechnen“ (Enter öffnet den Rechner, ↑ zurück). Esc bricht ab. Was mit der Tastatur ausgewählt ist, hat eine gelbe Umrandung. Nach dem Freigeben steht der Fokus beim nächsten Turner.',
-        '<b>Zahlentastatur</b> (Handy, Tablet): Statt der Tastatur des Geräts erscheint im Fenster eine eigene Zahlentastatur mit großer Anzeige des aktiven Felds. Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0); ein Feld antippen macht es zum aktiven Feld. „Weiter ▶“ springt ins nächste Feld, „◀ Zurück“ ins vorige (im Kreis E1 → … → Stand → NA → E1); freigegeben wird durch Antippen von „Wertung freigeben“. Auch der <b>Standbonus</b> gehört zur Reihenfolge: Taste 1 = +0,1, Taste 0 oder ⌫ = kein Standbonus (die übrigen Tasten sind dann ausgegraut). Am Handy steht die Zahlentastatur unten – mit etwas Abstand zum Rand, damit der Daumen sie gut erreicht. ' +
-          'Mit angeschlossener Tastatur verschwindet sie beim ersten Tastendruck. Einstellung unten im Fenster: automatisch, immer oder nie (gilt für dieses Gerät).',
-        '<b>kein Turner</b> (ganz oben in der Turnerauswahl, in der Kachel oder im Fenster, auch vorab wählbar): Die Übung zählt 0 Punkte. Der Knopf in der Kachel heißt dann „Wertung freigeben“ und gibt direkt frei, ohne Fenster (danach „Wertung ändern“). Bereits erfasste Werte werden nach Rückfrage gelöscht; auf der Tafel steht sofort „–“ statt des Namens, die Wertung 0,00 erscheint mit der Freigabe; im Protokoll steht die Übung als „nicht angetreten“ bzw. „n.a.“. <b>Wertung 0,00</b> (im Wertungsfenster): Der Turner ist angetreten, erhält aber die Endnote 0. Sind schon Werte eingetragen, fragt die App vorher nach, ob sie gelöscht werden sollen.',
+          ? 'Geturnt wird abwechselnd; die Zahl vor dem Turner ist seine Startposition. Jede Übung wird einzeln freigegeben und erscheint sofort auf der Tafel. Je Mannschaft und Gerät zählen die drei höchsten Wertungen; die Streichwertung ist durchgestrichen.'
+          : 'Die Wertung des ersten Turners eines Duells wird nur gespeichert. Erst mit der Freigabe des zweiten Turners zählen die Scorepunkte und das Duell erscheint auf der Tafel.',
+        '<b>Korrektur</b>: Wertung ändern → Korrektur freigeben; die Tafel zeigt die Änderung an.',
+        '<b>Zurücknehmen</b>: Wertung ändern → „– Turner –“ wählen → Wertung zurücknehmen; die Kachel ist danach wieder leer.',
+        '<b>kein Turner</b> = nicht angetreten, zählt 0. <b>Wertung 0,00</b> = angetreten, Endnote 0.',
         classic
-          ? '<b>Mannschaftsabzug</b>: Die Links „Mannschaftsabzug Heim“ bzw. „Gast“ ganz unten im Gerätebereich öffnen die Eingabe des Abzugs in Punkten. Es gibt je Mannschaft nur einen Abzug für den ganzen Wettkampf – die Links unter allen Geräten sind dieselben. Der Abzug mindert nur die Gesamtpunktzahl, nicht die Geräteergebnisse; 0 oder leer entfernt ihn. Er erscheint auf der Anzeigetafel und – nur wenn eingetragen – im Protokoll.'
-          : '<b>Mannschaftsabzüge</b> werden beim Turner als <b>neutraler Abzug</b> eingetragen, der zuletzt am Gerät war bzw. bei dem der Abzug zuerst aufgefallen ist.'
+          ? '<b>Mannschaftsabzug</b> über die Links unten im Gerätebereich: einer je Mannschaft für den ganzen Wettkampf, mindert nur die Gesamtpunktzahl.'
+          : '<b>Mannschaftsabzüge</b> als neutralen Abzug beim Turner eintragen, der zuletzt am Gerät war bzw. bei dem der Abzug aufgefallen ist.'
       ]) +
 
-      sec('3. Wertung freigeben', classic ? [
-        'Jede Übung wird im Wertungsfenster mit <b>Wertung freigeben</b> einzeln freigegeben. Erst dann zählt die Wertung und erscheint auf der Anzeigetafel.',
-        'Je Mannschaft und Gerät zählen die drei höchsten Wertungen; die Streichwertung wird grau durchgestrichen angezeigt.',
-        'Korrektur: <b>Wertung ändern</b> öffnet das Fenster mit den bisherigen Werten (auch der Turner lässt sich dort ändern); <b>Korrektur freigeben</b> zeigt die neue Wertung auf der Tafel, „Abbrechen“ lässt alles, wie es war.'
-      ] : [
-        '„Wertung freigeben“ beim ersten Turner eines Duells speichert seine Wertung – auf der Anzeigetafel erscheint sie noch nicht. Die freigegebene Wertung des zweiten Turners gibt das ganze Duell frei: Erst dann zählen die Scorepunkte und die Tafel zeigt beide Noten. Im Fenster des zweiten Turners steht vorher als Vorschau die Scorepunktzahl des Duells in der Farbe der Mannschaft, die es gewinnt (unentschieden: 0 in Schwarz).',
-        'Korrektur: <b>Wertung ändern</b> öffnet das Fenster mit den bisherigen Werten (auch der Turner lässt sich dort ändern); <b>Korrektur freigeben</b> zeigt das geänderte Duell auf der Tafel, „Abbrechen“ lässt alles, wie es war.'
+      sec('3. Anzeigetafel', [
+        '<b>Anzeigetafel öffnen</b>, das Fenster auf Beamer oder Fernseher ziehen, Doppelklick = Vollbild. Hell oder Dunkel je nach Raum, <b>Groß</b> für kleine Leinwände (weniger gleichzeitig, deutlich größere Schrift).',
+        'Die Tafel folgt dem gewählten Gerät. Ab der ersten Freigabe an einem Gerät bleibt sie dort, bis alles freigegeben ist, und danach noch kurz.',
+        'Turnervorstellung, Einturnzeit, Wettkampfpause und Ergebnis/Siegerehrung im Menü Anzeigetafel; ein erneuter Klick beendet sie. Turnervorstellung weiter mit ◀ ▶, Pfeiltasten oder Presenter.'
       ]) +
 
       sec('4. Timer', [
-        '<b>Einturnzeit (6:40)</b> – 8 Turner × 50 Sekunden – im Menü <b>Anzeigetafel</b> starten (zwischen Turnervorstellung und Wettkampfpause). Es gibt nur einen Einturn-Timer, unabhängig vom Gerät: Reiterwechsel, Turner und Wertungen ändern nichts an ihm. Die Restzeit steht im Knopf, ein Klick darauf beendet die Einturnzeit vorzeitig. Auf der Tafel steht „Einturnen“; nach Ablauf ertönt 5 Sekunden lang eine Schelle. Während einer Wettkampfpause wird schon eingeturnt – solange sie läuft, lässt sich die Einturnzeit nicht starten (und umgekehrt).',
-        '<b>Sturz-Timer</b> (nicht an Boden und Sprung) bei der jeweiligen Übung starten: Die Sekunden erscheinen zuerst schwarz, ab 10 Sekunden ocker, ab 20 Sekunden rot. Nach 30 Sekunden ertönt ein kurzer Doppelton, die Anzeige wird rot und zeigt „Abzug 0,3“; in den letzten 10 Sekunden blinkt die Zahl leicht. Nach weiteren 30 Sekunden ertönt ein Fehlerton und „Übung beendet“ erscheint. Wie die Turnerauswahl ist der Knopf nach der Freigabe und bei „kein Turner“ gesperrt; ein noch laufender Timer lässt sich aber immer stoppen.',
-        'Ein erneuter Klick auf den laufenden Timer stoppt ihn. Die Lautstärke wird am Gerät eingestellt.'
+        '<b>Einturnzeit</b> 4 Minuten, <b>Wettkampfpause</b> 10, 15 oder 20 Minuten. In der Pause wird schon eingeturnt, deshalb laufen nie beide gleichzeitig.',
+        '<b>Sturz-Timer</b> (nicht an Boden und Sprung): nach 30 Sekunden 0,3 Abzug, nach 60 Sekunden ist die Übung beendet; erneuter Klick stoppt.'
       ]) +
 
-      sec('5. Anzeigetafel', [
-        'Alle Knöpfe zur Tafel stehen unter <b>„Anzeigetafel“</b> in der grauen Kopfzeile, die zum Wettkampf (Setup, Protokoll / Drucken, Wettkampf abschließen) unter <b>„Wettkampf“</b>. Am Laptop und iPad sind das Reiter eines Menübands: Die Leiste darunter zeigt immer die Knöpfe des gewählten Reiters; beim Öffnen eines Wettkampfs ist „Anzeigetafel“ gewählt. Am Handy sind es Aufklappmenüs („Tafel ▾“, „Wettkampf ▾“), die nach der Auswahl schließen; eine laufende Wettkampfpause bzw. Einturnzeit steht dann am Menüknopf. Wettkämpfe, Mannschaften, Regeln und Anleitung stehen im Menü unter dem Liganamen. Von Wettkampf Setup und Protokoll – und von diesen Seiten, wenn man vom Wettkampf kommt – führt „← zurück“ oben links wieder zum Wettkampf; zur Startseite (Liga wechseln) führt das Logo links oben.',
-        '<b>Anzeigetafel öffnen</b> öffnet die Tafel in einem eigenen Fenster. Dieses Fenster auf den Beamer bzw. Fernseher ziehen und dort doppelt auf die Tafel klicken – das schaltet das Vollbild ein und aus.',
-        '<b>Hell</b> eignet sich für Beamer in heller Halle, <b>Dunkel</b> für Fernseher und abgedunkelte Räume. <b>Ergebnis/Siegerehrung</b> blendet ein bzw. aus (eingeblendet ist der Knopf dunkel hinterlegt) und zeigt Stand, Gerätepunkte und die drei besten Scorer (während des Wettkampfs als Zwischenstand). Dasselbe Fenster liegt dann auch über der App, damit man die Siegerehrung am Gerät mitlesen kann; „Schließen“ (oder Esc) blendet es auch auf der Tafel aus. Beim Öffnen der Tafel ist es immer ausgeblendet. ' +
-        '<b>Turnervorstellung</b> zeigt nacheinander die Gastmannschaft (Titelseite, dann die anwesenden Turner nach Startnummer), die Heimmannschaft und zum Schluss das Kampfgericht. Solange sie läuft, erscheint auch in der App dasselbe Fenster wie auf der Tafel, unten mit ◀ ▶ ■ (zurück, weiter, beenden); weiterschalten damit oder per Tastatur – Pfeil rechts, Leertaste oder Bild ab (auch mit einem Presenter), zurück mit Pfeil links oder Bild auf, Esc beendet. Während der Vorstellung sind keine anderen Fenster auf der Tafel möglich.',
-        '<b>Wettkampfpause</b>: Knopf antippen und 10, 15 oder 20 Minuten wählen – die Pause startet sofort. Die Restzeit erscheint groß auf der Tafel unter der Überschrift „Wettkampfpause und Einturnen“ (in der Pause wird schon das nächste Gerät eingeturnt); am Ende ertönt ein Signal und 5 Sekunden lang „Zeit abgelaufen“. Ein Klick auf den laufenden Knopf beendet die Pause.',
-        (classic ? 'Nach jeder Freigabe erscheint 10 Sekunden groß auf der Tafel die Endnote der Übung mit dem Turner darüber' : 'Nach jeder Freigabe erscheinen 10 Sekunden groß auf der Tafel die Scorepunkte des Duells mit dem Sieger darüber') +
-          ', Korrekturen 10 Sekunden. Der Sturz-Timer erscheint groß als Fenster über der Tafel; Einturnzeit und Wettkampfpause laufen groß in der Karte oben rechts, Liste und Wertungen bleiben dabei sichtbar.'
-      ]) +
-
-      sec('6. Abschluss', [
-        '<b>Wettkampf abschließen</b> sperrt die Eingabe. Anschließend fragt die App, ob nur dieser Wettkampf oder alles gesichert werden soll.',
-        '<b>Protokoll / Drucken</b> erstellt das Wettkampfprotokoll auf einer DIN-A4-Seite (auch als PDF speicherbar).',
-        'Über <b>Wieder öffnen</b> kann ein abgeschlossener Wettkampf erneut bearbeitet werden.',
-        'Sicherungsdateien lassen sich jederzeit auf der Seite <b>Wettkämpfe</b> erstellen: „Sichern“ in der Zeile eines Wettkampfs bzw. „Alles sichern“ darunter; mehr dazu unter ' + INFO_LINK + '.'
+      sec('5. Abschluss', [
+        '<b>Wettkampf abschließen</b> sperrt die Eingabe und bietet die Sicherung an; <b>Wieder öffnen</b> hebt das auf.',
+        '<b>Protokoll / Drucken</b> erstellt das Protokoll auf einer DIN-A4-Seite (auch als PDF).'
       ]) + '</section>';
   }
 

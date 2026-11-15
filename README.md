@@ -11,12 +11,13 @@ für den Wettkampftag, Texte je Liga). Zur Startseite (Liga wechseln) führt das
 **„← zurück“** oben links (wie im Protokoll): im Wettkampf Setup und im Protokoll immer zum Wettkampf; auf Wettkämpfe,
 Mannschaften, Regeln und Anleitung nur, wenn man von einem Wettkampf kommt – auch über mehrere Seiten hinweg (gemerkt je
 Fenster; vergessen auf der Startseite, beim Öffnen eines anderen Wettkampfs und in der anderen Liga). Im Setup gilt er wie
-„Abbrechen“ (bei ungespeicherten Änderungen die Frage „speichern oder verwerfen“). Auf der Wettkampfseite zusätzlich „Anzeigetafel“ und „Wettkampf“:
+„Abbrechen“ (bei ungespeicherten Änderungen die Frage „speichern oder verwerfen“). Seit Beta 84 bleibt die Zeile mit „← zurück“
+(im Protokoll mit „Drucken“) beim Scrollen direkt unter der Kopfzeile stehen. Auf der Wettkampfseite zusätzlich „Anzeigetafel“ und „Wettkampf“:
 am Laptop und iPad (ab 700 × 500 px) als **Menüband** – Reiter in der grauen Zeile, darunter immer (nicht einklappbar) eine Leiste
 mit den Knöpfen des gewählten Reiters (beim Öffnen eines Wettkampfs immer „Anzeigetafel“, innerhalb der Wettkampfseite bleibt die Wahl stehen; iPad hoch mit kurzen Beschriftungen; läuft die Pause, trägt der Reiter
 „Anzeigetafel“ die Restzeit, ebenso die Einturnzeit); am Handy als **Aufklappmenüs** („Oberliga ▾ | Tafel ▾ | Wettkampf ▾“, schließen nach der Auswahl
 bzw. beim Tipp daneben, ohne darunter etwas auszulösen; laufende Pause bzw. Einturnzeit orange am Menüknopf, z. B. „Pause 4:12“, „Einturnen 4:12“).
-Menü „Anzeigetafel“: Anzeigetafel öffnen · Hell/Dunkel · Turnervorstellung · Einturnzeit · Wettkampfpause · Ergebnis/Siegerehrung. „✓ gespeichert“ steht in der Kopfzeile.
+Menü „Anzeigetafel“: Anzeigetafel öffnen · Hell/Dunkel · Groß (große Tafel) · Turnervorstellung · Einturnzeit · Wettkampfpause · Ergebnis/Siegerehrung. „✓ gespeichert“ steht in der Kopfzeile.
 Von der Startseite aus: „Installation und Datensicherung“ (`#/info`) mit Installation, empfohlenen Geräten, Datensicherung und Updates für beide Ligen.
 Adressen: `#/oberliga/…` bzw. `#/landesliga/…`; ein Wettkampf (`#/match/<id>`) gehört fest zu seiner Liga.
 
@@ -50,7 +51,7 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   Tafel fest auf diesem Gerät (Oberliga ab dem ersten Duell auf der Tafel – der erste Turner eines Duells wird nur gespeichert;
   Landesliga ab der ersten freigegebenen Wertung), egal welcher Reiter gewählt ist; bei mehreren solchen Geräten (vergessene
   Freigabe) auf dem mit der letzten Freigabe. Nach der letzten Freigabe eines Geräts bleibt es nach der großen Einblendung
-  (10 s) noch 10 Sekunden stehen, insgesamt 20 Sekunden (ohne Einblendung – Landesliga, letzte Übung „kein Turner“ – 10 s). Sonst zeigt die Tafel das Gerät des zuletzt gewählten Reiters (gespeichert im Wettkampf als
+  (8 s, seit Beta 84) noch 10 Sekunden stehen, insgesamt 18 Sekunden (ohne Einblendung – Landesliga, letzte Übung „kein Turner“ – 10 s). Sonst zeigt die Tafel das Gerät des zuletzt gewählten Reiters (gespeichert im Wettkampf als
   `display.tab`, damit das Tafelfenster es kennt). Korrekturen verschieben die Tafel nicht. Ältere Wettkämpfe: der frühere
   Gerätestart (`started`) wird nicht mehr beachtet; ohne gemerkten Reiter zeigt die Tafel das Gerät mit der letzten Freigabe.
 - **Gerätereiter mit Abzeichen** (beide Ligen): ● Eingaben vorhanden (ab der ersten eingetragenen Wertung – Turnerauswahl und
@@ -68,10 +69,16 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   - **Fester Aufbau** von oben nach unten (nichts erscheint oder verschwindet; iPad und PC: Fenster senkrecht mittig;
     Handy: bildschirmfüllend, Zahlentastatur unten, darunter die Einstellung und ein freier Streifen von etwa einer Zeile
     (Daumen; schrumpft bei wenig Platz, unter 600 px Höhe entfällt er) – auch mit den Leisten des
-    Safari-Browsers ganz sichtbar): Kopfzeile einzeilig (z. B. „Ringe · Duell 1 · 2.“, rechts Sturz-Timer-Knopf) ·
+    Safari-Browsers ganz sichtbar): Kopfzeile einzeilig (z. B. „Ringe · Duell 1 · 2.“; am Handy rechts der Sturz-Timer-Knopf) ·
     Mannschaft und **Turnerauswahl** · Felder E1, E2, (E3), D-Note, Stand, NA – alle gleich breit, Schrift passend zur Breite
     („10,0“ auch bei sechs Feldern auf 360 px) – darunter „berechnen“ · „Wertung 0,00“, Oberliga-Vorschau, E-Note, Endnote ·
     Hinweiszeile · „Abbrechen“ / „Wertung freigeben“ bzw. „Korrektur freigeben“ · Einstellung Zahlentastatur.
+    Laptop und Tablet (ab 561 × 501 px): der Sturz-Timer (gleiche Größe wie in der Kachel) steht in der Knopfzeile links
+    neben „Abbrechen“; am Handy (hoch und quer) bleibt er oben rechts, damit die Zahlentastatur an ihrer Stelle bleibt.
+  - **Wertung zurücknehmen** (seit Beta 84): Im Fenster „Wertung ändern“ einer freigegebenen (Oberliga: auch nur erfassten)
+    Wertung „– Turner –“ wählen – alle Felder leeren sich, der Knopf heißt „Wertung zurücknehmen“; nach der Rückfrage steht
+    die Übung wieder im Grundzustand. Die Wertung verschwindet ohne Einblendung von der Tafel (Oberliga: das ganze Duell,
+    der andere Turner bleibt gespeichert), alles rechnet sich neu. „kein Turner“ bleibt davon getrennt.
   - **Turnerauswahl im Fenster**: vor der Freigabe sofort gespeichert (wie in der Kachel; „Abbrechen“ verwirft nur die
     getippten Noten), ohne Turner sind die Notenfelder gesperrt („Erst den Turner wählen.“). Nach der Freigabe gehört ein
     Turnerwechsel zur Korrektur. „kein Turner“ bei schon erfassten oder getippten Noten: Rückfrage.
@@ -148,7 +155,7 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
 - **Startreihenfolge** (lt. Scoresystem): Die am Gerät beginnende Mannschaft beginnt Duell 1+2, die andere
   Duell 3+4; bei jedem Gerätewechsel wechselt die beginnende Mannschaft.
   In der Erfassung steht der **vorlegende Turner** links (bzw. oben auf schmalen Bildschirmen) und ist markiert;
-  im Protokoll ist er fett mit ▶/◀ gekennzeichnet. Auf der Anzeigetafel bleiben Heim links und Gast rechts.
+  im Protokoll ist er fett mit ▶ gekennzeichnet. Auf der Anzeigetafel bleiben Heim links und Gast rechts.
 - **Zahlenformat**: D-Note, E-Abzüge und neutraler Abzug mit einer Nachkommastelle, E-Note und Endnote mit zwei.
 - **Eingabeboxen** zeigen den Mannschaftsnamen; die Scorepunkte des Duells erscheinen als einzelne Zahl in der
   Farbe der Mannschaft, die das Duell gewonnen hat (unentschieden: graue 0).
@@ -163,8 +170,8 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   bis zum Stopp bzw. Ablauf bedienbar. Während des Laufs behält der Knopf seine Breite (Sekunden auf zwei festen Stellen,
   Platz für „· Abzug 0,3“), in den letzten 10 Sekunden blinkt nur die Zahl (am iPad blieben sonst Reste der Umrandung stehen).
   Laufende Timer-Knöpfe (Pause, Einturnzeit) bleiben unter dem Mauszeiger orange (etwas dunkler).
-  **Einturnzeit** (seit Beta 82 im Menü „Anzeigetafel“ zwischen Turnervorstellung und Wettkampfpause): ein einziger Timer 6:40
-  (8 Turner × 50 Sekunden) ohne Zuordnung zu einem Gerät – Reiterwechsel, Turner und Wertungen ändern nichts an ihm; kein
+  **Einturnzeit** (seit Beta 82 im Menü „Anzeigetafel“ zwischen Turnervorstellung und Wettkampfpause): ein einziger Timer
+  von 4 Minuten (seit Beta 84; vorher 6:40) ohne Zuordnung zu einem Gerät – Reiterwechsel, Turner und Wertungen ändern nichts an ihm; kein
   automatischer Gerätestart mehr. Laufende Wettkampfpause und Einturnzeit schließen sich gegenseitig aus (Knopf grau).
   Tafel-Überschriften: „Einturnen“ bzw. „Wettkampfpause und Einturnen“ (in der Pause wird schon das nächste Gerät eingeturnt).
   Timer laufen im Knopf und in der Anzeigetafel und lassen sich mit erneutem Druck jederzeit beenden. Nach Ablauf zeigt die
@@ -192,7 +199,19 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   - Doppelklick auf die Tafel schaltet das Vollbild ein und aus (kurzer Hinweis beim Öffnen); Gerätepunkte stehen als letzte Zeile der Gerätetabelle
   - Knöpfe „Hell“ / „Dunkel“ daneben: hell ist Standard (gut lesbar mit Beamer in heller Halle),
     dunkel eignet sich für Fernseher, LED-Wände und abgedunkelte Räume
-  - Knopf „Ergebnis/Siegerehrung“ (eingeblendet: dunkel hinterlegt) zeigt Stand, Gerätepunkte und Topscorer als Fenster über der Tafel
+  - **Fester Rand gegen Overscan** (seit Beta 84): Tafel und alle Einblendungen lassen rundum 3 % frei (manche Beamer und
+    Fernseher schneiden ab Werk den Bildrand ab); die Aufteilung bleibt gleich, alles ist etwa 6 % kleiner. Keine Einstellung.
+  - **Große Auflösungen** (z. B. 4K bei 100 %): Sturz-Timer und Korrektur wachsen über Full HD gleichmäßig mit und sehen dann
+    aus wie bei Full HD; bis Full HD unverändert. Turnervorstellung und Ergebnis/Siegerehrung sind auf der Tafel bildschirmfüllend.
+  - **Große Tafel** (Umschalter „Groß“ im Menü „Anzeigetafel“, gespeichert im Wettkampf, seit Beta 84) für kleine Leinwände:
+    weniger gleichzeitig, etwa doppelt so große Schrift. Oben Mannschaften und Stand (Landesliga: Mannschaften in den Ecken,
+    Summen darunter), keine Gerätespalte und keine Duell-Liste; darüber im gestrichelten Rahmen das **nächste Duell** bzw.
+    der nächste Turner („Duell 4 · als Nächstes“), darunter die Karte der letzten Wertung auf voller Breite (D-Note, E-Note,
+    Neutr. Abzug, Endnote; Oberliga mit den Scorepunkten als Zahl in der Mitte; Landesliga: gegenüber blass die letzte Übung
+    der anderen Mannschaft), unten Gerät mit Zwischenstand und Gerätepunkte. Nach dem letzten Duell (nach der Haltezeit) das
+    **Geräteergebnis**, bis am nächsten Gerät ein Turner gewählt oder etwas eingetragen ist; in Einturnzeit und Pause die
+    **Übersicht aller Geräte** mit der Uhr.
+  - Knopf „Ergebnis/Siegerehrung“ (eingeblendet: dunkel hinterlegt) zeigt Stand, Gerätepunkte und Topscorer bildschirmfüllend auf der Tafel
     – und dasselbe Fenster über der App (wie bei der Turnervorstellung), „Schließen“/Esc blendet es auch auf der Tafel aus
     (Überschrift „Zwischenstand“, solange der Wettkampf läuft); beim Öffnen der Tafel ist es immer ausgeblendet
   - Knopf „Wettkampfpause“: im aufklappenden Menü 10, 15 oder 20 Minuten wählen, die Pause startet sofort – Restzeit groß in der Detailkarte der Tafel (Liste bleibt sichtbar),
@@ -205,15 +224,18 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an; Karte des aktuellen Duells: beide Hälften immer gleich breit (lange Namen mit „…“), am Handy hochkant Zeilen D-Note, E-Note, Neutr. Abzug etwas kleiner und einzeilig
   - Ergebnisse eines Duells erscheinen erst, wenn beide Turner im Wertungsfenster **„Wertung freigeben“** haben
     (bei „kein Turner“ ohne Turner und Wertung)
-  - Dann werden die neuen Scorepunkte **10 Sekunden bildschirmfüllend** als Zahl in der Farbe der
+  - Dann werden die neuen Scorepunkte **8 Sekunden bildschirmfüllend** als Zahl in der Farbe der
     siegreichen Mannschaft eingeblendet, darüber Startnummer, Name und Mannschaft des Siegers, leicht blinkend
     (bei Gleichstand eine 0 in Schwarz bzw. Weiß mit „Unentschieden“ darüber)
   - Das zuletzt angezeigte Duell steht mit **D-Note, E-Note, neutralem Abzug (falls vorhanden) und Endnote** auf der Tafel
 - **Nachträgliche Änderungen**: „Wertung ändern“ öffnet das Fenster mit den bisherigen Werten; **„Korrektur freigeben“**
   bringt die Korrektur auf die Tafel, „Abbrechen“ lässt alles, wie es war (kein Zwischenzustand mehr).
-  Die Korrektur erscheint **10 Sekunden als Overlay** über der Anzeigetafel (alte Werte durchgestrichen, neue Werte daneben).
+  Die Korrektur erscheint **8 Sekunden als Overlay** über der Anzeigetafel (alte Werte durchgestrichen, neue Werte daneben).
 - **Protokoll** zum Drucken bzw. Speichern als PDF – passt immer auf **eine DIN-A4-Seite im Hochformat**
-  (wird bei Bedarf automatisch verkleinert)
+  (wird bei Bedarf automatisch verkleinert). Überschrift neben dem WTB-Logo mit Wettkampfjahr („Oberliga 2026“), Begegnung oben
+  rechts in den Mannschaftsfarben. Seit Beta 84 ohne Spiegelung: je Zeile zwei gleich aufgebaute Blöcke (Heim links, Gast
+  rechts) mit Name, D, SB, E1, E2, (E3), E, NA, Endnote und – Oberliga – den Scorepunkten des Turners als einzelne Zahl; die
+  Linien sind zwischen den Blöcken unterbrochen.
 - Abgeschlossene Wettkämpfe sind **schreibgeschützt** (lassen sich bewusst wieder öffnen)
 
 ## Mannschaften festlegen (nur Betreiber)
@@ -304,6 +326,18 @@ npm test
 Die Tests prüfen Notenberechnung, Scorepunkte-Schwellen, Geräte- und Tabellenpunkte sowie die
 verschlüsselte Sicherung.
 
+**Browser-Tests** (seit Beta 84, Kernabläufe in Chromium über Playwright; der Testläufer startet seinen eigenen Webserver):
+
+```bash
+NODE_PATH="$(npm root -g)" npm run test:e2e          # alle
+NODE_PATH="$(npm root -g)" npm run test:e2e -- tafel  # nur Tests mit „tafel“ im Namen
+```
+
+Geprüft werden u. a. Freigabe und Korrektur in beiden Ligen, Wertung zurücknehmen, „kein Turner“ und „Wertung 0,00“,
+Tafel-Regel mit Haltezeit, Einturnzeit/Pause/Sturz-Timer, D-Note-Rechner, Zahlentastatur, Turnervorstellung, Ergebnis,
+große Tafel, Protokoll (eine DIN-A4-Seite), Sicherung und Wiedereinlesen sowie die Passung von Tafel und Wertungsfenster
+auf Laptop, iPad, iPhone, Full HD und 4K.
+
 ## Aufbau
 
 ```
@@ -316,5 +350,5 @@ js/crypto.js          Verschlüsselte Sicherungen (Web Crypto)
 js/app.js             Oberfläche und Ablaufsteuerung
 sw.js                 Service Worker für den Offline-Betrieb
 manifest.webmanifest  PWA-Manifest
-tests/                Unit-Tests (node --test)
+tests/                Unit-Tests (node --test), tests/e2e Browser-Tests
 ```
