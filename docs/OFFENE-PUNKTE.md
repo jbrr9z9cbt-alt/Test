@@ -52,6 +52,21 @@ die Windows-Schrift (Segoe UI) hat tiefere Unterlängen als die Testumgebung.
 Lösung: Diese Felder bekommen etwas mehr Höhe nach unten (Namen im Kasten „als Nächstes“, in der Karte, Mannschaftsnamen
 oben, Namen im Geräteergebnis), Aufteilung unverändert. Standardtafel und Einblendungen dabei mitprüfen.
 
+### 8. Tafel wählt ihre Form nach der Ausrichtung – in der Halle nur noch die große Tafel
+Die große Tafel hat sich bewährt; für die Halle wird die bisherige ausführliche Tafel nicht mehr gebraucht. Am Handy
+verschenkt die große Tafel viel Platz – dort passt die ausführliche Version, die später auch für Zuschauer auf dem eigenen
+Handy gedacht ist (siehe „Weitere offene Punkte“: Netzwerkfunktion).
+Beschlossen:
+- **Querformat** (Beamer, Fernseher, Laptop): immer die große Tafel.
+- **Hochformat** (Handy, Tablet hochkant): die bisherige ausführliche Tafel in ihrer Handy-Aufteilung (Beta 82/83).
+- Der **Umschalter „Groß“** im Menü Anzeigetafel entfällt (Menüband wieder schmaler; in der Halle nichts mehr einzustellen).
+- Die **Querformat-Aufteilung der ausführlichen Tafel** wird nicht mehr gebraucht und wird entfernt (spart doppelte Arbeit).
+  Die Hochformat-Version bleibt erhalten und wird in den Browser-Tests weiter geprüft.
+- Bekannt und so gewollt: In der Halle steht keine Liste aller Turner eines Geräts mehr gleichzeitig auf der Tafel – sie
+  erscheint als Geräteergebnis nach dem Gerät bzw. als Übersicht in der Pause. Ein hochkant aufgestelltes Tablet zeigt die
+  ausführliche Version.
+- Hilfetext und README anpassen; Punkte 1, 4, 6, 7 dieser Liste entsprechend für die verbleibenden Formen umsetzen.
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
@@ -937,6 +952,11 @@ Ergänzungen bei der Umsetzung:
 
 ## Weitere offene Punkte
 
+- **Später, gemerkt 15.11.2026: Netzwerkfunktion und Webseite für Zuschauer.** Heute laufen Eingabe und Tafel nur auf
+  demselben Gerät (zweites Fenster, Abgleich über BroadcastChannel/IndexedDB). Idee: Daten über das Netzwerk teilen, sodass
+  z. B. Zuschauer die Tafel auf dem eigenen Handy sehen. Die ausführliche Tafel im Hochformat (Punkt 8 der Liste nach
+  Beta 84) ist dafür die passende Handy-Ansicht und bleibt deshalb erhalten. Planung und Diskussion der Möglichkeiten in
+  einem eigenen Chat.
 - **Später, gemerkt 01.11.2026 (nicht auf der aktuellen Liste): Drucken in der installierten App am iPhone.**
   Befund (getestet vom Nutzer): Der Druckknopf funktioniert am iPad (Browser und installierte App) und am iPhone im
   Browser; nur in der vom Home-Bildschirm installierten App am iPhone passiert nichts – unabhängig vom Pop-up-Blocker.
