@@ -115,7 +115,8 @@ entfernt). Beschlossen:
 
 ### 11. Zahlentastatur: Tastenton
 Auf der Testseite ausprobiert (15.11.2026): Ton „Klick“ in mittlerer Lautstärke passt. Vibration geht am iPhone nicht
-(Apple lässt sie für Webseiten seit iOS 26.5 nicht mehr zu); Android ließ sich nicht testen – die Vibration entfällt daher.
+(Apple lässt sie für Webseiten offenbar nicht mehr zu, laut Entwicklerseiten seit iOS 26.5); Android ließ sich nicht
+testen – die Vibration entfällt daher.
 Beschlossen:
 - Ein kurzer, leiser **Klick bei jedem Tastendruck** auf der Bildschirm-Zahlentastatur (Wertungsfenster und D-Note-Rechner);
   nicht bei der Hardware-Tastatur und nicht bei anderen Knöpfen.
