@@ -164,10 +164,6 @@
     return isClassic(m) ? 'Übungen' : 'Duelle';
   }
 
-  function colorChip(c, text) {
-    return '<span class="chip" style="background:' + c.hex + ';color:' + c.fg + '">' + esc(text) + '</span>';
-  }
-
   function gymnastLabel(number, name) {
     if (!number) return name || '';
     return number + (name ? ' ' + name : '');
