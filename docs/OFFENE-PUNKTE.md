@@ -1,5 +1,13 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## Liste nach Beta 84
+
+### 1. Große Tafel: Rahmen „als Nächstes“ wie die Karte darunter
+Der Kasten mit dem nächsten Duell bzw. Turner bekommt denselben Hintergrund und dieselben runden Ecken wie die Karte
+des aktuellen Duells: hell weiß mit dem leichten Schatten der Karte, dunkel dunkelgrau wie die Karte. Die gestrichelte
+Linie entfällt. Inhalt, Größe und Position bleiben gleich (Unterscheidung über „Duell 4 · als Nächstes“ in der Mitte und
+nur die Namen).
+
 ## Liste nach Beta 83 – umgesetzt in Beta 84 (veröffentlicht 15.11.2026, Commit `356e885`)
 
 Umgesetzt 15.11.2026 (Punkte 1–10, Punkt 7 zuerst). Rückkehrpunkt: Beta 83 (Commit `1c44a76`).
