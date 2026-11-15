@@ -95,14 +95,15 @@ Die Scorepunkte- bzw. Wertungseinblendung und die Korrektureinblendung auf der T
 je **8 Sekunden**. Die Haltezeit von 10 Sekunden danach bleibt (Beta 83): Nach der letzten Freigabe eines Geräts bleibt
 die Tafel damit 8 + 10 = 18 Sekunden auf diesem Gerät (bisher 20). Hilfetexte und README entsprechend anpassen.
 
-### 5. Wertungsfenster: Sturz-Timer größer und neben „Abbrechen“ (Laptop und Tablet)
+### 5. Wertungsfenster: Sturz-Timer neben „Abbrechen“ (Laptop und Tablet)
 Heute steht der Knopf „Sturz-Timer“ klein oben rechts im Wertungsfenster (neben „Ringe · Duell 1 · 1.“).
 
-Beschlossen (Vorschaubilder 1 und 2 vom 15.11.2026):
-- **Laptop und Tablet (iPad quer und hochkant):** Der Knopf wird so groß wie „Abbrechen“ und steht in der Knopfzeile
-  links neben „Abbrechen“: [Sturz-Timer] [Abbrechen] [Wertung freigeben]. Der laufende Timer („⏱ 23 · Abzug 0,3 – Stopp“,
-  gelb bzw. rot) passt in die Zeile; die Breite bleibt während des Laufs gleich. Das Fenster wird nicht höher. An Boden
-  und Sprung gibt es den Knopf wie bisher nicht.
+Beschlossen (Position wie Vorschaubilder 1 und 2 vom 15.11.2026, dort aber mit größerem Knopf):
+- **Laptop und Tablet (iPad quer und hochkant):** Der Knopf steht in der Knopfzeile links neben „Abbrechen“:
+  [Sturz-Timer] [Abbrechen] [Wertung freigeben]. **Die Größe bleibt wie heute** (klein, so groß wie der Sturz-Timer in
+  der Turnerkachel – damit sind beide gleich groß; die zunächst gewünschte Vergrößerung ist zurückgenommen). Der laufende
+  Timer („⏱ 23 · Abzug 0,3 – Stopp“, gelb bzw. rot) passt in die Zeile; die Breite bleibt während des Laufs gleich. Das
+  Fenster wird nicht höher. An Boden und Sprung gibt es den Knopf wie bisher nicht.
 - **Handy (hochkant und quer): alles bleibt wie heute** – der Sturz-Timer bleibt klein oben rechts. Die Zahlentastatur
   darf sich am Handy nicht verschieben und muss an derselben Stelle bleiben wie im D-Note-Rechner.
 
