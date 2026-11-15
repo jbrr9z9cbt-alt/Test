@@ -3003,7 +3003,11 @@
       matchId: m.id, appKey: appKey, idx: idx, sideKey: sideKey, text: text, buf: null, calc: null,
       draft: { gymnastId: side.gymnastId, number: side.number, name: side.name, dns: !!side.dns, bonus: !!side.bonus, zero: !!side.zero,
         dparts: side.dparts ? Object.assign({}, side.dparts) : null },
-      correction: sideShown(m, appKey, idx, sideKey)
+      correction: sideShown(m, appKey, idx, sideKey),
+      // Freigegeben – in der Oberliga auch schon erfasst (erster Turner eines Duells, freigegebenes „kein Turner“).
+      // Nur dann kann die Wertung über „– Turner –“ zurückgenommen werden.
+      released: sideShown(m, appKey, idx, sideKey) || (!isClassic(m) && ((!side.dns && S.sideFinal(side, m.rules) !== null) || (!!side.dns && !!side.dnsReleased))),
+      withdraw: false
     };
     scoreDlg.active = firstEmptyField(m);
     if (dlgScrollY === null) dlgScrollY = window.scrollY;
@@ -3070,7 +3074,7 @@
       '<span>E-Note <b data-dlg-out="enote"></b></span><span class="fin">Endnote <b data-dlg-out="final"></b></span></span></div>' +
       '<div class="sd-hint" data-dlg-out="hint"></div>' +
       '<div class="sd-btns">' + (timerInRow ? timer : '') + '<button type="button" class="btn" tabindex="-1" data-action="sd-cancel">Abbrechen</button>' +
-      '<button type="button" class="btn primary" data-action="sd-release">' + (g.correction ? 'Korrektur freigeben' : 'Wertung freigeben') + '</button></div>' +
+      '<button type="button" class="btn primary" data-action="sd-release">' + (g.withdraw ? 'Wertung zurücknehmen' : g.correction ? 'Korrektur freigeben' : 'Wertung freigeben') + '</button></div>' +
       '<div class="sd-set"><label>Zahlentastatur <select tabindex="-1" data-dlg="keypad">' + opt('auto', 'automatisch') + opt('on', 'immer') + opt('off', 'nie') + '</select></label></div>' +
       '</div>' + (kp ? keypadHtml('sd') : '') + '</div></div>' + (g.calc ? calcHtml(m) : '');
   }
@@ -3153,10 +3157,10 @@
     var shown = isClassic(m) ? S.revOf(d, g.sideKey).shown : d.shown && d.shown[g.sideKey];
     var changed = !shown || !sameAsShown(side, shown) || (isClassic(m) ? S.sidePending(d, g.sideKey) : S.hasPendingCorrection(d));
     var rel = box.querySelector('[data-action="sd-release"]');
-    if (rel) { rel.disabled = !(ready && changed); rel.classList.toggle('sd-next', kp && !g.active && !rel.disabled); }
+    if (rel) { rel.disabled = !(g.withdraw || (ready && changed)); rel.classList.toggle('sd-next', kp && !g.active && !rel.disabled); }
     var other = d[g.sideKey === 'home' ? 'guest' : 'home'];
     var otherReady = sideReady(m, other);
-    out('hint', noGym ? 'Erst den Turner wählen.' :
+    out('hint', g.withdraw ? 'Die Wertung wird zurückgenommen.' : noGym ? 'Erst den Turner wählen.' :
       bad.length ? 'Ungültiger Wert – eine Nachkommastelle, z. B. ' + (bad[0] === 'd' ? '4,5' : '1,3') :
       ready && !changed ? 'Keine Änderung' :
       !isClassic(m) && !otherReady && !shown ? 'Die Note erscheint mit dem Duell auf der Tafel.' : '');
@@ -3176,7 +3180,7 @@
       var f = g.active;
       var sbox = box.querySelector('.sd-box');
       if (sbox) sbox.classList.toggle('active', f === 'bonus');
-      out('kpwhat', noGym ? 'Erst den Turner wählen' : f ? esc(f === 'bonus' ? 'Standbonus' : DLG_LABEL[f]) + ' · <b>' + esc(gymnastLabel(g.draft.number, g.draft.name)) + '</b>' : '');
+      out('kpwhat', g.withdraw ? '' : noGym ? 'Erst den Turner wählen' : f ? esc(f === 'bonus' ? 'Standbonus' : DLG_LABEL[f]) + ' · <b>' + esc(gymnastLabel(g.draft.number, g.draft.name)) + '</b>' : '');
       out('kpval', f === 'bonus' ? (g.draft.bonus ? '+0,1' : '–') : f ? esc(g.text[f] || '–') : '');
       // Stand aktiv: nur 1, 0 und ⌫ – Ziffern 2–9 und Komma ausgegraut
       box.querySelectorAll('[data-action="sd-key"]').forEach(function (kb) {
@@ -3270,6 +3274,7 @@
   function releaseScoreDlg() {
     var g = scoreDlg, m = g && match(g.matchId);
     if (!m) { closeScoreDlg(true); return; }
+    if (g.withdraw) { withdrawScoreDlg(m); return; }
     commitDlgField();
     var side = dlgSide();
     if (m.status === 'final' || dlgInvalid().length || !sideReady(m, side)) return;
@@ -3290,6 +3295,36 @@
       rerenderPanel(m);
       if (viaKeyboard) focusNextScoreBtn(key, kind !== 'correction');
       toast(kind === 'correction' ? 'Korrektur freigegeben' : kind === 'stored' ? 'Wertung erfasst – erscheint mit dem Duell auf der Tafel' : kind === 'none' ? 'Keine Änderung' : 'Wertung freigegeben');
+    });
+  }
+
+  /**
+   * Freigegebene Wertung komplett zurücknehmen (nach Rückfrage): Die Übung steht wieder im Grundzustand (kein Turner,
+   * keine Werte) und verschwindet ohne Einblendung von der Tafel – als wäre sie nie gezeigt worden. Oberliga: Das ganze
+   * Duell verschwindet von der Tafel, der andere Turner bleibt gespeichert.
+   */
+  function withdrawScoreDlg(m) {
+    var g = scoreDlg;
+    if (m.status === 'final') return;
+    askChoice('Wertung zurücknehmen?', 'Die freigegebene Wertung verschwindet von der Anzeigetafel, die Kachel steht danach wieder im Grundzustand.', null,
+      [{ label: 'Abbrechen', value: false, cancel: true }, { label: 'Zurücknehmen', value: true, primary: true }]).then(function (yes) {
+      if (scoreDlg !== g || !yes) return;
+      var d = m.apparatus[g.appKey].duels[g.idx], k = g.sideKey;
+      Object.assign(d[k], S.emptySide());
+      d[k].dparts = null;
+      delete d[k].dnsReleased;
+      if (isClassic(m)) {
+        if (d.revs) d.revs[k] = { revealedAt: null };
+      } else {
+        d.shown = null; d.prevShown = null; d.revealKind = null; d.revealedAt = null; d.firstRevealedAt = null;
+      }
+      var key = g.appKey + '-' + g.idx + '-' + k;
+      closeScoreDlg(true);
+      save('matches', m).then(function () {
+        rerenderPanel(m);
+        if (lastInputKeyboard) focusNextScoreBtn(key, false);
+        toast('Wertung zurückgenommen');
+      });
     });
   }
 
@@ -3393,6 +3428,17 @@
     }
     if (f === 'gymnast') {
       var touch = lastPointerType === 'touch' || lastPointerType === 'pen';
+      g.withdraw = false;
+      if (g.released && !el.value) {
+        // Freigegebene Wertung: „– Turner –“ leert alle Felder; der Knopf heißt dann „Wertung zurücknehmen“.
+        Object.assign(g.draft, { gymnastId: null, number: null, name: '', dns: false, bonus: false, zero: false, dparts: null });
+        DLG_FIELDS.forEach(function (x) { g.text[x] = ''; });
+        g.withdraw = true;
+        g.active = null;
+        g.buf = null;
+        showScoreDlg(!touch);
+        return;
+      }
       if (g.correction) {
         // Nach der Freigabe gehört ein Turnerwechsel zur Korrektur („Korrektur freigeben“).
         if (el.value === NO_GYMNAST) {
