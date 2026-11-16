@@ -1,0 +1,65 @@
+/* Ligabericht (bericht.html): Bedienung oben, darunter die Seiten des PDFs als Vorschau. Protokolle: css/style.css */
+
+body.report { background: var(--bg); }
+.rp-wrap { max-width: 980px; margin: 0 auto; padding: 1rem 1rem .5rem; }
+.rp-head { display: flex; align-items: center; gap: .75rem; margin-bottom: .25rem; }
+.rp-head h1 { font-size: 1.5rem; margin: 0; }
+.rp-intro { margin: .25rem 0 1rem; }
+.rp-card { margin-bottom: 1rem; }
+.rp-card h2 { font-size: 1.1rem; margin: 0 0 .6rem; }
+.rp-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .6rem 1rem; }
+.rp-row label { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; color: var(--muted); }
+.rp-row select, .rp-row input { font-size: 1rem; width: auto; }
+.rp-row label.btn { flex-direction: row; font-size: .92rem; color: inherit; }
+.rp-row select { max-width: 19rem; }
+.rp-gap { margin-top: .75rem; align-items: center; }
+.rp-drop { border: 2px dashed #bdbdbd; border-radius: 12px; padding: 1rem; text-align: center; background: #fff; }
+.rp-drop.over { border-color: #1e63c6; background: #eef4ff; }
+.rp-drop p { margin: 0 0 .6rem; }
+.rp-msg { margin: .6rem 0 0; font-size: .9rem; }
+.rp-msg .err { color: var(--danger); }
+.rp-list { width: 100%; border-collapse: collapse; margin-top: .75rem; font-size: .92rem; }
+.rp-list th { text-align: left; font-size: .75rem; color: var(--muted); font-weight: 600; padding: .2rem .4rem; }
+.rp-list td { padding: .35rem .4rem; border-top: 1px solid #e5e5e5; vertical-align: middle; }
+.rp-list td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rp-list td.act { text-align: right; width: 1%; white-space: nowrap; }
+.rp-tag { display: inline-block; font-size: .72rem; padding: .05rem .4rem; border-radius: 4px; background: #fef3c7; color: #92400e; white-space: nowrap; }
+.rp-prev-h { font-size: 1.1rem; margin: 1.5rem 0 .5rem; }
+
+/* Seiten: auf dem Bildschirm untereinander, beim Drucken je eine DIN-A4-Seite */
+#rp-pages { padding: 0 0 2rem; }
+.rp-page { margin: 0 auto 14mm; }
+.rp-page .print-sheet { position: relative; }
+.rp-back { text-align: right; font-size: 7pt; margin: 0 0 1mm; }
+.rp-back a, .rb .pg a { color: #1e63c6; text-decoration: none; font-weight: 700; }
+
+/* Saisonübersicht (Seite 1): Tabellen gleichmäßig über die Seite verteilt */
+.rp-ov { display: flex; flex-direction: column; height: 277mm; box-sizing: border-box; }
+.rp-ov .rb-body { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; }
+.rp-ov .ps-meta .sub { font-weight: 400; font-size: 9pt; }
+.rb-h { font-size: 10pt; font-weight: 800; margin: 0 0 1.2mm; border-bottom: .75pt solid #000; padding-bottom: .5mm;
+  display: flex; justify-content: space-between; align-items: baseline; }
+.rb-h span { font-size: 7.5pt; font-weight: 400; color: #444; }
+table.rb { width: 100%; border-collapse: collapse; font-size: 9pt; font-variant-numeric: tabular-nums; }
+table.rb th { font-size: 7pt; color: #444; font-weight: 600; text-align: left; padding: .4mm 1.2mm; white-space: nowrap; }
+table.rb td { padding: .9mm 1.2mm; border-bottom: .3pt solid #ccc; white-space: nowrap; }
+table.rb .num { text-align: right; }
+table.rb .c { text-align: center; }
+table.rb td.b, table.rb .win { font-weight: 700; }
+table.rb td.tn { white-space: normal; }
+table.rb .pg { text-align: right; }
+table.rb tr.todo td { color: #555; }
+table.rb tr.open td { color: #777; font-style: italic; }
+/* a:b – Doppelpunkte untereinander (Breiten je Spalte per Skript) */
+.ab { display: inline-flex; justify-content: flex-end; }
+.ab .a { display: inline-block; text-align: right; }
+.ab .s { display: inline-block; width: .7ch; text-align: center; }
+.ab .z { display: inline-block; text-align: left; }
+.rb-note { font-size: 7pt; color: #555; margin: 1.2mm 0 0; }
+
+@media print {
+  body.report { background: #fff; }
+  #rp-pages { padding: 0; }
+  .rp-page { margin: 0; break-after: page; }
+  .rp-page:last-child { break-after: auto; }
+}

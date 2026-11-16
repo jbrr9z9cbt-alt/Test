@@ -6,6 +6,10 @@
   var DB = window.DB;
   var SB = window.SecureBackup;
   var CFG = window.TEAM_CONFIG;
+  // Ligabericht (bericht.html, nur für den Ligaleiter): Die Seite lädt diesen Code, um mit derselben Rechenlogik und
+  // derselben Protokoll-Darstellung zu arbeiten. Die App selbst startet dann nicht (keine Datenbank, keine Anzeige,
+  // kein Service Worker); bereitgestellt wird nur window.WTBReport (ganz unten).
+  var REPORT = !!window.WTB_REPORT;
   var APP_VERSION = 2;
   var APP_BUILD = '84';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
@@ -48,7 +52,7 @@
   };
 
   var $app = document.getElementById('app');
-  var channel = 'BroadcastChannel' in window ? new BroadcastChannel('turnwettkampf-sync') : null;
+  var channel = !REPORT && 'BroadcastChannel' in window ? new BroadcastChannel('turnwettkampf-sync') : null;
 
   // ---------- Hilfsfunktionen ----------
 
@@ -506,6 +510,7 @@
   }
 
   function render() {
+    if (REPORT) return;
     var r = route();
     document.body.classList.toggle('board-mode', r.name === 'match' && r.sub === 'board');
     document.body.classList.toggle('match-page', r.name === 'match' && !r.sub);
@@ -2891,7 +2896,11 @@
 
   /** Protokoll so verkleinern, dass es auf eine DIN-A4-Seite (Hochformat) passt. */
   function fitPrintToA4() {
-    var sheet = document.getElementById('print-sheet');
+    fitSheetToA4(document.getElementById('print-sheet'));
+  }
+
+  /** Ein Blatt (Protokoll oder Saisonübersicht) auf eine DIN-A4-Seite einpassen. */
+  function fitSheetToA4(sheet) {
     if (!sheet) return;
     // Logo exakt so hoch wie die beiden Titelzeilen daneben.
     var logo = sheet.querySelector('.ps-logo'), titleText = sheet.querySelector('.ps-titletext');
@@ -4815,7 +4824,7 @@
 
   // ---------- Start ----------
 
-  DB.open().then(function (ok) {
+  if (!REPORT) DB.open().then(function (ok) {
     state.persistent = ok;
     if (ok) DB.requestPersist();
     return loadAll();
@@ -4846,7 +4855,7 @@
     document.body.appendChild(bar);
   }
 
-  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  if (!REPORT && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     var hadController = !!navigator.serviceWorker.controller;
     var reloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', function () {
@@ -4867,5 +4876,29 @@
       });
       setInterval(function () { if (navigator.onLine) reg.update().catch(function () {}); }, UPDATE_CHECK_MS);
     }).catch(function () { /* offline-Cache optional */ });
+  }
+
+  // ---------- Schnittstelle für den Ligabericht (bericht.html) ----------
+  if (REPORT) {
+    window.WTBReport = {
+      leagues: LEAGUES,
+      version: APP_LABEL,
+      /** Mannschaften für die Namen: gespeicherte (aus Gesamtsicherungen) und Namen aus Einzelsicherungen (id → Name). */
+      setTeams: function (stored, names) {
+        state.teams = buildTeams(stored || []);
+        Object.keys(names || {}).forEach(function (id) { if (!team(id)) state.legacyTeamNames[id] = names[id]; });
+      },
+      teamName: teamName,
+      leagueTeams: leagueTeams,
+      /** Eingelesenen Wettkampf wie beim Laden in der App vervollständigen (Regeln der Liga usw.). */
+      prepare: function (m) { migrateMatch(m); return m; },
+      /** Wettkampfprotokoll als HTML – dieselbe Darstellung wie „Protokoll / Drucken“ in der App. */
+      protocolHtml: function (m) { return viewPrint(m); },
+      fitSheet: fitSheetToA4,
+      esc: esc,
+      fmt: fmt,
+      fmtDate: fmtDate,
+      printLogo: PRINT_LOGO
+    };
   }
 })();
