@@ -1,5 +1,18 @@
 # Offene Punkte (noch nicht umgesetzt)
 
+## Liste nach Beta 85
+
+### 1. Zahlentastatur am iPad quer: Breite darf sich beim Tippen nicht ändern
+Beobachtet (Video 16.11.2026, iPad quer, Beta 85): Beim Tippen von „1 1 1“ (0,1 → 1,1 → 11,1) wird die Zahlentastatur
+breiter und rückt nach links. Nachgestellt (iPad quer 1024 bis 1366 px breit, Turner mit langem Namen): Die Tastatur wächst bei
+„11,1“ von 304 auf 314 px; hochkant und am Handy bleibt sie gleich.
+Ursache: Neben den Feldern ist die Tastatur 19rem breit, darf aber nicht schmaler werden als ihr Inhalt. Die Zeile darüber
+(„Abzüge E3 · 2 Brickwedde, Henning“ und der Wert) passt bei langem Namen und breitem Wert nicht mehr hinein – dann wird die
+ganze Tastatur breiter.
+Lösung: Die Tastatur behält immer ihre Breite; wird die Zeile zu lang, wird nur der Name darin mit „…“ gekürzt, der Wert
+bleibt voll sichtbar. Im Test geprüft (iPad quer 1024, 1180, 1366 px): Breite bleibt 304 px. Gleiches im D-Note-Rechner
+prüfen; Browser-Test dazu.
+
 ## Liste nach Beta 84 – umgesetzt in Beta 85 (veröffentlicht 16.11.2026, Commit `febb54e`)
 
 Umgesetzt 15./16.11.2026 (Punkte 1–12). Rückkehrpunkt: Beta 84 (Commit `356e885`).
