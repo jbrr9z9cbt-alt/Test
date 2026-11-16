@@ -19,13 +19,13 @@ module.exports = {
     assert.equal(m.apparatus.FX.duels.length, 4);
     // Wertungen 13,0 / 12,5 / 12,0 / 13,5 → beste drei = 39,00, gestrichen wird 12,00
     await wait(bp, 200);
-    assert.match(await text(bp, '.board-big'), /39,00/);
+    assert.match(await text(bp, '.gb-big'), /39,00/);
     assert.ok(await p.$('#apparatus-panel .side.struck[data-key="FX-2-home"]'), 'Streichwertung markiert');
     // Mannschaftsabzug
     await p.click('[data-action=deduction][data-side=home]');
     await p.fill('.modal-backdrop input', '1,00');
     await p.click('.modal-backdrop button[type=submit]');
     await wait(p, 600);
-    assert.match(await text(bp, '.board-big'), /38,00/, 'Abzug mindert die Gesamtpunktzahl');
+    assert.match(await text(bp, '.gb-big'), /38,00/, 'Abzug mindert die Gesamtpunktzahl');
   }
 };

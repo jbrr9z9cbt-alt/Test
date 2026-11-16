@@ -49,7 +49,8 @@ table.rb td.b, table.rb .win { font-weight: 700; }
 table.rb td.tn { white-space: normal; }
 table.rb .pg { text-align: right; }
 table.rb tr.todo td { color: #555; }
-table.rb tr.open td { color: #777; font-style: italic; }
+table.rb tr.open td { color: #777; }
+table.rb tr.open td:not(.num) { font-style: italic; }
 /* a:b – Doppelpunkte untereinander (Breiten je Spalte per Skript) */
 .ab { display: inline-flex; justify-content: flex-end; }
 .ab .a { display: inline-block; text-align: right; }

@@ -17,7 +17,7 @@ am Laptop und iPad (ab 700 × 500 px) als **Menüband** – Reiter in der grauen
 mit den Knöpfen des gewählten Reiters (beim Öffnen eines Wettkampfs immer „Anzeigetafel“, innerhalb der Wettkampfseite bleibt die Wahl stehen; iPad hoch mit kurzen Beschriftungen; läuft die Pause, trägt der Reiter
 „Anzeigetafel“ die Restzeit, ebenso die Einturnzeit); am Handy als **Aufklappmenüs** („Oberliga ▾ | Tafel ▾ | Wettkampf ▾“, schließen nach der Auswahl
 bzw. beim Tipp daneben, ohne darunter etwas auszulösen; laufende Pause bzw. Einturnzeit orange am Menüknopf, z. B. „Pause 4:12“, „Einturnen 4:12“).
-Menü „Anzeigetafel“: Anzeigetafel öffnen · Hell/Dunkel · Groß (große Tafel) · Turnervorstellung · Einturnzeit · Wettkampfpause · Ergebnis/Siegerehrung. „✓ gespeichert“ steht in der Kopfzeile.
+Menü „Anzeigetafel“: Anzeigetafel öffnen · Hell/Dunkel · Turnervorstellung · Einturnzeit · Wettkampfpause · Ergebnis/Siegerehrung. „✓ gespeichert“ steht in der Kopfzeile.
 Von der Startseite aus: „Installation und Datensicherung“ (`#/info`) mit Installation, empfohlenen Geräten, Datensicherung und Updates für beide Ligen.
 Adressen: `#/oberliga/…` bzw. `#/landesliga/…`; ein Wettkampf (`#/match/<id>`) gehört fest zu seiner Liga.
 
@@ -92,7 +92,15 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
     „Korrektur freigeben“ übernimmt, „Abbrechen“ verwirft eine offene Korrektur.
   - **Zahlentastatur** (Touch-Geräte): eigene Tastatur im Fenster – 7 8 9 ⌫ / 4 5 6 ⌫ / 1 2 3 Weiter / 0 0 , Weiter
     (0 doppelt breit, ⌫ und „Weiter ▶“ doppelt hoch) – mit großer Anzeige des aktiven Felds; die Tastatur des Geräts bleibt zu.
-    Übernommen wird genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0 beim Verlassen des Felds), kein automatisches Komma.
+    **Automatisches Komma** (seit Beta 85, wie schon in Beta 77): Die letzte getippte Ziffer ist die Nachkommastelle
+    („1 7“ = 1,7; „8“ = 0,8; „1 3 5“ = 13,5 – höchstens drei Ziffern); ein getipptes Komma gilt wie getippt („4 , 5“ = 4,5).
+    Gilt für E1–E3, D-Note, neutralen Abzug und im D-Note-Rechner für EG (nicht für die Anzahlen und den Standbonus), nur auf
+    der Bildschirm-Tastatur – mit der Hardware-Tastatur bleibt „4“ = 4,0. Seit Beta 85 zählt die **Taste unter dem Finger
+    sofort beim Berühren**: Die App bestimmt sie selbst aus der Fingerposition (Lücken in der Mitte geteilt), genau sie wird
+    grau (mindestens 0,1 s); Safaris Tipp-Korrektur, die den Klick manchmal der Nachbartaste gab, spielt keine Rolle mehr.
+    **Tastenton** (seit Beta 85): leiser Klick bei jedem Tastendruck, je Gerät ein-/ausschaltbar in der Zeile „Zahlentastatur“
+    (Grundeinstellung aus); bei lautlos gestelltem iPhone stumm. Vibration gibt es nicht (Webseiten dürfen die Taptic Engine
+    des iPhones nicht nutzen).
     Die Felder sind dabei Schaltflächen (zuverlässiges Antippen am iPhone). Rechte Tastenspalte: ⌫ – „◀ Zurück“ –
     „Weiter ▶“ (doppelt hoch); Weiter/Zurück laufen im Kreis (E1 → E2 → (E3) → D-Note → Stand → NA → E1), freigegeben wird
     durch Antippen. **Standbonus** über die Tastatur: 1 = +0,1, 0 oder ⌫ = nein (2–9 und Komma ausgegraut). Die Anzeigezeile über der Tastatur hat eine feste Höhe – die Tastatur
@@ -171,8 +179,11 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   Platz für „· Abzug 0,3“), in den letzten 10 Sekunden blinkt nur die Zahl (am iPad blieben sonst Reste der Umrandung stehen).
   Laufende Timer-Knöpfe (Pause, Einturnzeit) bleiben unter dem Mauszeiger orange (etwas dunkler).
   **Einturnzeit** (seit Beta 82 im Menü „Anzeigetafel“ zwischen Turnervorstellung und Wettkampfpause): ein einziger Timer
-  von 4 Minuten (seit Beta 84; vorher 6:40) ohne Zuordnung zu einem Gerät – Reiterwechsel, Turner und Wertungen ändern nichts an ihm; kein
-  automatischer Gerätestart mehr. Laufende Wettkampfpause und Einturnzeit schließen sich gegenseitig aus (Knopf grau).
+  ohne Zuordnung zu einem Gerät – Reiterwechsel, Turner und Wertungen ändern nichts an ihm; kein automatischer Gerätestart.
+  Seit Beta 85 mit Auswahl wie bei der Pause: **4 Minuten** · **Andere Zeit …** (Fenster „Einturnzeit in Minuten“, z. B. 5
+  oder 6:40, 1 bis 30 Minuten) · die zuletzt gewählte eigene Zeit („6:40 (zuletzt)“, auf dem Gerät gemerkt). Die Dauer wird
+  mit dem Timer im Wettkampf gespeichert (die Tafel kennt sie; ältere Wettkämpfe: 4:00). Laufende Timer lassen sich auch mit
+  langem Klick stoppen (seit Beta 85). Laufende Wettkampfpause und Einturnzeit schließen sich gegenseitig aus (Knopf grau).
   Tafel-Überschriften: „Einturnen“ bzw. „Wettkampfpause und Einturnen“ (in der Pause wird schon das nächste Gerät eingeturnt).
   Timer laufen im Knopf und in der Anzeigetafel und lassen sich mit erneutem Druck jederzeit beenden. Nach Ablauf zeigt die
   Tafel „Einturnen beendet“ bzw. „Übung beendet“ (5 s), leicht blinkend.
@@ -203,15 +214,20 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
     Fernseher schneiden ab Werk den Bildrand ab); die Aufteilung bleibt gleich, alles ist etwa 6 % kleiner. Keine Einstellung.
   - **Große Auflösungen** (z. B. 4K bei 100 %): Sturz-Timer und Korrektur wachsen über Full HD gleichmäßig mit und sehen dann
     aus wie bei Full HD; bis Full HD unverändert. Turnervorstellung und Ergebnis/Siegerehrung sind auf der Tafel bildschirmfüllend.
-  - **Große Tafel** (Umschalter „Groß“ im Menü „Anzeigetafel“, gespeichert im Wettkampf, seit Beta 84) für kleine Leinwände:
-    weniger gleichzeitig, etwa doppelt so große Schrift. Oben Mannschaften und Stand (Landesliga: Mannschaften in den Ecken,
-    Summen darunter), keine Gerätespalte und keine Duell-Liste; darüber im gestrichelten Rahmen das **nächste Duell** bzw.
+  - **Form nach Ausrichtung** (seit Beta 85, ohne Einstellung): **quer** (Beamer, Fernseher, Laptop) immer die **große Tafel**,
+    **hochkant** (Handy, Tablet) die ausführliche Tafel in ihrer Handy-Aufteilung (Mannschaften, Stand, Geräte als Zeile,
+    Karte der letzten Wertung, Liste des Geräts). Der Umschalter „Groß“ (Beta 84) und die alte Querformat-Aufteilung der
+    ausführlichen Tafel sind entfallen. Dreht man ein Tablet, wechselt die Form sofort.
+  - **Große Tafel** (seit Beta 84): weniger gleichzeitig, etwa doppelt so große Schrift. Oben Mannschaften und Stand
+    (Landesliga: Mannschaften in den Ecken, Summen darunter; „inkl. Abzug“ darunter sichtbar), keine Gerätespalte und keine
+    Duell-Liste; darüber im Kasten mit Hintergrund und Ecken wie die Karte (seit Beta 85) das **nächste Duell** bzw.
     der nächste Turner („Duell 4 · als Nächstes“), darunter die Karte der letzten Wertung auf voller Breite (D-Note, E-Note,
     Neutr. Abzug, Endnote; Oberliga mit den Scorepunkten als Zahl in der Mitte; Landesliga: gegenüber blass die letzte Übung
     der anderen Mannschaft), unten Gerät mit Zwischenstand und Gerätepunkte. Nach dem letzten Duell (nach der Haltezeit) das
     **Geräteergebnis**, bis am nächsten Gerät ein Turner gewählt oder etwas eingetragen ist; in Einturnzeit und Pause die
     **Übersicht aller Geräte** mit der Uhr.
   - Knopf „Ergebnis/Siegerehrung“ (eingeblendet: dunkel hinterlegt) zeigt Stand, Gerätepunkte und Topscorer bildschirmfüllend auf der Tafel
+    (seit Beta 85 stehen die Mannschaftsnamen einzeilig mittig über ihrem Ergebnis; zu lange Namen werden nur selbst kleiner)
     – und dasselbe Fenster über der App (wie bei der Turnervorstellung), „Schließen“/Esc blendet es auch auf der Tafel aus
     (Überschrift „Zwischenstand“, solange der Wettkampf läuft); beim Öffnen der Tafel ist es immer ausgeblendet
   - Knopf „Wettkampfpause“: im aufklappenden Menü 10, 15 oder 20 Minuten wählen, die Pause startet sofort – Restzeit groß in der Detailkarte der Tafel (Liste bleibt sichtbar),
@@ -221,13 +237,15 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   - Knopf „Turnervorstellung“: Titelseite und anwesende Turner (nach Startnummer) erst der Gast-, dann der Heimmannschaft, zum Schluss das Kampfgericht
     (E1/OK, neutraler E2, Vereinskampfrichter als D, E bzw. D/E nach Verein); in der App erscheint dasselbe Fenster wie auf der Tafel (über der ganzen Seite) mit ◀ ▶ ■ (zurück/weiter/beenden), Pfeiltasten, Leertaste, Bild auf/ab (Presenter) und Esc;
     währenddessen keine anderen Fenster auf der Tafel
-  - feste Aufteilung im Querformat (Laptop, Beamer, Fernseher), eigene schmale Aufteilung im Hochformat (Handy, Tablet hochkant): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an; Karte des aktuellen Duells: beide Hälften immer gleich breit (lange Namen mit „…“), am Handy hochkant Zeilen D-Note, E-Note, Neutr. Abzug etwas kleiner und einzeilig
+  - feste Aufteilung (quer große Tafel, hochkant ausführliche Tafel): füllt immer das ganze Fenster, alle Größen richten sich nur nach der Fenstergröße (nicht nach dem Inhalt); Einturnzeit und Wettkampfpause erscheinen groß in der Detailkarte (Liste und Wertungen bleiben sichtbar), der Sturz-Timer als Fenster über der Tafel (Ziffern auf festen Plätzen); alle Fenster passen sich auch an Handys hoch und quer an; Karte des aktuellen Duells: beide Hälften immer gleich breit (lange Namen mit „…“), am Handy hochkant Zeilen D-Note, E-Note, Neutr. Abzug etwas kleiner und einzeilig
   - Ergebnisse eines Duells erscheinen erst, wenn beide Turner im Wertungsfenster **„Wertung freigeben“** haben
     (bei „kein Turner“ ohne Turner und Wertung)
   - Dann werden die neuen Scorepunkte **8 Sekunden bildschirmfüllend** als Zahl in der Farbe der
     siegreichen Mannschaft eingeblendet, darüber Startnummer, Name und Mannschaft des Siegers, leicht blinkend
     (bei Gleichstand eine 0 in Schwarz bzw. Weiß mit „Unentschieden“ darüber)
-  - Das zuletzt angezeigte Duell steht mit **D-Note, E-Note, neutralem Abzug (falls vorhanden) und Endnote** auf der Tafel
+  - Das zuletzt angezeigte Duell steht mit **D-Note, E-Note, neutralem Abzug (falls vorhanden) und Endnote** auf der Tafel;
+    vor der ersten Freigabe bleibt die Karte leer (seit Beta 85 ohne Hinweis). Einzeilige Namensfelder schneiden Unterlängen
+    (g, j, p, q, y) nicht mehr ab (seit Beta 85).
 - **Nachträgliche Änderungen**: „Wertung ändern“ öffnet das Fenster mit den bisherigen Werten; **„Korrektur freigeben“**
   bringt die Korrektur auf die Tafel, „Abbrechen“ lässt alles, wie es war (kein Zwischenzustand mehr).
   Die Korrektur erscheint **8 Sekunden als Overlay** über der Anzeigetafel (alte Werte durchgestrichen, neue Werte daneben).
@@ -293,6 +311,30 @@ Die Regeln sind in der App **nicht änderbar** (auf der Seite „Regeln“ zusam
   `js/app.js`) erhöht werden. Angezeigt wird in der Testphase „Beta <APP_BUILD>“ (`APP_LABEL`);
   zur Freigabe wird `APP_LABEL` auf „Version 1.0“ umgestellt.
 
+## Ligabericht (nur Ligaleiter, seit Beta 85)
+
+Eigene, nicht verlinkte Seite **`bericht.html`** (z. B. `…/Test/bericht.html`), am PC in Chrome oder Edge; funktioniert auch
+ohne Internet, sobald sie einmal geöffnet war. Die Daten bleiben im Browser dieses Rechners (eigene Datenbank, getrennt von
+der App); nichts wird hochgeladen.
+
+- **Einlesen:** Sicherungsdateien der Wettkämpfe („Sichern“ in der Zeile auf der Seite Wettkämpfe, `…EINZELWETTKAMPF_….json`;
+  Gesamtsicherungen gehen auch) hineinziehen oder wählen, auch viele auf einmal. Doppelte Wettkämpfe (gleiche Kennung oder
+  gleiche Begegnung am selben Tag): der neueste Stand zählt. Nicht abgeschlossene Wettkämpfe werden markiert und zählen nicht.
+- **Kommende Wettkämpfe:** Datum, Heim, Gast eintragen; als Datei sicher- und wieder einlesbar („Termine sichern / einlesen“).
+  Kommt später die Datei zu einem Termin, wird aus der Terminzeile die Ergebniszeile.
+- **Ein PDF je Liga und Saison** (Saison = Kalenderjahr) über „Drucken / als PDF speichern“:
+  - Seite 1 **Saisonübersicht** (Kopf wie im Protokoll): alle Wettkämpfe in einer Tabelle nach Datum (Sieger fett, Ergebnis,
+    Gerätepunkte, Wettkampfpunkte, anklickbare Seite des Protokolls; kommende heller, offene kursiv mit „offen“) und die
+    **Tabelle** (Pl., Mannschaft, Wettk., S, U, N, Gerätepunkte, Diff., Landesliga zusätzlich Gesamtpunkte, Wettkampfpunkte
+    als gewonnene Punkte). Reihenfolge: Wettkampfpunkte, dann Differenz der Gerätepunkte, dann direkter Vergleich (nur die
+    Wettkämpfe der Gleichplatzierten untereinander, bei Bedarf erneut unter den noch Gleichen; steht er aus oder ist er
+    unentschieden: gleicher Platz mit Hinweis). Scorepunkte und Gesamtpunkte zählen nicht. Doppelpunkte in allen a:b-Spalten
+    untereinander; die Tabellen verteilen sich über die Seite, bei vielen Zeilen wird die Seite kleiner.
+  - Ab Seite 2 je Wettkampf das **Wettkampfprotokoll** (dieselbe Darstellung wie in der App) auf einer eigenen Seite, oben
+    „↑ Saisonübersicht“ (anklickbar).
+- Technik: Die Seite lädt `js/app.js` im **Berichtsmodus** (`window.WTB_REPORT`): Die App startet dann nicht, stellt aber
+  über `window.WTBReport` Rechenlogik, Namen und Protokolle bereit – so gibt es Protokoll und Wertung nur einmal im Code.
+
 **Empfehlung:** Nach jedem Wettkampf eine Sicherung auf einen USB-Stick o. Ä. exportieren,
 denn wenn das Gerät verloren geht oder die Browserdaten gelöscht werden, sind auch die lokalen Daten weg.
 
@@ -335,19 +377,22 @@ NODE_PATH="$(npm root -g)" npm run test:e2e -- tafel  # nur Tests mit „tafel�
 
 Geprüft werden u. a. Freigabe und Korrektur in beiden Ligen, Wertung zurücknehmen, „kein Turner“ und „Wertung 0,00“,
 Tafel-Regel mit Haltezeit, Einturnzeit/Pause/Sturz-Timer, D-Note-Rechner, Zahlentastatur, Turnervorstellung, Ergebnis,
-große Tafel, Protokoll (eine DIN-A4-Seite), Sicherung und Wiedereinlesen sowie die Passung von Tafel und Wertungsfenster
-auf Laptop, iPad, iPhone, Full HD und 4K.
+große Tafel, Tafelform nach Ausrichtung, Protokoll (eine DIN-A4-Seite), Sicherung und Wiedereinlesen, Ligabericht sowie die
+Passung von Tafel und Wertungsfenster auf Laptop, iPad, iPhone, Full HD und 4K.
 
 ## Aufbau
 
 ```
 index.html            App-Gerüst
+bericht.html          Ligabericht für den Ligaleiter (nicht verlinkt)
 css/style.css         Gestaltung (inkl. Anzeigetafel, Druck, Mobil)
+css/bericht.css       Gestaltung des Ligaberichts
 js/config.js          Feste Mannschaften (nur vom Betreiber zu ändern)
 js/scoring.js         Wertungslogik (ohne Abhängigkeiten, getestet)
 js/db.js              Speicherung in IndexedDB, Sicherungspunkte
 js/crypto.js          Verschlüsselte Sicherungen (Web Crypto)
-js/app.js             Oberfläche und Ablaufsteuerung
+js/app.js             Oberfläche und Ablaufsteuerung (im Berichtsmodus nur Rechenlogik und Protokolle)
+js/bericht.js         Ligabericht: Einlesen, Termine, Tabelle, Saisonübersicht
 sw.js                 Service Worker für den Offline-Betrieb
 manifest.webmanifest  PWA-Manifest
 tests/                Unit-Tests (node --test), tests/e2e Browser-Tests

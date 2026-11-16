@@ -1,6 +1,36 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Liste nach Beta 84
+## Liste nach Beta 84 – umgesetzt in Beta 85 (noch nicht veröffentlicht)
+
+Umgesetzt 15./16.11.2026 (Punkte 1–12). Rückkehrpunkt: Beta 84 (Commit `356e885`).
+Hinweise zur Umsetzung:
+- Punkt 8: Die Tafel wählt ihre Form mit derselben Grenze wie das Stylesheet (Seitenverhältnis 1:1): quer große Tafel,
+  hochkant ausführliche Tafel; Drehen wechselt sofort. Umschalter „Groß“ entfernt (ein in alten Wettkämpfen gespeichertes
+  `display.size` wird nicht mehr beachtet). Die Querformat-Aufteilung der ausführlichen Tafel ist entfernt: Die Regeln
+  gelten jetzt ohne Hochformat-Klammer, überschriebene Querformat-Angaben sind weg (auch die Zeilenhöhen-Anpassung der alten
+  Gerätetabelle in `evenRows`). Prüfung: berechnete Stile aller Elemente der Tafel vorher/nachher in 96 Ansichten
+  (6 Zustände × 8 Fenstergrößen, hell und dunkel) – keine sichtbare Abweichung.
+- Punkt 7: Einzeilige Namensfelder (Kasten „als Nächstes“, Karte, beide Tafeln) reichen per Innenabstand etwas weiter nach
+  unten, ein gleich großer negativer Außenabstand hält die Aufteilung (gemessen: höchstens 0,1 px Verschiebung). Die
+  Mannschaftsnamen oben auf der großen Tafel sind nur noch seitlich begrenzt. **Dabei behoben:** Der Hinweis
+  „inkl. Abzug −…“ unter dem Mannschaftsnamen war auf der großen Tafel (Beta 84) abgeschnitten und unsichtbar – jetzt sichtbar.
+- Punkt 6: Namen über dem Ergebnis, beide Spalten gleich breit (nach dem längeren Namen bzw. der breiteren Zahl); geprüft
+  in beiden Ligen auf Tafel (Full HD, 1366 × 768, 4K, Handy) und in der App (Laptop, iPad, Handy).
+- Punkt 5: Test „langer Klick“ (1,6 s gedrückt über den Sekundenwechsel) für Pause, Einturnzeit und Sturz-Timer – schlägt
+  ohne die Änderung fehl, mit ihr nicht.
+- Punkt 3: Die Dauer steht im Timer (`timers.warmup.ms`); ältere Wettkämpfe ohne Angabe: 4:00. Eingabe auch „6,40“ bzw.
+  „6.40“ (die Zahlentastatur des iPhones hat keinen Doppelpunkt).
+- Punkte 10–12: Lage der Zahlentastatur im Wertungsfenster und im D-Note-Rechner vorher/nachher gleich (iPhone 6,1" und
+  6,7", Android 360 px); die Zeile „Zahlentastatur / Tastenton“ bleibt einzeilig. Klicks des Browsers auf die Tasten werden
+  nicht mehr ausgewertet (nur noch das Berühren), der Tastenton nutzt dieselbe Tonausgabe wie die Timer-Signale.
+- Punkt 9: `bericht.html` lädt `js/app.js` im Berichtsmodus (`window.WTB_REPORT`): keine Datenbank, keine Anzeige, kein
+  eigener Start der App; `window.WTBReport` liefert Namen, Rechenlogik und Protokolle (dieselben wie in der App). Eigene
+  Datenbank `wtb-ligabericht` (Wettkämpfe, Mannschaften, Termine). Direkter Vergleich: erst die Wettkampfpunkte aus den
+  Wettkämpfen der ganzen Gruppe untereinander, bleiben einige gleich, erneut nur unter diesen. Seite und Protokolle sind im
+  Offline-Speicher (Service Worker) enthalten.
+- Nebenbei: Das Menüband ragte am iPad hochkant (744 px) mit laufender Pause rechts heraus (Beta 84: 39 px); ohne den
+  Umschalter „Groß“ passt es ab 720 px Breite.
+- Browser-Tests: 32 (neu u. a. Einturnzeit-Auswahl, langer Klick, Zahlentastatur ×3, Tafelform nach Ausrichtung, Ligabericht).
 
 ### 1. Große Tafel: Rahmen „als Nächstes“ wie die Karte darunter
 Der Kasten mit dem nächsten Duell bzw. Turner bekommt denselben Hintergrund und dieselben runden Ecken wie die Karte

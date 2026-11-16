@@ -11,7 +11,7 @@
   // kein Service Worker); bereitgestellt wird nur window.WTBReport (ganz unten).
   var REPORT = !!window.WTB_REPORT;
   var APP_VERSION = 2;
-  var APP_BUILD = '84';
+  var APP_BUILD = '85';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 8000;             // Einblendung der Scorepunkte bzw. der Wertung auf der Tafel
@@ -3015,6 +3015,7 @@
 
       sec('2. Wertungen', [
         'Gerät oben wählen, <b>Wertung eingeben</b> antippen. E-Note und Endnote rechnet die App' + ' – <b>berechnen</b> unter der D-Note hilft beim Zusammenzählen.',
+        '<b>Zahlentastatur</b>: Die letzte Ziffer ist die Nachkommastelle („1 7“ = 1,7; „8“ = 0,8); ein getipptes Komma gilt wie getippt. Den <b>Tastenton</b> schaltet man unten in der Zeile „Zahlentastatur“ ein.',
         classic
           ? 'Geturnt wird abwechselnd; die Zahl vor dem Turner ist seine Startposition. Jede Übung wird einzeln freigegeben und erscheint sofort auf der Tafel. Je Mannschaft und Gerät zählen die drei höchsten Wertungen; die Streichwertung ist durchgestrichen.'
           : 'Die Wertung des ersten Turners eines Duells wird nur gespeichert. Erst mit der Freigabe des zweiten Turners zählen die Scorepunkte und das Duell erscheint auf der Tafel.',
@@ -3027,13 +3028,13 @@
       ]) +
 
       sec('3. Anzeigetafel', [
-        '<b>Anzeigetafel öffnen</b>, das Fenster auf Beamer oder Fernseher ziehen, Doppelklick = Vollbild. Hell oder Dunkel je nach Raum, <b>Groß</b> für kleine Leinwände (weniger gleichzeitig, deutlich größere Schrift).',
+        '<b>Anzeigetafel öffnen</b>, das Fenster auf Beamer oder Fernseher ziehen, Doppelklick = Vollbild. Hell oder Dunkel je nach Raum. Quer zeigt die Tafel große Schrift mit dem nächsten ' + (classic ? 'Turner' : 'Duell') + ' und der letzten Wertung, hochkant (Handy, Tablet) die ausführliche Tafel.',
         'Die Tafel folgt dem gewählten Gerät. Ab der ersten Freigabe an einem Gerät bleibt sie dort, bis alles freigegeben ist, und danach noch kurz.',
         'Turnervorstellung, Einturnzeit, Wettkampfpause und Ergebnis/Siegerehrung im Menü Anzeigetafel; ein erneuter Klick beendet sie. Turnervorstellung weiter mit ◀ ▶, Pfeiltasten oder Presenter.'
       ]) +
 
       sec('4. Timer', [
-        '<b>Einturnzeit</b> 4 Minuten, <b>Wettkampfpause</b> 10, 15 oder 20 Minuten. In der Pause wird schon eingeturnt, deshalb laufen nie beide gleichzeitig.',
+        '<b>Einturnzeit</b> 4 Minuten oder eine eigene Zeit (<b>Andere Zeit …</b>, die zuletzt gewählte steht dann im Menü), <b>Wettkampfpause</b> 10, 15 oder 20 Minuten. In der Pause wird schon eingeturnt, deshalb laufen nie beide gleichzeitig.',
         '<b>Sturz-Timer</b> (nicht an Boden und Sprung): nach 30 Sekunden 0,3 Abzug, nach 60 Sekunden ist die Übung beendet; erneuter Klick stoppt.'
       ]) +
 

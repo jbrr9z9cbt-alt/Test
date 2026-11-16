@@ -7,17 +7,20 @@
  * die neue Version aktiv (Nachricht SKIP_WAITING). So werden alte und neue
  * Dateien nie gemischt.
  */
-const VERSION = 'v84';
+const VERSION = 'v85';
 const CACHE = 'turnwettkampf-' + VERSION;
 const ASSETS = [
   './',
   'index.html',
+  'bericht.html',
   'css/style.css',
+  'css/bericht.css',
   'js/config.js',
   'js/scoring.js',
   'js/crypto.js',
   'js/db.js',
   'js/app.js',
+  'js/bericht.js',
   'manifest.webmanifest',
   'icons/icon.svg',
   'icons/icon-192.png',

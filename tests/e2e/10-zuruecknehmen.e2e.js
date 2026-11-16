@@ -33,7 +33,7 @@ module.exports = {
     await wait(bp, 600);
     assert.ok(await bp.$('.cur-duel.empty'), 'Duell nicht mehr auf der Tafel');
     assert.equal(await bp.$('#score-flash.show'), null, 'keine Einblendung');
-    assert.match(await text(bp, '.board-big'), /0\s*:\s*0/);
+    assert.match(await text(bp, '.gb-big'), /0\s*:\s*0/);
     // Abbrechen im Fenster stellt alles wieder her
     await p.click(`[data-action=score-open][data-app=FX][data-duel="0"][data-side=${b}]`);
     await p.selectOption('#score-dlg select[data-dlg=gymnast]', '');
@@ -62,10 +62,10 @@ module.exports = {
     await release(p, 'FX', 0, 'home', { e1: '1,0', e2: '1,0', d: '4,0' });
     await release(p, 'FX', 1, 'home', { e1: '1,0', e2: '1,0', d: '3,0' });
     await wait(bp, 8500);
-    assert.match(await text(bp, '.board-big'), /25,00/);
+    assert.match(await text(bp, '.gb-big'), /25,00/);
     await withdraw(p, 'FX', 1, 'home');
     await wait(bp, 600);
-    assert.match(await text(bp, '.board-big'), /13,00/);
+    assert.match(await text(bp, '.gb-big'), /13,00/);
     const d = (await dbMatches(p))[0].apparatus.FX.duels[1];
     assert.equal(d.home.gymnastId, null);
     assert.ok(!(d.revs && d.revs.home && d.revs.home.shown), 'nicht mehr freigegeben');

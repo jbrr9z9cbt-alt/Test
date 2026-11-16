@@ -33,6 +33,14 @@ module.exports = {
     assert.match(await text(bp, '.so-box'), /Zwischenstand/i);
     assert.match(await text(bp, '.so-box'), /Topscorer/i);
     assert.ok(await p.$('#app-scorers .so-box'), 'auch in der App');
+    // Mannschaftsnamen einzeilig mittig über ihrem Ergebnis (Tafel und App)
+    for (const pg of [bp, p]) {
+      const g = await pg.$eval('.so-result', (r) => ['h', 'g'].map((k) => {
+        const t = r.querySelector('.t.' + k).getBoundingClientRect(), n = r.querySelector('.big.' + k).getBoundingClientRect(), el = r.querySelector('.t.' + k);
+        return { above: t.bottom <= n.top + 2, mid: Math.abs((t.left + t.right) / 2 - (n.left + n.right) / 2), oneLine: t.height < parseFloat(getComputedStyle(el).fontSize) * 1.6, fits: el.scrollWidth <= el.clientWidth + 1 };
+      }));
+      g.forEach((x) => assert.ok(x.above && x.mid < 2 && x.oneLine && x.fits, 'Name über dem Ergebnis: ' + JSON.stringify(g)));
+    }
     await p.click('#app-scorers [data-action=scorers-close]'); await wait(bp, 600);
     assert.equal(await bp.$('.so-box'), null, 'Schließen blendet auch auf der Tafel aus');
   }

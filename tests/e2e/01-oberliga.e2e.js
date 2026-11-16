@@ -10,6 +10,7 @@ module.exports = {
     const [first, second] = await startOrder(p, 'FX', 0);
     await release(p, 'FX', 0, first, { e1: '1,0', e2: '1,2', d: '4,6' });
     assert.ok(await bp.$('.cur-duel.empty'), 'nach dem ersten Turner zeigt die Tafel noch kein Duell');
+    assert.doesNotMatch(await bp.$eval('.board', (e) => e.textContent), /Noch keine Wertung/, 'kein Hinweis in der leeren Karte');
     assert.equal(await bp.$('#score-flash.show'), null, 'keine Einblendung nach dem ersten Turner');
     await release(p, 'FX', 0, second, { e1: '2,0', e2: '2,2', d: '4,0' });
     await bp.waitForSelector('#score-flash.show', { timeout: 3000 });
@@ -18,7 +19,7 @@ module.exports = {
     const d = m.apparatus.FX.duels[0];
     assert.ok(d[first].gymnastId && d[second].gymnastId, 'beide Turner gespeichert');
     // 13,50 gegen 11,90 → 1,60 Unterschied → 3 Scorepunkte
-    const big = await text(bp, '.board-big');
+    const big = await text(bp, '.gb-big');
     assert.match(big, first === 'home' ? /3\s*:\s*0/ : /0\s*:\s*3/, 'Stand auf der Tafel: ' + big);
   },
 
@@ -37,7 +38,7 @@ module.exports = {
     await p.click('#score-dlg [data-action=sd-release]');
     await bp.waitForSelector('#correction-overlay.show', { timeout: 3000 });
     assert.match(await text(bp, '#correction-overlay'), /korrektur/i);
-    const big = await text(bp, '.board-big');
+    const big = await text(bp, '.gb-big');
     assert.match(big, a === 'home' ? /2\s*:\s*0/ : /0\s*:\s*2/, 'nach Korrektur 1,00 Unterschied → 2 Scorepunkte, Tafel: ' + big);
   },
 

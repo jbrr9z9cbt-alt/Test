@@ -8,9 +8,9 @@ module.exports = {
     await ctx.clock.install();
     const p = await ctx.newPage();
     const hash = await newMatch(p, base, OL);
-    await p.click('[data-action=board-size]'); await wait(p, 300);
-    assert.ok(await p.$('[data-action=board-size].on'), 'Umschalter „Groß“ an');
+    assert.equal(await p.$('[data-action=board-size]'), null, 'kein Umschalter „Groß“ mehr');
     const bp = await openBoard(ctx, base, hash);
+    assert.ok(await bp.$('.board.gb'), 'quer: große Tafel');
     assert.equal(await page(bp), 'duel:FX');
     assert.match(await text(bp, '.gb-next'), /Duell 1/i);
     for (let i = 0; i < 4; i++) {
@@ -31,15 +31,26 @@ module.exports = {
     assert.equal(await page(bp), 'clock:FX', 'in der Pause die Übersicht mit Uhr');
     assert.match(await text(bp, '.gb-clock'), /Wettkampfpause und Einturnen/);
     const f = await fitsViewport(bp, '.board'); assert.ok(f.ok, 'passt ' + JSON.stringify(f));
-    await p.click('[data-action=board-size]'); await wait(bp, 600);
-    assert.ok(!(await bp.$('.board.gb')) && await bp.$('.board-table'), 'zurück zur Standardtafel');
+  },
+
+  async 'Tafel wählt ihre Form nach der Ausrichtung: quer groß, hochkant ausführlich'({ base, context }) {
+    const ctx = await context();
+    const p = await ctx.newPage();
+    const hash = await newMatch(p, base, OL);
+    const bp = await openBoard(ctx, base, hash, { width: 1366, height: 768 });
+    assert.ok(await bp.$('.board.gb'), 'quer: große Tafel');
+    await bp.setViewportSize({ width: 390, height: 844 }); await wait(bp, 500);
+    assert.ok(!(await bp.$('.board.gb')) && await bp.$('.board-table'), 'hochkant: ausführliche Tafel');
+    let f = await fitsViewport(bp, '.board'); assert.ok(f.ok, 'hochkant passt ' + JSON.stringify(f));
+    await bp.setViewportSize({ width: 1180, height: 820 }); await wait(bp, 500);
+    assert.ok(await bp.$('.board.gb'), 'Tablet quer gedreht: wieder groß');
+    f = await fitsViewport(bp, '.board'); assert.ok(f.ok, 'quer passt ' + JSON.stringify(f));
   },
 
   async 'Große Tafel Landesliga: letzte Übung, gegenüber blass die der anderen Mannschaft'({ base, context }) {
     const ctx = await context();
     const p = await ctx.newPage();
     const hash = await newMatch(p, base, LL);
-    await p.click('[data-action=board-size]'); await wait(p, 300);
     const bp = await openBoard(ctx, base, hash);
     await release(p, 'FX', 0, 'home', { e1: '1,0', e2: '1,0', d: '4,0' });
     await release(p, 'FX', 0, 'guest', { e1: '1,0', e2: '1,0', d: '3,5' });

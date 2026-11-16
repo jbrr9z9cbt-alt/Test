@@ -470,6 +470,9 @@
 
   // ---------- Start ----------
 
+  // Offline: derselbe Service Worker wie die App (hält auch diese Seite im Speicher). Updates bestätigt man in der App.
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(function () { /* ohne Offline-Speicher weiter */ });
+
   Promise.all([kvGet('records'), kvGet('teams'), kvGet('upcoming')]).then(function (v) {
     st.records = (v[0] || []).map(function (r) { r.match = R.prepare(r.match); return r; });
     st.teams = v[1] || [];

@@ -10,6 +10,10 @@ module.exports = {
     await pickGymnast(p);
     await p.click('#score-dlg [data-action=dc-open]'); await wait(p, 300);
     for (const [k, v] of [['D', '2'], ['C', '3'], ['B', '2'], ['A', '1']]) await p.fill(`[data-dc=${k}]`, v);
+    // 8 Elemente sind regulär: Hinweis normal und schwarz wie „noch … möglich“
+    const sum = await p.$eval('[data-dc-out=sum] span', (e) => ({ t: e.textContent, c: getComputedStyle(e).color, w: getComputedStyle(e).fontWeight }));
+    assert.match(sum.t, /keine Elemente mehr möglich/);
+    assert.ok(sum.c !== 'rgb(180, 83, 9)' && +sum.w < 600, '„keine Elemente mehr möglich“ normal: ' + JSON.stringify(sum));
     await p.click('[data-action=dc-ok]'); await wait(p, 300);
     assert.ok(await p.$('.modal-backdrop'), 'Hinweis: Elementgruppen fehlen');
     await p.click('.modal-backdrop [data-answer="0"]'); await wait(p, 200);

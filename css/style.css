@@ -1359,3 +1359,8 @@ body.board-light .gb-clock { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,
 .gb-clock .tm-clock .dg { display: inline-block; width: .62em; text-align: center; }
 .gb-clock .tm-clock .dg-sep { display: inline-block; width: .32em; text-align: center; }
 .gb-clock .tm-end { font-size: calc(var(--g) * 6); padding: .3em 0; white-space: normal; animation: flash-blink 1s ease-in-out infinite; }
+/* Menüband am kleinen iPad hochkant: etwas engere Abstände, damit auch mit laufender Pause bzw. Einturnzeit alles in eine Zeile passt */
+@media (min-width: 700px) and (max-width: 800px) {
+  body.match-page .tb-ribbon .menu-pop { gap: .3rem; }
+  .tb-ribbon .menu-pop hr { margin: 0 .1rem; }
+}
