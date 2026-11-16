@@ -999,6 +999,10 @@ html.sd-open, body.sd-open { overflow: hidden; }
 .sd-btns { display: flex; gap: .6rem; justify-content: flex-end; align-items: center; margin-top: .3rem; }
 .sd-set { margin-top: .5rem; text-align: right; }
 .sd-set label { display: inline-flex; flex-direction: row; align-items: center; gap: .4rem; font-size: .75rem; color: var(--muted); }
+/* Tastenton: in derselben Zeile wie „Zahlentastatur“, damit sich die Tastatur am Handy nicht verschiebt */
+.sd-set { white-space: nowrap; }
+.sd-set .sd-snd { margin-left: .9rem; gap: .3rem; }
+.sd-set .sd-snd input { width: 1rem; height: 1rem; margin: 0; }
 .sd-set select { width: auto; padding: .1rem .3rem; font-size: 16px; }
 /* Zahlentastatur: rechts neben den Feldern (breite Bildschirme), sonst darunter */
 .sd-win.kp, .dc-win.kp { width: min(1100px, 100%); }
@@ -1010,7 +1014,9 @@ html.sd-open, body.sd-open { overflow: hidden; }
   grid-template-areas: "k7 k8 k9 kb" "k4 k5 k6 kp" "k1 k2 k3 kn" "k0 k0 kc kn"; }
 .sd-keys button { height: 3.2rem; font: inherit; font-size: 1.45rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 10px; background: #fff; color: var(--text);
   cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.sd-keys button:active { background: #e5e5e5; }
+/* Grau wird genau die Taste, die getippt wurde (Klasse „down“ per Skript, nicht :active des Browsers) */
+.sd-keys button.down { background: #e5e5e5; }
+.sd-keys button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .sd-keys button:disabled { color: #c4c4c4; background: #f5f5f5; cursor: default; }
 .sd-keys .k-fn { font-size: 1.4rem; background: #f3f3f3; }
 .sd-keys .k-prev { font-size: .95rem; }

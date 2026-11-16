@@ -2564,9 +2564,46 @@
   }
 
   // Browser geben Ton erst nach einer Bedienung frei – beim ersten Klick bzw. Tastendruck vorbereiten.
-  ['pointerdown', 'keydown'].forEach(function (type) {
+  ['pointerdown', 'pointerup', 'click', 'keydown'].forEach(function (type) {
     document.addEventListener(type, function () { if (!document.body.classList.contains('board-mode')) audio(); }, true);
   });
+
+  // Tastenton der Zahlentastatur: kurzer, leiser Klick (Rauschen, 14 ms). Einstellung je Gerät, Grundeinstellung aus.
+  // Steht das iPhone auf lautlos, bleibt er stumm (wie die Tastenklicks des iPhones).
+  var KEYSOUND_KEY = 'wtb-tastenton';
+  var keyClickBuf = null;
+
+  function keySoundOn() {
+    try { return localStorage.getItem(KEYSOUND_KEY) === 'on'; } catch (e) { return false; }
+  }
+
+  function setKeySound(on) {
+    try { localStorage.setItem(KEYSOUND_KEY, on ? 'on' : 'off'); } catch (e) { /* gilt dann nur bis zum Neuladen */ }
+  }
+
+  function keyClick() {
+    if (window.WTB_SOUND_LOG) window.WTB_SOUND_LOG.push('key');
+    var ctx = audio();
+    if (!ctx || ctx.state !== 'running') return;
+    try {
+      if (!keyClickBuf || keyClickBuf.sampleRate !== ctx.sampleRate) {
+        var sr = ctx.sampleRate, n = Math.floor(sr * 0.014), b = ctx.createBuffer(1, n, sr), d = b.getChannelData(0);
+        var seed = 12345, prev = 0, peak = 0, i;
+        for (i = 0; i < n; i++) {
+          seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+          var nz = seed / 0x3fffffff - 1, t = i / sr;
+          d[i] = (nz - prev) * Math.exp(-t / 0.0016) * Math.min(1, t / 0.0004);
+          prev = nz;
+          peak = Math.max(peak, Math.abs(d[i]));
+        }
+        for (i = 0; i < n; i++) d[i] = d[i] / (peak || 1) * 0.9;
+        keyClickBuf = b;
+      }
+      var src = ctx.createBufferSource(), g = ctx.createGain();
+      src.buffer = keyClickBuf; g.gain.value = 0.45;
+      src.connect(g); g.connect(ctx.destination); src.start(0);
+    } catch (e) { /* ohne Ton weiter */ }
+  }
 
   function tone(ctx, freq, type, start, dur, vol, out) {
     var o = ctx.createOscillator(), g = ctx.createGain();
@@ -3324,7 +3361,8 @@
       '<div class="sd-hint" data-dlg-out="hint"></div>' +
       '<div class="sd-btns">' + (timerInRow ? timer : '') + '<button type="button" class="btn" tabindex="-1" data-action="sd-cancel">Abbrechen</button>' +
       '<button type="button" class="btn primary" data-action="sd-release">' + (g.withdraw ? 'Wertung zurücknehmen' : g.correction ? 'Korrektur freigeben' : 'Wertung freigeben') + '</button></div>' +
-      '<div class="sd-set"><label>Zahlentastatur <select tabindex="-1" data-dlg="keypad">' + opt('auto', 'automatisch') + opt('on', 'immer') + opt('off', 'nie') + '</select></label></div>' +
+      '<div class="sd-set"><label>Zahlentastatur <select tabindex="-1" data-dlg="keypad">' + opt('auto', 'automatisch') + opt('on', 'immer') + opt('off', 'nie') + '</select></label>' +
+      (kp ? '<label class="sd-snd"><input type="checkbox" tabindex="-1" data-dlg="keysound"' + (keySoundOn() ? ' checked' : '') + '> Tastenton</label>' : '') + '</div>' +
       '</div>' + (kp ? keypadHtml('sd') : '') + '</div></div>' + (g.calc ? calcHtml(m) : '');
   }
 
@@ -3439,19 +3477,26 @@
   }
 
   /**
-   * Bildschirm-Tastatur: genau das Getippte („4 , 5“ = 4,5; „4“ = 4,0 beim Verlassen des Feldes), kein automatisches Komma.
-   * maxInt = Ziffern vor dem Komma. Liefert den neuen Text oder null (Taste ohne Wirkung).
+   * Bildschirm-Tastatur mit automatischem Komma: Die letzte getippte Ziffer ist die Nachkommastelle („1 7“ = 1,7; „8“ = 0,8;
+   * „1 3 5“ = 13,5 – höchstens drei Ziffern); ein getipptes Komma gilt wie getippt („4 , 5“ = 4,5). buf ist das Getippte,
+   * angezeigt und übernommen wird autoCommaText(buf). Liefert den neuen Puffer oder null (Taste ohne Wirkung).
+   * Mit der Hardware-Tastatur gilt das nicht (dort „4“ = 4,0).
    */
-  function typeKey(buf, k, maxInt) {
+  function typeKey(buf, k) {
     if (/^\d$/.test(k)) {
       var comma = buf.indexOf(',');
-      if (comma >= 0) return buf.length - comma > 1 ? null : buf + k;
-      if (buf === '0') return k;
-      return buf.length >= maxInt ? null : buf + k;
+      if (comma >= 0 ? buf.length - comma > 1 : buf.replace(/^0+/, '').length >= 3 || buf.length >= 4) return null;
+      return buf + k;
     }
     if (k === ',') return buf.indexOf(',') >= 0 ? null : (buf === '' ? '0' : buf) + ',';
     if (k === 'back') return buf.slice(0, -1);
     return null;
+  }
+
+  function autoCommaText(buf) {
+    if (buf === '' || buf.indexOf(',') >= 0) return buf;
+    var n = parseInt(buf, 10);
+    return Math.floor(n / 10) + ',' + (n % 10);
   }
 
   function keypadPress(k) {
@@ -3469,10 +3514,10 @@
       refreshScoreDlg();
       return;
     }
-    var nb = typeKey(g.buf === null ? '' : g.buf, k, 2);
+    var nb = typeKey(g.buf === null ? '' : g.buf, k);
     if (nb === null) return;
     g.buf = nb;
-    g.text[f] = nb;
+    g.text[f] = autoCommaText(nb);
     refreshScoreDlg();
   }
 
@@ -3646,6 +3691,7 @@
     if (!m) return;
     var f = el.getAttribute('data-dlg');
     if (f === 'keypad') { setKeypadSetting(el.value); if (el.value !== 'auto') hwKeySeen = false; showScoreDlg(true); return; }
+    if (f === 'keysound') { setKeySound(el.checked); if (el.checked) keyClick(); return; }
     if (f === 'bonus') {
       g.draft.bonus = el.checked;
       if (keypadOn()) { commitDlgField(); g.active = 'bonus'; g.buf = null; }
@@ -3852,10 +3898,10 @@
     if (k === 'next' || k === 'prev') { moveCalcActive(k === 'prev' ? -1 : 1); return; }
     var f = c.active;
     if (!f) return;
-    var nb = f === 'EG' ? typeKey(c.buf === null ? '' : c.buf, k, 2) : /^\d$/.test(k) ? k : k === 'back' ? '' : null;
+    var nb = f === 'EG' ? typeKey(c.buf === null ? '' : c.buf, k) : /^\d$/.test(k) ? k : k === 'back' ? '' : null;
     if (nb === null) return;
     c.buf = nb;
-    c.text[f] = nb;
+    c.text[f] = f === 'EG' ? autoCommaText(nb) : nb;
     if (f !== 'EG') c.last = f;
     refreshCalc();
   }
@@ -4216,6 +4262,42 @@
   document.addEventListener('keydown', function () { lastInputKeyboard = true; }, true);
   document.addEventListener('pointerdown', function (e) { lastInputKeyboard = false; lastPointerType = e.pointerType || 'mouse'; }, true);
 
+  // Zahlentastatur (Wertungsfenster, D-Note-Rechner): Es zählt die Taste unter dem Finger, sofort beim Berühren. Welche
+  // Taste das ist, bestimmt die App selbst aus der Fingerposition – nicht die Tipp-Korrektur des Browsers, die den Klick
+  // sonst manchmal der Nachbartaste gab: Liegt der Punkt auf einer Taste, ist es diese; liegt er in einer Lücke, die
+  // nächstgelegene (die Lücken sind in der Mitte geteilt). Genau diese Taste wird grau (mindestens 0,1 s), der Tastenton
+  // klickt im selben Moment; der Klick des Browsers danach wird nicht mehr ausgewertet (siehe 'sd-key' / 'dc-key').
+  var keyDowns = {};
+  function keypadKeyAt(pad, x, y) {
+    var best = null, bd = 8;
+    pad.querySelectorAll('.sd-keys button').forEach(function (b) {
+      var r = b.getBoundingClientRect();
+      var d = Math.hypot(Math.max(r.left - x, 0, x - r.right), Math.max(r.top - y, 0, y - r.bottom));
+      if (d < bd) { bd = d; best = b; }
+    });
+    return best;
+  }
+  document.addEventListener('pointerdown', function (ev) {
+    var pad = ev.target.closest && ev.target.closest('.sd-pad');
+    if (!pad || (ev.pointerType === 'mouse' && ev.button !== 0)) return;
+    var b = keypadKeyAt(pad, ev.clientX, ev.clientY);
+    if (!b || b.disabled) return;
+    b.classList.add('down');
+    keyDowns[ev.pointerId] = { b: b, t: Date.now() };
+    if (keySoundOn()) keyClick();
+    var k = b.getAttribute('data-k');
+    if (b.getAttribute('data-action') === 'sd-key') keypadPress(k);
+    else if (b.getAttribute('data-action') === 'dc-key') calcKey(k);
+  });
+  function keypadLift(ev) {
+    var d = keyDowns[ev.pointerId];
+    if (!d) return;
+    delete keyDowns[ev.pointerId];
+    setTimeout(function () { d.b.classList.remove('down'); }, Math.max(0, 100 - (Date.now() - d.t)));
+  }
+  document.addEventListener('pointerup', keypadLift);
+  document.addEventListener('pointercancel', keypadLift);
+
   $app.addEventListener('focusout', function (ev) {
     if (ev.target.dataset && ev.target.dataset.picking) closePicker(ev.target, true);
   });
@@ -4436,7 +4518,9 @@
         cancelScoreDlg();
         break;
       case 'sd-key':
-        keypadPress(btn.getAttribute('data-k'));
+        // Tasten der Zahlentastatur zählen schon beim Berühren (pointerdown, siehe onKeypadDown); der Klick danach nicht.
+        // Nur ein Klick ohne Zeigergerät (detail 0, z. B. aus einem Hilfsprogramm) wird hier ausgewertet.
+        if (ev.detail === 0) keypadPress(btn.getAttribute('data-k'));
         break;
       case 'sd-field':
         // Bildschirm-Tastatur: Antippen eines Feldes macht es zum aktiven Feld (die erste Ziffer ersetzt den alten Wert).
@@ -4461,7 +4545,7 @@
         refreshCalc();
         break;
       case 'dc-key':
-        if (!btn.disabled) calcKey(btn.getAttribute('data-k'));
+        if (ev.detail === 0 && !btn.disabled) calcKey(btn.getAttribute('data-k'));
         break;
       case 'dc-ok':
         calcOk();
