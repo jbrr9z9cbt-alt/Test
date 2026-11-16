@@ -30,7 +30,7 @@ Hinweise zur Umsetzung:
   Offline-Speicher (Service Worker) enthalten.
 - Nebenbei: Das Menüband ragte am iPad hochkant (744 px) mit laufender Pause rechts heraus (Beta 84: 39 px); ohne den
   Umschalter „Groß“ passt es ab 720 px Breite.
-- Browser-Tests: 32 (neu u. a. Einturnzeit-Auswahl, langer Klick, Zahlentastatur ×3, Tafelform nach Ausrichtung, Ligabericht).
+- Browser-Tests: 28, alle bestanden; Unit-Tests 22 (neu u. a. Einturnzeit-Auswahl, langer Klick, Zahlentastatur ×3, Tafelform nach Ausrichtung, Ligabericht).
 
 ### 1. Große Tafel: Rahmen „als Nächstes“ wie die Karte darunter
 Der Kasten mit dem nächsten Duell bzw. Turner bekommt denselben Hintergrund und dieselben runden Ecken wie die Karte
