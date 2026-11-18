@@ -13,6 +13,19 @@ Lösung: Die Tastatur behält immer ihre Breite; wird die Zeile zu lang, wird nu
 bleibt voll sichtbar. Im Test geprüft (iPad quer 1024, 1180, 1366 px): Breite bleibt 304 px. Gleiches im D-Note-Rechner
 prüfen; Browser-Test dazu.
 
+### 2. Mannschaftslisten der Oberliga (Stand Saison 2026)
+Gewünscht 18.11.2026 bei der Übernahme der Excel-Wettkämpfe:
+- **KTS Mettingen:** Nr. 1 heißt „Baar, Mats“ (statt „Baar, Matz“).
+- **KTV Dortmund:** neu Nr. 13 „Ledesma, Erick“. „Hellmich, Thomas“ (Nr. 1) ist richtig geschrieben.
+- **SG Langenei-Kickenbach/Gleidorf** hat 2026 nicht in der Oberliga geturnt und wird aus der Liste genommen; der Platz für
+  eine 7. Mannschaft bleibt. Vorschlag: Die Mannschaft ruht – sie erscheint nicht mehr bei „Neuer Wettkampf“, unter
+  „Mannschaften“ und in der Tabelle des Ligaberichts; ihr Name bleibt für ältere Wettkämpfe erhalten. Die Liga bleibt für
+  7 Mannschaften ausgelegt (eine neue 7. Mannschaft wird in `js/config.js` eingetragen, eine Rückkehr wieder eingeschaltet).
+  Die Landesliga-Mannschaft gleichen Namens bleibt unverändert.
+- Dafür wird die Version der Oberliga-Turnerlisten erhöht: Nach dem Update stehen die Turnernamen der Oberliga auf allen
+  Geräten wieder auf dem Stand dieser Liste (dort selbst geänderte Namen werden überschrieben); bereits erfasste Wettkämpfe
+  bleiben unverändert, weil sie die Namen selbst speichern.
+
 ## Liste nach Beta 84 – umgesetzt in Beta 85 (veröffentlicht 16.11.2026, Commit `febb54e`)
 
 Umgesetzt 15./16.11.2026 (Punkte 1–12). Rückkehrpunkt: Beta 84 (Commit `356e885`).
