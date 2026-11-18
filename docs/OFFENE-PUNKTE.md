@@ -17,11 +17,10 @@ prüfen; Browser-Test dazu.
 Gewünscht 18.11.2026 bei der Übernahme der Excel-Wettkämpfe:
 - **KTS Mettingen:** Nr. 1 heißt „Baar, Mats“ (statt „Baar, Matz“).
 - **KTV Dortmund:** neu Nr. 13 „Ledesma, Erick“. „Hellmich, Thomas“ (Nr. 1) ist richtig geschrieben.
-- **SG Langenei-Kickenbach/Gleidorf** hat 2026 nicht in der Oberliga geturnt und wird aus der Liste genommen; der Platz für
-  eine 7. Mannschaft bleibt. Vorschlag: Die Mannschaft ruht – sie erscheint nicht mehr bei „Neuer Wettkampf“, unter
-  „Mannschaften“ und in der Tabelle des Ligaberichts; ihr Name bleibt für ältere Wettkämpfe erhalten. Die Liga bleibt für
-  7 Mannschaften ausgelegt (eine neue 7. Mannschaft wird in `js/config.js` eingetragen, eine Rückkehr wieder eingeschaltet).
-  Die Landesliga-Mannschaft gleichen Namens bleibt unverändert.
+- **SG Langenei-Kickenbach/Gleidorf** hat 2026 nicht in der Oberliga geturnt und wird aus der Oberliga herausgenommen
+  (beschlossen 18.11.2026). Der 7. Platz bleibt einfach leer: Er erscheint nirgends (nicht bei „Neuer Wettkampf“, nicht
+  unter „Mannschaften“, nicht in der Tabelle des Ligaberichts), bis eine neue 7. Mannschaft in `js/config.js` eingetragen
+  wird. Die **Landesliga-Liste bleibt vorerst unverändert** und wird vor Beginn der nächsten Saison aktualisiert.
 - Dafür wird die Version der Oberliga-Turnerlisten erhöht: Nach dem Update stehen die Turnernamen der Oberliga auf allen
   Geräten wieder auf dem Stand dieser Liste (dort selbst geänderte Namen werden überschrieben); bereits erfasste Wettkämpfe
   bleiben unverändert, weil sie die Namen selbst speichern.
