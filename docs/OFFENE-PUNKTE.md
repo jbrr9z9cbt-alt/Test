@@ -25,6 +25,21 @@ Gewünscht 18.11.2026 bei der Übernahme der Excel-Wettkämpfe:
   Geräten wieder auf dem Stand dieser Liste (dort selbst geänderte Namen werden überschrieben); bereits erfasste Wettkämpfe
   bleiben unverändert, weil sie die Namen selbst speichern.
 
+### 3. Ligabericht: kampfloser Wettkampf (Mannschaft nicht angetreten)
+Anlass: 07.11.2026 KTS Mettingen – TZ Bochum-Witten, Bochum-Witten nicht angetreten; Mettingen gewinnt mit 12:0 Gerätepunkten
+und 2:0 Wettkampfpunkten. Beschlossen 18.11.2026 – eingetragen wird das im **Ligabericht** (nicht in der App der Vereine):
+- Bei „3. Kommende Wettkämpfe“ bekommt jeder Eintrag die Auswahl **Termin · Heim nicht angetreten · Gast nicht angetreten**
+  (für den 07.11.: Datum, Mettingen, Bochum-Witten eintragen und „Gast nicht angetreten“ wählen). „Termine sichern /
+  einlesen“ nimmt die Angabe mit.
+- **Wettkampfliste:** Aus der Terminzeile wird eine Ergebniszeile – Sieger fett, in der Ergebnisspalte **„kampflos“**,
+  Gerätepunkte **12:0**, Wettkampfpunkte **2:0**, ohne Protokollseite. Unter der Liste der Hinweis „kampflos = Gegner nicht
+  angetreten (Gerätepunkte 12:0, Wettkampfpunkte 2:0)“.
+- **Tabelle:** zählt für beide als Wettkampf (Sieger S, nicht angetretene Mannschaft N); die 12:0 gehen in Gerätepunkte und
+  Differenz ein; im direkten Vergleich zählt er wie ein Sieg. Scorepunkte spielen keine Rolle; in der Landesliga ändert er
+  die Gesamtpunkte nicht.
+- „x von y Wettkämpfen gewertet“ zählt ihn als gewertet.
+- Gilt für beide Ligen gleich (kampflos immer 12:0 Gerätepunkte, 2:0 Wettkampfpunkte).
+
 ## Liste nach Beta 84 – umgesetzt in Beta 85 (veröffentlicht 16.11.2026, Commit `febb54e`)
 
 Umgesetzt 15./16.11.2026 (Punkte 1–12). Rückkehrpunkt: Beta 84 (Commit `356e885`).
