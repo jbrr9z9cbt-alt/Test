@@ -1097,6 +1097,24 @@ Ergänzungen bei der Umsetzung:
 
 ## Weitere offene Punkte
 
+- **Später, gemerkt 21.11.2026: Daten als Dateien auf der Festplatte (statt nur im Browserspeicher).** Wunsch: Wettkämpfe
+  der Vereine und den Ligabericht wie bei anderen Programmen als Datei anlegen, speichern und wieder öffnen – auch nach
+  einem Browserwechsel. Erst einmal wird mit dem jetzigen Stand gearbeitet; danach wieder aufgreifen.
+  - Technik: Direkt in eine Datei schreiben (File System Access API) können nur **Chrome und Edge am PC/Mac** (Chrome auf
+    Android erst in neueren Versionen). **Safari (iPad, iPhone, Mac) und Firefox nicht** – dort bleibt es bei „Sichern“
+    und „Einlesen“. Heute liegen die Daten im Speicher des jeweiligen Browsers (getrennt je Browser).
+  - Möglichkeit 1 (heute): Browserspeicher plus Sicherungsdateien von Hand – geht überall.
+  - Möglichkeit 2: **Arbeitsdatei mit automatischem Speichern** (Chrome/Edge): Datei anlegen/öffnen, jede Änderung wird
+    sofort hineingeschrieben; kopierbar, auf USB-Stick, in Chrome/Edge an jedem Rechner zu öffnen; mit installierter App
+    öffnet ein Doppelklick die App. Nach einem Neustart fragt der Browser einmal nach der Erlaubnis (bei der installierten
+    App dauerhaft erlaubbar). Browserspeicher bleibt als Sicherheitsnetz darunter.
+  - Möglichkeit 3: **Ligabericht mit Ordner** statt „Einlesen“ (Chrome/Edge): einmal einen Ordner wählen (z. B.
+    „Oberliga 2026“), der Bericht liest alle Wettkampfdateien darin selbst und speichert Termine und kampflose Wettkämpfe als
+    Datei im selben Ordner; neue Dateien der Vereine nur noch hineinlegen. Mit OneDrive/Dropbox überall derselbe Stand.
+  - Empfehlung: Ligabericht → Möglichkeit 3; App der Vereine → Möglichkeit 2 als Zusatz am Rechner (Wettkampf wird
+    automatisch in seiner Datei aktuell gehalten, gleiches Format wie „Sichern“); iPad/iPhone unverändert („Sichern“ über
+    Teilen). Die spätere Netzwerkfunktion würde „anderes Gerät/anderer Browser“ grundsätzlicher lösen.
+
 - **Später, gemerkt 15.11.2026: Netzwerkfunktion und Webseite für Zuschauer.** Heute laufen Eingabe und Tafel nur auf
   demselben Gerät (zweites Fenster, Abgleich über BroadcastChannel/IndexedDB). Idee: Daten über das Netzwerk teilen, sodass
   z. B. Zuschauer die Tafel auf dem eigenen Handy sehen. Die ausführliche Tafel im Hochformat (Punkt 8 der Liste nach
