@@ -80,12 +80,15 @@ Beschlossen 21.11.2026 nach der Testseite „Handyansicht-Test“ (beide Ligen a
   gibt es keinen zusätzlichen Rastpunkt – so bleibt zwischen den Duellen nichts schief stehen.
 - **Kein „automatisch weiter“** (auf der Testseite ausprobiert, nicht gewünscht).
 - **Platz in der Oberliga** (nachgemessen in der echten App, Beta 85): Ein fertiges Duell ist am Handy 580 px hoch (offen
-  511 px), weil darunter das Duellergebnis steht (Scorepunkte und „Diff.“, 70 px). Mit Leiste ist Platz für 546 px auf dem
-  iPhone 6,1" und 582 px auf Android 360 × 700 – auf dem iPhone 6,1" passt ein fertiges Duell also nicht ganz.
-  Idee (21.11.2026): Die **Scorepunkte des Duells** (mit „Diff.“ bzw. „unentschieden“) kommen **in die Wertungskachel ganz
-  links unten**, neben „Wertung ändern“, wo heute Platz frei ist; der Ergebnisblock unter den Kacheln entfällt,
-  „✓ freigegeben“ bleibt darunter. Dann ist ein fertiges Duell etwa 510 px hoch und passt überall. Ob das Ergebnis in die
-  untere Kachel des Duells kommt oder jede Kachel ihre eigenen Punkte zeigt: vor der Umsetzung als Vorschau zeigen.
+  511 px), weil darunter Scorepunkte, „Diff.“ und „✓ freigegeben“ untereinander stehen (zusammen 101 px). Mit Leiste ist
+  Platz für 546 px auf dem iPhone 6,1" und 582 px auf Android 360 × 700 – auf dem iPhone 6,1" passt ein fertiges Duell
+  also nicht ganz.
+  Lösung (beschlossen 21.11.2026 nach Vorschaubildern): **Duellergebnis in einer Zeile unter den Kacheln** – links die
+  Scorepunkte groß in der Farbe des Siegers, daneben „Diff. 0,20“; rechts „✓ freigegeben“ auf derselben Linie wie „Diff.“.
+  Bei unentschieden stehen „unentschieden“ und „Diff. 0,00“ in zwei kurzen Zeilen neben der 0 (wie im Querformat, Punkt 4;
+  in einer Zeile stößt es auf Android 360 an „freigegeben“). „geändert – noch nicht freigegeben“ bricht rechts in zwei
+  Zeilen um. Ergebnisbereich 43 statt 101 px, ein fertiges Duell 523 statt 580 px: passt mit Leiste auf dem iPhone 6,1"
+  (23 px Luft) und auf Android 360 (59 px Luft). Die Kacheln selbst bleiben unverändert.
 - **Landesliga:** Ein Startpaar ist 468 px hoch (offen wie fertig) und passt überall ohne Änderung.
 - Browser-Tests: Einrasten, Leiste (Hervorhebung, Sprung per Tipp), „Zurück nach oben“ erreichbar, Passung auf iPhone 6,1"
   und 6,7" sowie Android 360.
