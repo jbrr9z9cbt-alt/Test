@@ -40,6 +40,30 @@ und 2:0 Wettkampfpunkten. Beschlossen 18.11.2026 – eingetragen wird das im **L
 - „x von y Wettkämpfen gewertet“ zählt ihn als gewertet.
 - Gilt für beide Ligen gleich (kampflos immer 12:0 Gerätepunkte, 2:0 Wettkampfpunkte).
 
+### 4. Querformat: Wertungen einzeilig – ganzes Gerät ohne Scrollen
+Beschlossen 21.11.2026 nach Vorschaubildern (nachgebaut in der echten App, Beta 85). Der obere Bereich (Kopfzeile, Menüband,
+Stand, Gerätereiter) bleibt unverändert; darunter steht der Inhalt jeder Wertungskachel in **einer Zeile**:
+- **Tabelle mit Spaltenköpfen einmal oben:** Nr. (mit ▶ für „legt vor“, wie im Protokoll) · Verein · Turnerauswahl · E1 ·
+  E2 · (E3) · D-Note · Stand · NA · E-Note · Endnote · Knopf **„Sturz“** (nur an Pauschenpferd, Ringen, Barren, Reck) ·
+  Knopf **„Eingeben“ / „Ändern“**. Mannschaft zusätzlich als Farbleiste links an der Zeile.
+- **Verein:** Feld so breit wie „TZ Bochum-Witten“; längere Namen einzeilig mit „…“ abgeschnitten (keine zweite Zeile).
+- **Oberliga:** je Duell zwei Zeilen, links „Duell n“, rechts über beide Zeilen die Scorepunkte des Duells mit ✓ daneben
+  (freigegeben), darunter „unentschieden“ bzw. „Diff. …“ in kurzen Zeilen; „offen“, solange das Duell nicht fertig ist.
+- **Landesliga:** alle Übungen in Wettkampfreihenfolge (1.–8., abwechselnd), am Zeilenende „✓ freigegeben“ bzw. der
+  Hinweis bei einer Änderung; Streichwertung durchgestrichen. Die Links „Mannschaftsabzug Heim/Gast“ rücken in die
+  Kopfzeile des Geräts (spart eine Zeile).
+- **Breite:** Die Tabelle ist nur so breit wie nötig (je nach Gerät etwa 920–1050 px) und steht mittig – keine unnötigen
+  Lücken; die volle Bildschirmbreite wird nur genutzt, soweit nötig. Etwas engere Spaltenabstände, Turnerauswahl etwas
+  schmaler als heute.
+- **Gilt nur im Querformat ab 1100 px Breite** (dort ist der obere Bereich schon heute flach). Hochformat, Handys und das
+  ältere iPad 10,2" quer (oberer Bereich dort doppelt so hoch) behalten die heutigen Kacheln.
+- Gemessen ohne Scrollen und ohne Überbreite (beide Ligen, Geräte mit und ohne Sturz-Timer): Laptop 1280 × 800 und
+  1366 × 768 im Browser, 1536 × 864, Full HD, iPad mini, Air 11" und Pro 13" quer.
+- **„Sturz-Timer“ heißt künftig überall „Sturz“** (Kachel, Wertungsfenster, Anleitung, README); die laufende Anzeige
+  (Sekunden, „· Abzug 0,3 – Stopp“) bleibt.
+- Bedienung wie heute: Turnerauswahl in der Zeile, Wertung im Wertungsfenster, Tab-Reihenfolge = Wettkampfreihenfolge.
+  Browser-Tests für die Passung (die Größen oben) und die Bedienung in der Zeile.
+
 ## Liste nach Beta 84 – umgesetzt in Beta 85 (veröffentlicht 16.11.2026, Commit `febb54e`)
 
 Umgesetzt 15./16.11.2026 (Punkte 1–12). Rückkehrpunkt: Beta 84 (Commit `356e885`).
