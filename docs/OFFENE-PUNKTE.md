@@ -1161,7 +1161,7 @@ Ergänzungen bei der Umsetzung:
   Safari zurück – getrennte Daten, Löschung nach 7 Tagen ohne Nutzung möglich, gilt für alle Geräte) und PDF per
   `window.open(blobUrl)` (Pop-up-Sperre nach der Erzeugung, leere Fenster in installierten Apps, im App-Fenster kein Zurück).
 
-- **Später, noch nicht beschlossen: ganzes Gerät ohne Scrollen auf Laptop und iPad quer** (Vorschaubilder 01.11.2026,
+- **Erledigt durch Punkt 4 der Liste nach Beta 85 (beschlossen 21.11.2026) – früherer Stand: ganzes Gerät ohne Scrollen auf Laptop und iPad quer** (Vorschaubilder 01.11.2026,
   nachgestellt mit scratchpad mock101): einzeilige Kacheln, nur so breit wie nötig (ca. 1000 px, mittig), Spaltenköpfe
   einmal oben; Zeile: Nr., Verein, Turnerauswahl, E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote, ⏱ (Sturz-Timer),
   „Wertung eingeben/ändern“. Oberliga: je Duell zwei Zeilen, rechts „Duell n“ und Scorepunkte; Landesliga: eine Spalte in
