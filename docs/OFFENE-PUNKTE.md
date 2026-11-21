@@ -64,6 +64,32 @@ Stand, Gerätereiter) bleibt unverändert; darunter steht der Inhalt jeder Wertu
 - Bedienung wie heute: Turnerauswahl in der Zeile, Wertung im Wertungsfenster, Tab-Reihenfolge = Wettkampfreihenfolge.
   Browser-Tests für die Passung (die Größen oben) und die Bedienung in der Zeile.
 
+### 5. Handyansicht: beim Scrollen den Überblick behalten
+Beschlossen 21.11.2026 nach der Testseite „Handyansicht-Test“ (beide Ligen ausprobiert). Gilt für **Handys im Hochformat**
+(bis 600 px Breite); iPad, Laptop und Handy quer bleiben wie heute.
+- **Einrasten je Duell (Oberliga) bzw. je Startpaar (Landesliga):** Beim Wischen bleibt immer ein ganzes Duell bzw.
+  Startpaar stehen, oben bündig unter Kopfzeile und Leiste; „Duell n“ bleibt lesbar. Ganz oben (Stand, Gerätereiter) ist
+  ebenfalls ein Rastpunkt.
+- **Duell-Leiste (Oberliga):** fest unter der Kopfzeile: Gerätename, „Duell“, Knöpfe 1–4 mit ✓ (freigegeben) bzw. ●
+  (begonnen). Das gerade sichtbare Duell ist dunkel hervorgehoben; ein Tipp springt zum Duell.
+- **Übungs-Leiste (Landesliga):** Gerätesymbol und die Startpositionen 1–8 in der Farbe der jeweiligen Mannschaft, mit ✓ bei
+  freigegebener Übung. Die beiden Nummern des sichtbaren Startpaars sind hervorgehoben; ein Tipp springt zum Startpaar, die
+  Kachel blinkt kurz auf.
+- **„↑ Zurück nach oben“** unter dem letzten Duell bzw. Startpaar, scrollt sanft ganz nach oben. Passt der Knopf beim
+  eingerasteten letzten Duell nicht mehr ins Bild, bekommt er einen eigenen Rastpunkt (einmal weiterwischen); passt er,
+  gibt es keinen zusätzlichen Rastpunkt – so bleibt zwischen den Duellen nichts schief stehen.
+- **Kein „automatisch weiter“** (auf der Testseite ausprobiert, nicht gewünscht).
+- **Platz in der Oberliga** (nachgemessen in der echten App, Beta 85): Ein fertiges Duell ist am Handy 580 px hoch (offen
+  511 px), weil darunter das Duellergebnis steht (Scorepunkte und „Diff.“, 70 px). Mit Leiste ist Platz für 546 px auf dem
+  iPhone 6,1" und 582 px auf Android 360 × 700 – auf dem iPhone 6,1" passt ein fertiges Duell also nicht ganz.
+  Idee (21.11.2026): Die **Scorepunkte des Duells** (mit „Diff.“ bzw. „unentschieden“) kommen **in die Wertungskachel ganz
+  links unten**, neben „Wertung ändern“, wo heute Platz frei ist; der Ergebnisblock unter den Kacheln entfällt,
+  „✓ freigegeben“ bleibt darunter. Dann ist ein fertiges Duell etwa 510 px hoch und passt überall. Ob das Ergebnis in die
+  untere Kachel des Duells kommt oder jede Kachel ihre eigenen Punkte zeigt: vor der Umsetzung als Vorschau zeigen.
+- **Landesliga:** Ein Startpaar ist 468 px hoch (offen wie fertig) und passt überall ohne Änderung.
+- Browser-Tests: Einrasten, Leiste (Hervorhebung, Sprung per Tipp), „Zurück nach oben“ erreichbar, Passung auf iPhone 6,1"
+  und 6,7" sowie Android 360.
+
 ## Liste nach Beta 84 – umgesetzt in Beta 85 (veröffentlicht 16.11.2026, Commit `febb54e`)
 
 Umgesetzt 15./16.11.2026 (Punkte 1–12). Rückkehrpunkt: Beta 84 (Commit `356e885`).
