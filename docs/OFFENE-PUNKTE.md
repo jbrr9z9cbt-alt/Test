@@ -1,6 +1,29 @@
 # Offene Punkte (noch nicht umgesetzt)
 
-## Liste nach Beta 85
+## Liste nach Beta 86
+
+Noch keine Punkte.
+
+## Liste nach Beta 85 – umgesetzt in Beta 86 (noch nicht veröffentlicht)
+
+Umgesetzt 22.11.2026 (Punkte 1–5) im Arbeitszweig. Rückkehrpunkt: Beta 85 (Commit `febb54e`).
+Hinweise zur Umsetzung:
+- Punkt 1: `.sd-pad` mit `min-width: 0`; geprüft am iPad quer 1024, 1180 und 1366 px: 304 px vor und nach „11,1“, der Wert
+  bleibt ganz sichtbar, nur der Name wird gekürzt. Am Handy unverändert (Tastatur an derselben Stelle). Browser-Test.
+- Punkt 2: Langenei-Kickenbach/Gleidorf steht in `js/config.js` unter `formerTeams` der Oberliga (nur Name für ältere
+  Wettkämpfe, keine Auswahl, keine Tabelle); `rosterVersion` der Oberliga 2. Browser-Test mit altem Gerätestand.
+- Punkt 3: Auswahl „Art“ beim Eintragen und in jeder Terminzeile. Geprüft mit den 11 Oberliga-Dateien 2026 und dem
+  07.11. Mettingen – Bochum-Witten (Gast nicht angetreten): „12 von 12 Wettkämpfen gewertet“, Tabelle stimmt.
+- Punkt 4: Die Zeilen werden direkt in der App erzeugt (dieselben Auswahlfelder und Knöpfe wie in den Kacheln). Gemessen
+  auf allen 7 Querformaten der Liste ohne Scrollen und ohne Überbreite (Oberliga 967–1028 px, Landesliga 898–960 px breit),
+  auch mit laufendem „Sturz“ (der Knopf legt sich nach links über die noch leeren Wertungsfelder). Spalte „Verein“ genau so
+  breit wie „TZ Bochum-Witten“ – dadurch werden **„TG Geisweid/Eichen“ (4 px länger)** sowie in der Landesliga
+  „TuS Leopoldshöhe 2“, „SG Wünnenberg/Elsen“, „TV Jahn Plettenberg“ und „SG Langenei-Kickenbach/Gleidorf“ mit „…“
+  gekürzt (voller Name im Tooltip). „unentschieden“ und „Diff.“ stehen in der Duellspalte in zwei Zeilen.
+- Punkt 5: Einrasten auf der Seite selbst (nicht in einem eigenen Scrollbereich wie auf der Testseite) – am echten iPhone
+  prüfen. Gemessen: fertiges Duell 523 px (Platz mit Leiste: iPhone 6,1" 566, 6,7" 642, Android 360 602 px), Startpaar
+  468 px; Leiste passt auf 360 px. Browser-Tests für beide Ligen und für Tablet/Handy quer (ohne Leiste).
+
 
 ### 1. Zahlentastatur am iPad quer: Breite darf sich beim Tippen nicht ändern
 Beobachtet (Video 16.11.2026, iPad quer, Beta 85): Beim Tippen von „1 1 1“ (0,1 → 1,1 → 11,1) wird die Zahlentastatur

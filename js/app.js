@@ -11,7 +11,7 @@
   // kein Service Worker); bereitgestellt wird nur window.WTBReport (ganz unten).
   var REPORT = !!window.WTB_REPORT;
   var APP_VERSION = 2;
-  var APP_BUILD = '85';
+  var APP_BUILD = '86';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 8000;             // Einblendung der Scorepunkte bzw. der Wertung auf der Tafel
@@ -576,6 +576,7 @@
     else state.board = { matchId: null, lastReveal: '' };
     if (onMatch) refreshTopMenus(match(r.id));
     syncTopbarHeight();
+    phoneSync();
     if (!keepScroll) window.scrollTo(0, 0);
     tickTimers();
     if (isBoard) { fitBoard(); fitIntro(); fitScorers(); }
@@ -1343,6 +1344,96 @@
     return duel.revealedAt ? '<span class="revealed" title="freigegeben">✓<span class="rv-t"> freigegeben</span></span>' : '';
   }
 
+  // ---------- Handy hochkant: beim Scrollen den Überblick behalten ----------
+
+  /**
+   * Handys hochkant (bis 600 px Breite): Die Seite rastet je Duell bzw. Startpaar ein, oben steht fest eine Leiste mit den
+   * Duellen (Oberliga) bzw. Übungen 1–8 (Landesliga) – ✓ freigegeben, ● begonnen, das sichtbare hervorgehoben, antippen
+   * springt dorthin – und unter dem letzten Duell „Zurück nach oben“. Kein automatisches Weiterspringen.
+   */
+  var PHONE_MQ = window.matchMedia('(max-width: 600px) and (orientation: portrait)');
+  function phoneView() { return PHONE_MQ.matches; }
+  PHONE_MQ.addEventListener('change', function () {
+    var r = route(), m = r.name === 'match' && !r.sub ? match(r.id) : null;
+    if (m && document.getElementById('apparatus-panel')) rerenderPanel(m); else phoneSync();
+  });
+
+  function unitBarHtml(m, appKey) {
+    var app = m.apparatus[appKey];
+    if (isClassic(m)) {
+      var list = [];
+      app.duels.forEach(function (d, i) { ['home', 'guest'].forEach(function (k) { list.push({ d: d, i: i, k: k, pos: S.classicPosition(m, appKey, i, k) }); }); });
+      list.sort(function (x, y) { return x.pos - y.pos; });
+      return '<span class="ub-ico" title="' + esc(apparatusName(appKey)) + '">' + appIcon(appKey, 'ub-svg') + '</span>' + list.map(function (x) {
+        var done = !!S.revOf(x.d, x.k).revealedAt && !S.sidePending(x.d, x.k);
+        return '<button type="button" class="chip p" data-action="unit-jump" data-go="' + x.i + '" data-flash="' + appKey + '-' + x.i + '-' + x.k + '" style="--team:' + sideColor(m, x.k).hex + '"' +
+          ' aria-label="' + x.pos + '. Übung' + (done ? ', freigegeben' : '') + '">' + x.pos + '<span class="st ok">' + (done ? '✓' : '') + '</span></button>';
+      }).join('');
+    }
+    return '<span class="ub-app">' + esc(apparatusName(appKey)) + '</span><span class="ub-lbl">Duell</span>' + app.duels.map(function (d, i) {
+      var done = !!d.revealedAt && !S.hasPendingCorrection(d);
+      var begun = !done && [d.home, d.guest].some(function (x) { return x.dns || S.sideFinal(x, m.rules) !== null; });
+      return '<button type="button" class="chip" data-action="unit-jump" data-go="' + i + '" aria-label="Duell ' + (i + 1) + (done ? ', freigegeben' : begun ? ', begonnen' : '') + '">' +
+        (i + 1) + '<span class="st ' + (done ? 'ok">✓' : begun ? 'run">●' : '">') + '</span></button>';
+    }).join('');
+  }
+
+  function unitBar(m, appKey) {
+    return phoneView() ? '<div class="unit-bar' + (isClassic(m) ? ' ll' : '') + '" data-out="unitbar">' + unitBarHtml(m, appKey) + '</div>' : '';
+  }
+
+  function toTopButton() {
+    return phoneView() ? '<div class="totop"><button type="button" class="btn" data-action="to-top">↑ Zurück nach oben</button></div>' : '';
+  }
+
+  function reducedMotion() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  /** Antippen in der Leiste: zum Duell bzw. Startpaar; in der Landesliga blinkt die Kachel der Übung kurz auf. */
+  function jumpToUnit(btn) {
+    var el = document.querySelector('#apparatus-panel [data-unit="' + btn.getAttribute('data-go') + '"]');
+    if (!el) return;
+    el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    var fl = btn.getAttribute('data-flash') ? document.querySelector('#apparatus-panel .side[data-key="' + btn.getAttribute('data-flash') + '"]') : el;
+    if (fl) { fl.classList.remove('flash'); void fl.offsetWidth; fl.classList.add('flash'); }
+  }
+
+  function snapPad() { return parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0; }
+
+  /** Welches Duell bzw. Startpaar steht oben? (Landesliga: beide Nummern des Paars hervorheben) */
+  function unitSpy() {
+    if (!document.documentElement.classList.contains('unit-snap')) return;
+    var line = snapPad() + 40, cur = null;
+    document.querySelectorAll('#apparatus-panel [data-unit]').forEach(function (u) { if (cur === null || u.getBoundingClientRect().top <= line) cur = u.getAttribute('data-unit'); });
+    document.querySelectorAll('#apparatus-panel .unit-bar .chip').forEach(function (c) { c.classList.toggle('cur', c.getAttribute('data-go') === cur); });
+  }
+  var unitSpyQueued = false;
+  window.addEventListener('scroll', function () {
+    if (unitSpyQueued || !document.documentElement.classList.contains('unit-snap')) return;
+    unitSpyQueued = true;
+    requestAnimationFrame(function () { unitSpyQueued = false; unitSpy(); });
+  }, { passive: true });
+
+  /** „Zurück nach oben“ bekommt nur dann einen eigenen Rastpunkt, wenn er beim letzten Duell nicht mehr ins Bild passt. */
+  function fitTotop() {
+    var box = document.querySelector('#apparatus-panel .totop'), units = document.querySelectorAll('#apparatus-panel [data-unit]');
+    if (!box || !units.length) return;
+    var last = units[units.length - 1];
+    var need = box.getBoundingClientRect().bottom + 12 - last.getBoundingClientRect().top + (parseFloat(getComputedStyle(last).scrollMarginTop) || 0);
+    box.classList.toggle('snap-end', need > innerHeight - snapPad());
+  }
+  window.addEventListener('resize', function () { if (document.documentElement.classList.contains('unit-snap')) fitTotop(); });
+
+  /** Nach jedem Aufbau der Wettkampfseite: Einrasten an/aus, Höhe der Leiste, Rastpunkt „Zurück nach oben“, Hervorhebung. */
+  function phoneSync() {
+    var r = route();
+    var on = phoneView() && r.name === 'match' && !r.sub && !!document.querySelector('#apparatus-panel .unit-bar');
+    document.documentElement.classList.toggle('unit-snap', on);
+    if (!on) return;
+    document.documentElement.style.setProperty('--ubar-h', document.querySelector('#apparatus-panel .unit-bar').offsetHeight + 'px');
+    fitTotop();
+    unitSpy();
+  }
+
   // ---------- Querformat ab 1100 px: Wertungen einzeilig (ganzes Gerät ohne Scrollen) ----------
 
   /**
@@ -1438,7 +1529,7 @@
       var order = S.startOrder(m, appKey, i);
       var cls = 'duel' + (S.hasPendingCorrection(d) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '');
       // DOM-Reihenfolge = Startreihenfolge, damit die Tabulatortaste der Wettkampfreihenfolge folgt.
-      return '<div class="' + cls + '">' +
+      return '<div class="' + cls + '" data-unit="' + i + '">' +
         '<div class="duel-no">Duell ' + (i + 1) + '</div>' +
         sideHtml(m, appKey, i, order[0], d[order[0]], locked, 1, false) +
         sideHtml(m, appKey, i, order[1], d[order[1]], locked, 2, false) +
@@ -1447,7 +1538,7 @@
         '</div>';
     }).join('');
     return '<div class="card-head"><h3>' + a.name + '</h3>' +
-      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + duels;
+      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + unitBar(m, appKey) + duels + toTopButton();
   }
 
   // ---------- Landesliga: Eingabe je Übung ----------
@@ -1473,7 +1564,7 @@
     var ar = S.apparatusResult(app, m.rules);
     var order = S.classicOrder(m, appKey);
     var rows = app.duels.map(function (d, i) {
-      return '<div class="cl-row">' + order.map(function (k) {
+      return '<div class="cl-row" data-unit="' + i + '">' + order.map(function (k) {
         var locked = duelBlocked(m, appKey, i, k);
         return '<div class="cl-cell' + (S.sidePending(d, k) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '') + '">' +
           sideHtml(m, appKey, i, k, d[k], locked, S.classicPosition(m, appKey, i, k), ar[k].struck.indexOf(i) >= 0) + '</div>';
@@ -1482,8 +1573,8 @@
     // Ohne Kopfzeile mit den Vereinsnamen und ohne Zeile „Summe (beste 3)“: Verein steht an jeder Kachel,
     // die beginnende Mannschaft hat Kachel 1, die Summen stehen im Reiter und in der Gerätezeile.
     return '<div class="card-head"><h3>' + a.name + '</h3>' +
-      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + rows +
-      deductionLinks(m);
+      '<div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div></div>' + unitBar(m, appKey) + rows +
+      deductionLinks(m) + toTopButton();
   }
 
   // ---------- Mannschaftsabzug (nur Landesliga) ----------
@@ -1545,6 +1636,8 @@
     var ar = r.apparatus[tab];
     out('app-sum', appSumHtml(m, ar));
     out('pending', pendingBanner(m));
+    var ub = $app.querySelector('[data-out="unitbar"]');
+    if (ub) { var ubh = unitBarHtml(m, tab); if (ub.innerHTML !== ubh) { ub.innerHTML = ubh; unitSpy(); } }
     if (isClassic(m)) {
       m.apparatus[tab].duels.forEach(function (d, i) {
         ['home', 'guest'].forEach(function (k) {
@@ -1607,6 +1700,7 @@
     panel.innerHTML = apparatusPanel(m, currentTab(m));
     refreshComputed(m);
     tickTimers();
+    phoneSync();
     restoreFocus(focusKey);
   }
 
@@ -4558,12 +4652,19 @@
     var m = r.id ? match(r.id) : null;
 
     switch (action) {
+      case 'unit-jump':
+        jumpToUnit(btn);
+        break;
+      case 'to-top':
+        window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+        break;
       case 'tab':
         var tKey = btn.getAttribute('data-tab');
         state.ui.tab[m.id] = tKey;
         $app.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b === btn); });
         document.getElementById('apparatus-panel').innerHTML = apparatusPanel(m, currentTab(m));
         tickTimers();
+        phoneSync();
         // Die Anzeigetafel folgt dem gewählten Reiter, solange an keinem Gerät eine Wertung offen ist (siehe boardApparatus).
         m.display = m.display || {};
         if (m.display.tab !== tKey) { m.display.tab = tKey; save('matches', m); }

@@ -61,19 +61,40 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
 - **Wettkampfseite am Laptop** (ab 1100 px): Ergebniszeile immer einzeilig – Datum · Status | Heim (rechtsbündig) Stand
   Gast (linksbündig) | Gerätepunkte; Liga, „Beginn: …“ und „Sieger: …“ stehen dort nicht mehr. Die Knöpfe stehen im Menüband. Die Wertungskacheln nutzen die volle Breite;
   E-Note und Endnote stehen in der Zeile der Werte. Keine Überschriften „E-/D-Kampfgericht“ mehr (auch nicht am Handy).
+- **Wertungen einzeilig im Querformat** (seit Beta 86, Laptop und iPad quer ab 1100 px Breite): Der obere Bereich bleibt
+  unverändert, darunter steht der Inhalt jeder Wertungskachel in **einer Zeile** – das ganze Gerät passt ohne Scrollen auf den
+  Bildschirm (geprüft: Laptop 1280 × 800 und 1366 × 768 im Browser, 1536 × 864, Full HD, iPad mini, Air 11" und Pro 13" quer).
+  Eine Tabelle mit Spaltenköpfen einmal oben, nur so breit wie nötig und mittig: Nr. (▶ = legt vor) · Verein (so breit wie
+  „TZ Bochum-Witten“, längere Namen einzeilig mit „…“, voller Name im Tooltip) · Turnerauswahl · E1 · E2 · (E3) · D-Note ·
+  Stand · NA · E-Note · Endnote · „Sturz“ · „Eingeben“ bzw. „Ändern“; links an jeder Zeile die Farbleiste der Mannschaft.
+  Oberliga: je Duell zwei Zeilen, links „Duell n“, rechts über beide die Scorepunkte mit ✓ (freigegeben) und darunter
+  „unentschieden“ bzw. „Diff. …“. Landesliga: alle Übungen in Wettkampfreihenfolge (1.–8.), am Zeilenende „✓ freigegeben“
+  bzw. der Hinweis auf eine Änderung, Streichwertung durchgestrichen, „Mannschaftsabzug Heim/Gast“ oben rechts im Kopf des
+  Geräts. Läuft „Sturz“, legt sich der breitere Knopf nach links über die noch leeren Wertungsfelder (die Tabelle bleibt
+  gleich breit). Tab-Reihenfolge = Wettkampfreihenfolge. Hochkant, Handys und das ältere iPad 10,2" quer behalten die
+  Kacheln; beim Drehen oder Ändern der Fenstergröße wechselt die Darstellung sofort.
+- **Handy hochkant** (seit Beta 86, bis 600 px Breite): Beim Wischen **rastet** die Seite je Duell (Oberliga) bzw. je
+  Startpaar (Landesliga) ein, oben bündig unter Kopfzeile und Leiste; ganz oben (Stand, Gerätereiter) ist ebenfalls ein
+  Rastpunkt. Fest unter der Kopfzeile steht eine **Leiste**: Oberliga „Boden · Duell 1 2 3 4“ mit ✓ (freigegeben) bzw. ●
+  (begonnen), Landesliga Gerätesymbol und die Startpositionen 1–8 in der Farbe der jeweiligen Mannschaft mit ✓. Das gerade
+  sichtbare Duell bzw. beide Nummern des sichtbaren Startpaars sind hervorgehoben; ein Tipp springt dorthin (Landesliga: die
+  Kachel der Übung blinkt kurz auf). Unter dem letzten Duell bzw. Startpaar **„↑ Zurück nach oben“** (eigener Rastpunkt nur,
+  wenn der Knopf sonst nicht ins Bild passt). Kein automatisches Weiterspringen. Oberliga: Scorepunkte, „Diff.“ und
+  „✓ freigegeben“ stehen unter den Kacheln **in einer Zeile** (unentschieden: „unentschieden“ und „Diff.“ in zwei kurzen
+  Zeilen) – ein fertiges Duell ist 523 statt 580 px hoch und passt so mit Leiste auch auf das iPhone 6,1".
 - **Wertungsfenster** (beide Ligen): Die Kachel zeigt die Werte nur als Text (E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote)
-  mit Turnerauswahl, Sturz-Timer und Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“ (dann ist die
+  mit Turnerauswahl, Knopf „Sturz“ und Knopf „Wertung eingeben“ bzw. nach der Freigabe „Wertung ändern“ (dann ist die
   Turnerauswahl der Kachel gesperrt – grau hinterlegt, Name schwarz; der Turner lässt sich im Fenster korrigieren).
   „Wertung eingeben“ geht auch ohne gewählten Turner; gesperrt nur im abgeschlossenen Wettkampf und solange an einer anderen
   Übung eine Korrektur offen ist.
   - **Fester Aufbau** von oben nach unten (nichts erscheint oder verschwindet; iPad und PC: Fenster senkrecht mittig;
     Handy: bildschirmfüllend, Zahlentastatur unten, darunter die Einstellung und ein freier Streifen von etwa einer Zeile
     (Daumen; schrumpft bei wenig Platz, unter 600 px Höhe entfällt er) – auch mit den Leisten des
-    Safari-Browsers ganz sichtbar): Kopfzeile einzeilig (z. B. „Ringe · Duell 1 · 2.“; am Handy rechts der Sturz-Timer-Knopf) ·
+    Safari-Browsers ganz sichtbar): Kopfzeile einzeilig (z. B. „Ringe · Duell 1 · 2.“; am Handy rechts der Knopf „Sturz“) ·
     Mannschaft und **Turnerauswahl** · Felder E1, E2, (E3), D-Note, Stand, NA – alle gleich breit, Schrift passend zur Breite
     („10,0“ auch bei sechs Feldern auf 360 px) – darunter „berechnen“ · „Wertung 0,00“, Oberliga-Vorschau, E-Note, Endnote ·
     Hinweiszeile · „Abbrechen“ / „Wertung freigeben“ bzw. „Korrektur freigeben“ · Einstellung Zahlentastatur.
-    Laptop und Tablet (ab 561 × 501 px): der Sturz-Timer (gleiche Größe wie in der Kachel) steht in der Knopfzeile links
+    Laptop und Tablet (ab 561 × 501 px): der Knopf „Sturz“ (gleiche Größe wie in der Kachel) steht in der Knopfzeile links
     neben „Abbrechen“; am Handy (hoch und quer) bleibt er oben rechts, damit die Zahlentastatur an ihrer Stelle bleibt.
   - **Wertung zurücknehmen** (seit Beta 84): Im Fenster „Wertung ändern“ einer freigegebenen (Oberliga: auch nur erfassten)
     Wertung „– Turner –“ wählen – alle Felder leeren sich, der Knopf heißt „Wertung zurücknehmen“; nach der Rückfrage steht
@@ -142,7 +163,9 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   Gerätepunkte“; in den Kacheln und im Wertungsfenster steht die Turnerauswahl in eigener Zeile über die volle Breite;
   in der Wettkampfliste höchstens zwei Zeilen. Die Topscorer-Tabelle auf der Eingabeseite entfällt (auf der Tafel unter
   „Ergebnis/Siegerehrung“ und im Protokoll bleiben die Topscorer).
-- **7 feste Mannschaften** mit vorgegebenen Turnern (Startnummern 1–20) aus `js/config.js`
+- **Feste Mannschaften** mit vorgegebenen Turnern (Startnummern 1–20) aus `js/config.js` – Oberliga Saison 2026: sechs
+  (KTS Mettingen, TSV Kierspe 1, TZ Bochum-Witten, SG Paderborn, TG Geisweid/Eichen, KTV Dortmund; der 7. Platz bleibt leer,
+  SG Langenei-Kickenbach/Gleidorf turnt seit Beta 86 nicht mehr in der Oberliga), Landesliga sieben
 - Der Ausrichter kann Turnernamen korrigieren und freie Startnummern belegen. Wird die vorgegebene
   Turnerliste mit einem Update geändert (`rosterVersion`), gilt wieder der vorgegebene Stand –
   bereits erfasste Wettkämpfe behalten ihre Namen.
@@ -173,7 +196,7 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   eingegebenen Wertungen dieser Übung werden gelöscht. Fortfahren?“ (Nein: Häkchen bleibt aus, Werte bleiben).
 - **„kein Turner“ auf der Tafel:** sofort „–“ statt des Namens (wie ein gewählter Name sofort erscheint); Endnote und Punkte erst
   mit der Freigabe. In der Landesliga gibt es bei „kein Turner“ keine große Einblendung (bewusst, seit der ersten Version).
-- **Sturz-Timer** an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“. Der Knopf (Kachel und
+- **Sturz** (bis Beta 85 „Sturz-Timer“, seit Beta 86 überall nur „Sturz“) an jeder Übung (nicht an Boden und Sprung): 30 s gelb, danach 30 s rot mit „Abzug 0,3“. Der Knopf (Kachel, Zeile und
   Wertungsfenster) ist wie die Turnerauswahl nach der Freigabe und bei „kein Turner“ gesperrt – ein noch laufender Timer bleibt
   bis zum Stopp bzw. Ablauf bedienbar. Während des Laufs behält der Knopf seine Breite (Sekunden auf zwei festen Stellen,
   Platz für „· Abzug 0,3“), in den letzten 10 Sekunden blinkt nur die Zahl (am iPad blieben sonst Reste der Umrandung stehen).
@@ -259,7 +282,9 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
 ## Mannschaften festlegen (nur Betreiber)
 
 In `js/config.js` stehen je Liga (`leagues`) Schlüssel, Name, Wertungsmodell (`score` bzw. `classic`),
-`rosterVersion` und die Mannschaften mit `id`, `name` und vorgegebenen Turnern.
+`rosterVersion` und die Mannschaften mit `id`, `name` und vorgegebenen Turnern. Mannschaften, die nicht mehr in der Liga
+turnen, stehen unter `formerTeams` (nur `id` und `name`): Sie erscheinen nirgends mehr zur Auswahl und nicht in der Tabelle des
+Ligaberichts, ältere Wettkämpfe zeigen aber weiter ihren Namen. Eine neue Mannschaft bekommt immer eine neue `id`.
 Die Namen dürfen dort geändert werden; die `id` bitte **nie** ändern, sonst verlieren
 bereits erfasste Wettkämpfe und Turnernamen die Zuordnung. Nach einer Änderung neu
 veröffentlichen (Push auf `main`) – die installierten Apps laden das Update beim nächsten Start mit Internet.
@@ -322,6 +347,12 @@ der App); nichts wird hochgeladen.
   gleiche Begegnung am selben Tag): der neueste Stand zählt. Nicht abgeschlossene Wettkämpfe werden markiert und zählen nicht.
 - **Kommende Wettkämpfe:** Datum, Heim, Gast eintragen; als Datei sicher- und wieder einlesbar („Termine sichern / einlesen“).
   Kommt später die Datei zu einem Termin, wird aus der Terminzeile die Ergebniszeile.
+- **Kampflos** (seit Beta 86): Bei jedem Termin die **Art** wählen – Termin · Heim nicht angetreten · Gast nicht angetreten
+  (auch schon beim Eintragen). Dann wird daraus eine Ergebniszeile: Sieger fett, in der Ergebnisspalte „kampflos“,
+  Gerätepunkte 12:0, Wettkampfpunkte 2:0, ohne Protokollseite; unter der Liste der Hinweis „kampflos = Gegner nicht
+  angetreten …“. In der Tabelle zählt er für beide als Wettkampf (S bzw. N), die 12:0 gehen in Gerätepunkte und Differenz ein,
+  im direkten Vergleich zählt er wie ein Sieg; Scorepunkte bzw. Gesamtpunkte ändert er nicht. Beide Ligen gleich. Die
+  Termindatei nimmt die Art mit (ein schon vorhandener Termin übernimmt beim Einlesen die Art aus der Datei).
 - **Ein PDF je Liga und Saison** (Saison = Kalenderjahr) über „Drucken / als PDF speichern“:
   - Seite 1 **Saisonübersicht** (Kopf wie im Protokoll): alle Wettkämpfe in einer Tabelle nach Datum (Sieger fett, Ergebnis,
     Gerätepunkte, Wettkampfpunkte, anklickbare Seite des Protokolls; kommende heller, offene kursiv mit „offen“) und die
@@ -376,9 +407,11 @@ NODE_PATH="$(npm root -g)" npm run test:e2e -- tafel  # nur Tests mit „tafel�
 ```
 
 Geprüft werden u. a. Freigabe und Korrektur in beiden Ligen, Wertung zurücknehmen, „kein Turner“ und „Wertung 0,00“,
-Tafel-Regel mit Haltezeit, Einturnzeit/Pause/Sturz-Timer, D-Note-Rechner, Zahlentastatur, Turnervorstellung, Ergebnis,
-große Tafel, Tafelform nach Ausrichtung, Protokoll (eine DIN-A4-Seite), Sicherung und Wiedereinlesen, Ligabericht sowie die
-Passung von Tafel und Wertungsfenster auf Laptop, iPad, iPhone, Full HD und 4K.
+Tafel-Regel mit Haltezeit, Einturnzeit/Pause/Sturz, D-Note-Rechner, Zahlentastatur (auch feste Breite am iPad quer),
+Turnervorstellung, Ergebnis, große Tafel, Tafelform nach Ausrichtung, Protokoll (eine DIN-A4-Seite), Sicherung und
+Wiedereinlesen, Mannschaftslisten, Ligabericht (auch kampflos), Wertungen einzeilig im Querformat (ohne Scrollen auf allen
+Querformaten), Handy hochkant (Leiste, Einrasten, Zurück nach oben) sowie die Passung von Tafel und Wertungsfenster auf Laptop,
+iPad, iPhone, Full HD und 4K.
 
 ## Aufbau
 

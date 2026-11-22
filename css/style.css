@@ -1419,3 +1419,53 @@ table.ez td.ez-st { font-size: .78rem; }
 /* offene Korrektur bzw. gesperrt (wie die Kacheln) */
 table.ez tbody.pending td, table.ez tr.pending td { background: #fffbeb; }
 table.ez tbody.blocked, table.ez tr.blocked { opacity: .55; }
+
+/* ---------- Handy hochkant (bis 600 px): beim Scrollen den Überblick behalten (js: phoneSync) ----------
+   Einrasten je Duell bzw. Startpaar unter Kopfzeile und Leiste; oben ist der Wettkampfkopf ein eigener Rastpunkt. */
+html.unit-snap { scroll-snap-type: y mandatory; scroll-padding-top: calc(var(--bar-h, 52px) + var(--ubar-h, 0px)); }
+html.unit-snap .match-top { scroll-snap-align: start; }
+html.unit-snap #apparatus-panel .duel[data-unit] { scroll-snap-align: start; scroll-margin-top: 16px; }
+html.unit-snap #apparatus-panel .cl-row[data-unit] { scroll-snap-align: start; scroll-margin-top: 8px; }
+/* Leiste: fest unter der Kopfzeile, über die ganze Breite des Gerätebereichs */
+.unit-bar { position: sticky; top: var(--bar-h, 52px); z-index: 5; display: flex; align-items: center; gap: 6px;
+  margin: .5rem -1.25rem 0; padding: 6px 1.25rem; background: var(--card); border-bottom: 1px solid var(--line); box-shadow: 0 2px 4px rgba(0,0,0,.06); }
+.unit-bar .ub-app { font-weight: 800; font-size: .9rem; margin-right: 2px; }
+.unit-bar .ub-lbl { font-size: .78rem; color: var(--muted); }
+.unit-bar .chip { font: inherit; font-size: .9rem; font-weight: 700; min-width: 2.6rem; height: 30px; border-radius: 8px; border: 1px solid var(--line);
+  background: #fff; color: var(--text); display: inline-flex; align-items: center; justify-content: center; gap: 2px; padding: 0 .4rem; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.unit-bar .chip .st { font-size: .8rem; }
+.unit-bar .chip .st.ok { color: var(--ok, #15803d); }
+.unit-bar .chip .st.run { color: #f59e0b; }
+.unit-bar .chip.cur { background: #4a4a4a; color: #fff; border-color: #4a4a4a; }
+.unit-bar .chip.cur .st { color: #fff; }
+.unit-bar .chip:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; }
+/* Landesliga: Gerätesymbol und die Startpositionen 1–8 in der Farbe der Mannschaft */
+.unit-bar.ll { gap: 4px; }
+.unit-bar .ub-ico { flex: none; display: grid; margin-right: 2px; }
+.unit-bar .ub-ico .ub-svg { width: 28px; height: 28px; }
+.unit-bar .chip.p { flex: 1 1 0; min-width: 0; max-width: 2.4rem; height: 34px; padding: 0; flex-direction: column; gap: 0; line-height: 1;
+  border-width: 2px; border-color: var(--team); font-size: .85rem; }
+.unit-bar .chip.p .st { font-size: .7rem; height: .75rem; }
+.unit-bar .chip.p.cur { background: var(--team); border-color: var(--team); color: #fff; }
+#apparatus-panel .flash { animation: unit-flash 1.2s ease-out; }
+@keyframes unit-flash { from { box-shadow: 0 0 0 4px rgba(245,158,11,.6); } to { box-shadow: 0 0 0 0 rgba(245,158,11,0); } }
+@media (prefers-reduced-motion: reduce) { #apparatus-panel .flash { animation: none; } }
+/* Zurück nach oben: unter dem letzten Duell bzw. Startpaar; eigener Rastpunkt nur, wenn er sonst nicht erreichbar wäre */
+.totop { display: flex; justify-content: center; margin-top: .9rem; }
+.totop .btn { padding: .6rem 1.2rem; }
+html.unit-snap .totop.snap-end { scroll-snap-align: end; scroll-margin-bottom: 12px; }
+@media (max-width: 560px) {
+  .unit-bar { margin-left: -.85rem; margin-right: -.85rem; padding-left: .85rem; padding-right: .85rem; }
+}
+/* Oberliga: Duellergebnis in einer Zeile – links Scorepunkte und „Diff.“, rechts „✓ freigegeben“ (spart 58 px je Duell) */
+@media (max-width: 600px) and (orientation: portrait) {
+  .duel { grid-template-columns: minmax(0, 1fr) auto; column-gap: .6rem; }
+  .duel .side.first, .duel .side.second { grid-column: 1 / -1; }
+  .duel-result { grid-column: 1; flex-wrap: nowrap; justify-content: flex-start; align-items: flex-end; gap: .55rem; padding: .1rem 0 0 .35rem; }
+  .duel-diff { flex-basis: auto; white-space: nowrap; font-size: .8rem; line-height: 1.25; text-align: left; padding-bottom: .2rem; }
+  .duel-diff .dd-u { display: block; }
+  .duel-diff .dd-sep { display: none; }
+  .duel-actions { grid-column: 2; grid-row: auto; align-self: end; padding: 0 .35rem .2rem 0; }
+  .duel-actions .changed { flex-basis: auto; max-width: 8.5rem; line-height: 1.2; }
+}
