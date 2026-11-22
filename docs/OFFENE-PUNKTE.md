@@ -35,7 +35,7 @@
 3. **Wertungsfenster am Handy quer** (gewünscht 22.11.2026, **nur angehen, wenn einfach machbar**): Damit die Queransicht
    am Handy wirklich nutzbar ist, müsste auch das Wertungsfenster dort passen. Heute (Beta 86, iPhone 6,1" quer 750 × 342 px,
    Android 360 quer 780 × 320 px): Mit Zahlentastatur liegt die Tastatur unterhalb des Fensters (im Fenster rund 360–380 px
-   scrollen); ohne Zahlentastatur fehlen unten gut 50 px (Knöpfe „Abbrechen“ / „Wertung freigeben“ angeschnitten).
+   scrollen); ohne Zahlentastatur fehlen unten 52 bzw. 74 px (Knöpfe „Abbrechen“ / „Wertung freigeben“ angeschnitten).
    Einschätzung: **nicht einfach** – es bräuchte einen eigenen Aufbau für Handy quer (Felder links, Zahlentastatur rechts
    mit kleineren Tasten, Kopfzeile und Hinweise knapper), ebenso für den D-Note-Rechner, und alles neu auf Passung prüfen.
    Daher vorerst zurückgestellt.
