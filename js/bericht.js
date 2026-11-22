@@ -64,6 +64,8 @@
   function classic(league) { return leagueOf(league).model === 'classic'; }
   function stamp(m) { return m.updatedAt || m.createdAt || ''; }
   function sameFixture(a, b) { return a.league === b.league && a.date === b.date && a.homeTeamId === b.homeTeamId && a.guestTeamId === b.guestTeamId; }
+  /** Begegnung einer Zeile: eingelesener Wettkampf oder Termin. */
+  function fixOf(x) { return x.m || x.up; }
   function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function msg(html, err) { $('rp-msg').innerHTML = html ? '<span class="' + (err ? 'err' : '') + '">' + html + '</span>' : ''; }
 
@@ -150,11 +152,24 @@
   }
 
   /** Alle Zeilen der Wettkampfliste (gewertete, offene, kommende) nach Datum; gewertete und offene bekommen eine Seitenzahl. */
+  /**
+   * Kampflos (Termin mit „Heim/Gast nicht angetreten“): Die angetretene Mannschaft gewinnt mit 12:0 Gerätepunkten und
+   * 2:0 Wettkampfpunkten (beide Ligen); Scorepunkte bzw. Gesamtpunkte spielen keine Rolle, ein Protokoll gibt es nicht.
+   */
+  var FF_APP = 12, FF_MATCH = 2;
+  var FF_KINDS = [['', 'Termin'], ['home', 'Heim nicht angetreten'], ['guest', 'Gast nicht angetreten']];
+  function forfeitResult(u) {
+    var win = u.forfeit === 'home' ? 'guest' : 'home';
+    var r = { complete: true, winner: win, homeApp: 0, guestApp: 0, homeMatch: 0, guestMatch: 0, homeSum: 0, guestSum: 0, homePoints: 0, guestPoints: 0 };
+    r[win + 'App'] = FF_APP; r[win + 'Match'] = FF_MATCH;
+    return r;
+  }
+
   function seasonRows() {
     var played = seasonRecords();
     var rows = played.map(function (r) { return { rec: r, m: r.match, res: S.matchResult(r.match), date: r.match.date }; });
     rows.forEach(function (x, i) { x.page = i + 2; });
-    seasonUpcoming(played).forEach(function (u) { rows.push({ up: u, date: u.date }); });
+    seasonUpcoming(played).forEach(function (u) { rows.push(u.forfeit ? { up: u, ff: true, res: forfeitResult(u), date: u.date } : { up: u, date: u.date }); });
     rows.sort(function (a, b) {
       var ah = a.m ? a.m.homeTeamId : a.up.homeTeamId, bh = b.m ? b.m.homeTeamId : b.up.homeTeamId;
       return (a.date || '').localeCompare(b.date || '') || R.teamName(ah).localeCompare(R.teamName(bh));
@@ -165,7 +180,8 @@
     return rows;
   }
 
-  function isFinal(x) { return x.m && x.m.status === 'final' && x.res.complete; }
+  /** Zählt für die Tabelle: abgeschlossener Wettkampf oder kampflos. */
+  function isFinal(x) { return !!x.ff || !!(x.m && x.m.status === 'final' && x.res.complete); }
 
   /**
    * Tabelle: Wettkampfpunkte (gewonnene), dann Differenz der Gerätepunkte, dann direkter Vergleich (nur Wettkämpfe der
@@ -174,12 +190,12 @@
   function standings(rows) {
     var finals = rows.filter(isFinal);
     var ids = R.leagueTeams(st.league).map(function (t) { return t.id; });
-    finals.forEach(function (x) { [x.m.homeTeamId, x.m.guestTeamId].forEach(function (id) { if (ids.indexOf(id) < 0) ids.push(id); }); });
+    finals.forEach(function (x) { [fixOf(x).homeTeamId, fixOf(x).guestTeamId].forEach(function (id) { if (ids.indexOf(id) < 0) ids.push(id); }); });
     var t = {};
     ids.forEach(function (id) { t[id] = { id: id, name: R.teamName(id), n: 0, w: 0, d: 0, l: 0, gpA: 0, gpB: 0, wp: 0, sum: 0 }; });
     finals.forEach(function (x) {
       var r = x.res;
-      [['home', x.m.homeTeamId, 'guest'], ['guest', x.m.guestTeamId, 'home']].forEach(function (s) {
+      [['home', fixOf(x).homeTeamId, 'guest'], ['guest', fixOf(x).guestTeamId, 'home']].forEach(function (s) {
         var e = t[s[1]];
         e.n++;
         e.gpA += r[s[0] + 'App']; e.gpB += r[s[2] + 'App'];
@@ -217,10 +233,10 @@
   function direct(grp, finals) {
     if (grp.length === 1) return [[grp, null]];
     var gids = grp.map(function (e) { return e.id; });
-    var mutual = finals.filter(function (x) { return gids.indexOf(x.m.homeTeamId) >= 0 && gids.indexOf(x.m.guestTeamId) >= 0; });
+    var mutual = finals.filter(function (x) { return gids.indexOf(fixOf(x).homeTeamId) >= 0 && gids.indexOf(fixOf(x).guestTeamId) >= 0; });
     var mw = {};
     gids.forEach(function (id) { mw[id] = 0; });
-    mutual.forEach(function (x) { mw[x.m.homeTeamId] += x.res.homeMatch; mw[x.m.guestTeamId] += x.res.guestMatch; });
+    mutual.forEach(function (x) { mw[fixOf(x).homeTeamId] += x.res.homeMatch; mw[fixOf(x).guestTeamId] += x.res.guestMatch; });
     grp = grp.slice().sort(function (a, b) { return mw[b.id] - mw[a.id] || a.name.localeCompare(b.name); });
     var parts = [], k = 0;
     while (k < grp.length) {
@@ -238,7 +254,7 @@
   function tieNote(sub, mutual) {
     if (sub.every(function (e) { return e.n === 0; })) return 'noch ohne Wettkampf';
     var ids = sub.map(function (e) { return e.id; });
-    var among = mutual.filter(function (x) { return ids.indexOf(x.m.homeTeamId) >= 0 && ids.indexOf(x.m.guestTeamId) >= 0; });
+    var among = mutual.filter(function (x) { return ids.indexOf(fixOf(x).homeTeamId) >= 0 && ids.indexOf(fixOf(x).guestTeamId) >= 0; });
     return 'gleiche Wettkampfpunkte und Gerätepunkte, direkter Vergleich ' + (among.length ? 'unentschieden' : 'steht noch aus');
   }
 
@@ -259,10 +275,10 @@
     var ll = classic(st.league), lg = leagueOf(st.league);
     var played = rows.filter(function (x) { return x.m; }), finals = rows.filter(isFinal);
     var res = function (x) { return x.m ? (ll ? [R.fmt(x.res.homeSum), R.fmt(x.res.guestSum)] : [x.res.homePoints, x.res.guestPoints]) : null; };
-    var gp = function (x) { return x.m ? [x.res.homeApp, x.res.guestApp] : null; };
+    var gp = function (x) { return x.m || x.ff ? [x.res.homeApp, x.res.guestApp] : null; };
     var wp = function (x) { return isFinal(x) ? [x.res.homeMatch, x.res.guestMatch] : null; };
     var wR = widths(rows.map(res)), wG = widths(rows.map(gp)), wW = widths(rows.map(wp));
-    var hasOpen = played.some(function (x) { return !isFinal(x); });
+    var hasOpen = played.some(function (x) { return !isFinal(x); }), hasFf = rows.some(function (x) { return x.ff; });
 
     var games = rows.map(function (x) {
       var m = x.m || x.up, fin = isFinal(x);
@@ -272,8 +288,11 @@
         var r = res(x), g = gp(x), w = wp(x);
         cells = '<td class="num b">' + ab(r[0], r[1], wR) + '</td><td class="num">' + ab(g[0], g[1], wG) + '</td>' +
           '<td class="num">' + (w ? ab(w[0], w[1], wW) : 'offen') + '</td><td class="pg"><a href="#p' + x.page + '">' + x.page + '</a></td>';
+      } else if (x.ff) {
+        var fg = gp(x), fw = wp(x);
+        cells = '<td class="num">kampflos</td><td class="num">' + ab(fg[0], fg[1], wG) + '</td><td class="num">' + ab(fw[0], fw[1], wW) + '</td><td class="pg"></td>';
       } else cells = '<td></td><td></td><td></td><td></td>';
-      return '<tr class="' + (x.m ? (fin ? '' : 'open') : 'todo') + '"><td>' + esc(R.fmtDate(m.date)) + '</td>' +
+      return '<tr class="' + (x.m ? (fin ? '' : 'open') : x.ff ? 'ff' : 'todo') + '"><td>' + esc(R.fmtDate(m.date)) + '</td>' +
         '<td class="tn' + (fin && x.res.winner === 'home' ? ' win' : '') + '">' + hn + '</td>' +
         '<td class="tn' + (fin && x.res.winner === 'guest' ? ' win' : '') + '">' + gn + '</td>' + cells + '</tr>';
     }).join('');
@@ -293,7 +312,8 @@
       '<div class="rb-body"><div class="rb-sec"><div class="rb-h">Wettkämpfe<span>Seite = Protokoll im Anhang (anklickbar)</span></div>' +
       '<table class="rb"><thead><tr><th>Datum</th><th>Heim</th><th>Gast</th><th class="num">' + (ll ? 'Punkte' : 'Scorepunkte') + '</th><th class="num">Gerätepunkte</th><th class="num">Wettkampfpunkte</th><th class="num">Seite</th></tr></thead>' +
       '<tbody>' + (games || '<tr><td colspan="7" class="muted">Noch keine Wettkämpfe eingelesen oder eingetragen.</td></tr>') + '</tbody></table>' +
-      (hasOpen ? '<p class="rb-note">offen = Wettkampf noch nicht abgeschlossen; er zählt noch nicht für die Tabelle.</p>' : '') + '</div>' +
+      (hasOpen || hasFf ? '<p class="rb-note">' + [hasOpen ? 'offen = Wettkampf noch nicht abgeschlossen; er zählt noch nicht für die Tabelle.' : '',
+        hasFf ? 'kampflos = Gegner nicht angetreten (Gerätepunkte ' + FF_APP + ':0, Wettkampfpunkte ' + FF_MATCH + ':0).' : ''].filter(Boolean).join(' ') + '</p>' : '') + '</div>' +
       '<div class="rb-sec"><div class="rb-h">Tabelle</div>' +
       '<table class="rb"><thead><tr><th>Pl.</th><th>Mannschaft</th><th class="c">Wettk.</th><th class="c">S</th><th class="c">U</th><th class="c">N</th><th class="num">Gerätepunkte</th><th class="num">Diff.</th>' +
       (ll ? '<th class="num">Gesamtpunkte</th>' : '') + '<th class="num">Wettkampfpunkte</th></tr></thead><tbody>' + table + '</tbody></table>' +
@@ -386,13 +406,17 @@
     if (other > 0) $('rp-played').insertAdjacentHTML('beforeend', '<p class="muted small">Dazu ' + (other === 1 ? '1 Wettkampf' : other + ' Wettkämpfe') + ' anderer Ligen oder Saisons (oben auswählen).</p>');
     var up = st.upcoming.filter(function (u) { return u.league === st.league && yearOf(u.date) === st.year; })
       .sort(function (a, b) { return a.date.localeCompare(b.date); });
-    $('rp-upcoming').innerHTML = up.length ? '<table class="rp-list"><thead><tr><th>Datum</th><th>Heim</th><th>Gast</th><th></th><th></th></tr></thead><tbody>' +
+    $('rp-upcoming').innerHTML = up.length ? '<table class="rp-list"><thead><tr><th>Datum</th><th>Heim</th><th>Gast</th><th>Art</th><th></th></tr></thead><tbody>' +
       up.map(function (u) {
         var done = played.some(function (r) { return sameFixture(r.match, u); });
         return '<tr><td>' + esc(R.fmtDate(u.date)) + '</td><td>' + esc(R.teamName(u.homeTeamId)) + '</td><td>' + esc(R.teamName(u.guestTeamId)) + '</td>' +
-          '<td>' + (done ? '<span class="muted small">Ergebnis eingelesen</span>' : '') + '</td>' +
+          '<td>' + (done ? '<span class="muted small">Ergebnis eingelesen</span>' : '<select data-rp-ff="' + esc(u.id) + '" aria-label="Art">' + kindOptions(u.forfeit) + '</select>') + '</td>' +
           '<td class="act"><button class="btn small ghost" type="button" data-rp-undel="' + esc(u.id) + '">Entfernen</button></td></tr>';
       }).join('') + '</tbody></table>' : '<p class="muted small">Noch keine Termine eingetragen.</p>';
+  }
+
+  function kindOptions(sel) {
+    return FF_KINDS.map(function (k) { return '<option value="' + k[0] + '"' + ((sel || '') === k[0] ? ' selected' : '') + '>' + k[1] + '</option>'; }).join('');
   }
 
   function renderAll() {
@@ -427,12 +451,24 @@
       e.preventDefault();
       var u = { id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), league: st.league, date: $('rp-up-date').value,
         homeTeamId: $('rp-up-home').value, guestTeamId: $('rp-up-guest').value };
+      if ($('rp-up-kind').value) u.forfeit = $('rp-up-kind').value;
       if (!u.date || !u.homeTeamId || !u.guestTeamId) return;
       if (u.homeTeamId === u.guestTeamId) { msg('Heim und Gast müssen verschiedene Mannschaften sein.', true); return; }
       if (st.upcoming.some(function (x) { return sameFixture(x, u); })) { msg('Diesen Termin gibt es schon.', true); return; }
       st.upcoming.push(u);
       if (yearOf(u.date) !== st.year) { st.year = yearOf(u.date); pref('jahr', String(st.year)); }
       msg('');
+      $('rp-up-kind').value = '';
+      saveAll().then(renderAll);
+    });
+    // Art eines Termins ändern (Termin / Heim bzw. Gast nicht angetreten)
+    document.addEventListener('change', function (e) {
+      var sel = e.target.closest('[data-rp-ff]');
+      if (!sel) return;
+      st.upcoming.forEach(function (u) {
+        if (u.id !== sel.getAttribute('data-rp-ff')) return;
+        if (sel.value) u.forfeit = sel.value; else delete u.forfeit;
+      });
       saveAll().then(renderAll);
     });
     document.addEventListener('click', function (e) {
@@ -458,7 +494,13 @@
         var n = 0;
         data.upcoming.forEach(function (u) {
           if (!u || !u.date || !u.homeTeamId || !u.guestTeamId || !u.league) return;
-          if (st.upcoming.some(function (x) { return sameFixture(x, u); })) return;
+          if (u.forfeit !== 'home' && u.forfeit !== 'guest') delete u.forfeit;
+          var have = st.upcoming.filter(function (x) { return sameFixture(x, u); })[0];
+          if (have) {
+            // vorhandener Termin: nur die Art (kampflos) übernehmen, wenn sie sich unterscheidet
+            if ((have.forfeit || '') !== (u.forfeit || '')) { if (u.forfeit) have.forfeit = u.forfeit; else delete have.forfeit; n++; }
+            return;
+          }
           st.upcoming.push(u); n++;
         });
         msg(n + ' Termin(e) eingelesen.');

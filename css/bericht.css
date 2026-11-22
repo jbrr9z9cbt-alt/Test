@@ -23,6 +23,7 @@ body.report { background: var(--bg); }
 .rp-list td { padding: .35rem .4rem; border-top: 1px solid #e5e5e5; vertical-align: middle; }
 .rp-list td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rp-list td.act { text-align: right; width: 1%; white-space: nowrap; }
+.rp-list td select { width: auto; font-size: .9rem; padding: .2rem .35rem; }
 .rp-tag { display: inline-block; font-size: .72rem; padding: .05rem .4rem; border-radius: 4px; background: #fef3c7; color: #92400e; white-space: nowrap; }
 .rp-prev-h { font-size: 1.1rem; margin: 1.5rem 0 .5rem; }
 

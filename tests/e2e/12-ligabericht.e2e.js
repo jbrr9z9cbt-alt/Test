@@ -63,5 +63,49 @@ module.exports = {
     // Übersicht passt auf eine Seite
     const h = await r.$eval('#uebersicht', (e) => e.getBoundingClientRect().height / parseFloat(getComputedStyle(e).zoom || 1));
     assert.ok(h > 0, 'Übersicht dargestellt');
+  },
+
+  async 'Ligabericht: kampfloser Wettkampf (Mannschaft nicht angetreten) zählt 12:0 / 2:0, auch im direkten Vergleich'({ base, context }) {
+    const ctx = await context({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
+    const p = await ctx.newPage();
+    await newMatch(p, base, OL);
+    const tpl = (await dbMatches(p))[0];
+    const r = await ctx.newPage();
+    await r.goto(base + 'bericht.html'); await r.waitForSelector('#rp-league option', { state: 'attached' }); await wait(r, 300);
+    const t1 = '2026-11-02T10:00:00.000Z';
+    // Paderborn schlägt Mettingen, Bochum-Witten schlägt Kierspe; Mettingen – Bochum-Witten kampflos (Gast nicht angetreten)
+    await r.setInputFiles('#rp-files', [fileOf(tpl, 'a', '2026-09-19', 'T4', 'T1', 300, 'final', t1), fileOf(tpl, 'b', '2026-09-26', 'T3', 'T2', 300, 'final', t1)]);
+    await wait(r, 800);
+    await r.fill('#rp-up-date', '2026-11-07'); await r.selectOption('#rp-up-home', 'T1'); await r.selectOption('#rp-up-guest', 'T3');
+    await r.selectOption('#rp-up-kind', 'guest');
+    await r.click('#rp-up-form button[type=submit]'); await wait(r, 600);
+    const row = () => r.$eval('#uebersicht .rb-sec:first-child tbody tr.ff', (x) => ({ t: x.innerText.replace(/\s+/g, ' ').trim(),
+      win: [...x.querySelectorAll('td.tn')].map((td) => td.classList.contains('win')), pg: x.querySelector('.pg').textContent }));
+    const ff = await row();
+    assert.match(ff.t, /07\.11\.2026 KTS Mettingen TZ Bochum-Witten kampflos 12\s*:\s*0 2\s*:\s*0/, 'Ergebniszeile: ' + ff.t);
+    assert.deepEqual(ff.win, [true, false], 'Sieger fett');
+    assert.equal(ff.pg, '', 'ohne Protokollseite');
+    assert.match(await r.textContent('#uebersicht .rb-sec:first-child .rb-note'), /kampflos = Gegner nicht angetreten \(Gerätepunkte 12:0, Wettkampfpunkte 2:0\)/);
+    assert.match(await r.textContent('#uebersicht .ps-meta'), /3 von 3 Wettkämpfen gewertet/);
+    assert.deepEqual(await r.$$eval('#rp-pages .print-sheet', (s) => s.map((x) => x.id)), ['uebersicht', 'p2', 'p3'], 'nur die zwei Protokolle');
+    // Tabelle: Mettingen und Bochum-Witten gleich (2 Wettkampfpunkte, Differenz 0) – der kampflose Sieg entscheidet den direkten Vergleich
+    const tab = () => r.$$eval('#uebersicht .rb-sec:nth-child(2) tbody tr', (rs) => rs.map((x) => x.innerText.replace(/\s+/g, ' ').trim()));
+    let t = await tab();
+    assert.match(t[0], /^1\. SG Paderborn 1 1 0 0 12\s*:\s*0 \+12 2$/, t[0]);
+    assert.match(t[1], /^2\. KTS Mettingen 2 1 0 1 12\s*:\s*12 0 2$/, t[1]);
+    assert.match(t[2], /^3\. TZ Bochum-Witten 2 1 0 1 12\s*:\s*12 0 2$/, t[2]);
+    // Art in der Terminliste ändern: Heim nicht angetreten → Bochum-Witten gewinnt
+    await r.selectOption('#rp-upcoming select[data-rp-ff]', 'home'); await wait(r, 600);
+    assert.deepEqual((await row()).win, [false, true], 'nach Änderung gewinnt der Gast');
+    t = await tab();
+    assert.match(t[0], /^1\. TZ Bochum-Witten 2 2 0 0 24\s*:\s*0 \+24 4$/, t.join(' / '));
+    // Termine sichern und wieder einlesen: die Art wird mitgenommen
+    const [dl] = await Promise.all([r.waitForEvent('download'), r.click('#rp-up-save')]);
+    const saved = JSON.parse(require('fs').readFileSync(await dl.path(), 'utf8'));
+    assert.equal(saved.upcoming[0].forfeit, 'home', 'Art in der Termindatei');
+    await r.click('[data-rp-undel]'); await wait(r, 500);
+    assert.equal(await r.$('#uebersicht tr.ff'), null, 'Termin entfernt');
+    await r.setInputFiles('#rp-up-load', { name: 'termine.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(saved)) }); await wait(r, 600);
+    assert.deepEqual((await row()).win, [false, true], 'nach dem Einlesen wieder kampflos');
   }
 };

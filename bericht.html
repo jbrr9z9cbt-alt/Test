@@ -47,13 +47,16 @@
         <label>Datum <input type="date" id="rp-up-date" required></label>
         <label>Heim <select id="rp-up-home" required></select></label>
         <label>Gast <select id="rp-up-guest" required></select></label>
+        <label>Art <select id="rp-up-kind"><option value="">Termin</option><option value="home">Heim nicht angetreten</option><option value="guest">Gast nicht angetreten</option></select></label>
         <button class="btn primary" type="submit">Hinzufügen</button>
       </form>
       <div id="rp-upcoming"></div>
       <div class="rp-row rp-gap">
         <button class="btn" type="button" id="rp-up-save">Termine sichern</button>
         <label class="btn">Termine einlesen …<input type="file" id="rp-up-load" accept=".json,application/json" hidden></label>
-        <span class="muted small">Kommt später die Datei zu einem eingetragenen Termin, wird aus der Terminzeile die Ergebniszeile.</span>
+        <span class="muted small">Kommt später die Datei zu einem eingetragenen Termin, wird aus der Terminzeile die Ergebniszeile.
+          Ist eine Mannschaft nicht angetreten, bei „Art“ „Heim bzw. Gast nicht angetreten“ wählen: Der Wettkampf zählt dann kampflos
+          (Gerätepunkte 12:0, Wettkampfpunkte 2:0, ohne Protokoll).</span>
       </div>
     </section>
 
