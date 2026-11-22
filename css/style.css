@@ -1383,7 +1383,7 @@ table.ez tbody:first-of-type tr:first-child td { border-top: 0; }
 table.ez td.nr { border-left: 5px solid var(--team); font-weight: 700; color: #525252; padding-left: .5rem; }
 table.ez .ez-lead { margin-left: .2rem; font-size: .8rem; color: #171717; }
 table.ez td.ez-d { font-size: .78rem; color: #737373; padding-right: .7rem; }
-/* Verein: Spalte so breit wie „TZ Bochum-Witten“ (unsichtbarer Platzhalter im Kopf), längere Namen einzeilig mit „…“ */
+/* Verein: Spalte so breit wie „SG Wünnenberg/Elsen“ (unsichtbarer Platzhalter im Kopf), längere Namen einzeilig mit „…“ */
 table.ez .side-label { display: block; box-sizing: border-box; font-size: .72rem; font-weight: 700; text-transform: none; letter-spacing: 0;
   padding: .15rem .45rem; white-space: nowrap; line-height: 1.25; }
 table.ez th.tm .tm-size { width: auto; height: 0; padding-top: 0; padding-bottom: 0; visibility: hidden; overflow: hidden; }

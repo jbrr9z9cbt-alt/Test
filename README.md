@@ -65,7 +65,8 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   unverändert, darunter steht der Inhalt jeder Wertungskachel in **einer Zeile** – das ganze Gerät passt ohne Scrollen auf den
   Bildschirm (geprüft: Laptop 1280 × 800 und 1366 × 768 im Browser, 1536 × 864, Full HD, iPad mini, Air 11" und Pro 13" quer).
   Eine Tabelle mit Spaltenköpfen einmal oben, nur so breit wie nötig und mittig: Nr. (▶ = legt vor) · Verein (so breit wie
-  „TZ Bochum-Witten“, längere Namen einzeilig mit „…“, voller Name im Tooltip) · Turnerauswahl · E1 · E2 · (E3) · D-Note ·
+  „SG Wünnenberg/Elsen“, damit alle Vereinsnamen beider Ligen ganz passen; längere wie „SG Langenei-Kickenbach/Gleidorf“
+  einzeilig mit „…“, voller Name im Tooltip) · Turnerauswahl · E1 · E2 · (E3) · D-Note ·
   Stand · NA · E-Note · Endnote · „Sturz“ · „Eingeben“ bzw. „Ändern“; links an jeder Zeile die Farbleiste der Mannschaft.
   Oberliga: je Duell zwei Zeilen, links „Duell n“, rechts über beide die Scorepunkte mit ✓ (freigegeben) und darunter
   „unentschieden“ bzw. „Diff. …“. Landesliga: alle Übungen in Wettkampfreihenfolge (1.–8.), am Zeilenende „✓ freigegeben“

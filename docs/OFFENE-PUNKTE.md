@@ -16,10 +16,11 @@ Hinweise zur Umsetzung:
   07.11. Mettingen – Bochum-Witten (Gast nicht angetreten): „12 von 12 Wettkämpfen gewertet“, Tabelle stimmt.
 - Punkt 4: Die Zeilen werden direkt in der App erzeugt (dieselben Auswahlfelder und Knöpfe wie in den Kacheln). Gemessen
   auf allen 7 Querformaten der Liste ohne Scrollen und ohne Überbreite (Oberliga 967–1028 px, Landesliga 898–960 px breit),
-  auch mit laufendem „Sturz“ (der Knopf legt sich nach links über die noch leeren Wertungsfelder). Spalte „Verein“ genau so
-  breit wie „TZ Bochum-Witten“ – dadurch werden **„TG Geisweid/Eichen“ (4 px länger)** sowie in der Landesliga
-  „TuS Leopoldshöhe 2“, „SG Wünnenberg/Elsen“, „TV Jahn Plettenberg“ und „SG Langenei-Kickenbach/Gleidorf“ mit „…“
-  gekürzt (voller Name im Tooltip). „unentschieden“ und „Diff.“ stehen in der Duellspalte in zwei Zeilen.
+  auch mit laufendem „Sturz“ (der Knopf legt sich nach links über die noch leeren Wertungsfelder). Spalte „Verein“: Mit
+  der Breite von „TZ Bochum-Witten“ wären „TG Geisweid/Eichen“ (4 px länger) und in der Landesliga „TuS Leopoldshöhe 2“,
+  „TV Jahn Plettenberg“ und „SG Wünnenberg/Elsen“ knapp gekürzt worden. **Beschlossen 22.11.2026:** Spalte so breit wie
+  „SG Wünnenberg/Elsen“ (18 px mehr) – alle Namen ganz, nur „SG Langenei-Kickenbach/Gleidorf“ mit „…“ (voller Name im
+  Tooltip). „unentschieden“ und „Diff.“ stehen in der Duellspalte in zwei Zeilen.
 - Punkt 5: Einrasten auf der Seite selbst (nicht in einem eigenen Scrollbereich wie auf der Testseite) – am echten iPhone
   prüfen. Gemessen: fertiges Duell 523 px (Platz mit Leiste: iPhone 6,1" 566, 6,7" 642, Android 360 602 px), Startpaar
   468 px; Leiste passt auf 360 px. Browser-Tests für beide Ligen und für Tablet/Handy quer (ohne Leiste).

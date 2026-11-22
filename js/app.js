@@ -1447,12 +1447,15 @@
     if (m && document.getElementById('apparatus-panel')) rerenderPanel(m);
   });
 
-  /** Spaltenköpfe; „Verein“ ist so breit wie „TZ Bochum-Witten“ (unsichtbarer Platzhalter), längere Namen enden mit „…“. */
+  /**
+   * Spaltenköpfe; „Verein“ ist so breit wie „SG Wünnenberg/Elsen“ (unsichtbarer Platzhalter, beschlossen 22.11.2026): Alle
+   * Vereinsnamen passen ganz hinein, nur längere (z. B. „SG Langenei-Kickenbach/Gleidorf“) enden mit „…“.
+   */
   function rowHead(m, appKey) {
     var classic = isClassic(m), three = S.eJudgeCount(m.rules) === 3;
     var vals = ['E1', 'E2'].concat(three ? ['E3'] : [], ['D-Note'], appKey !== S.NO_BONUS_APPARATUS ? ['Stand'] : [], ['NA']);
     return '<thead><tr>' + (classic ? '' : '<th class="ez-d"></th>') + '<th>Nr.</th>' +
-      '<th class="tm">Verein<span class="side-label tm-size" aria-hidden="true">TZ Bochum-Witten</span></th><th>Turner</th>' +
+      '<th class="tm">Verein<span class="side-label tm-size" aria-hidden="true">SG Wünnenberg/Elsen</span></th><th>Turner</th>' +
       vals.map(function (v) { return '<th class="n">' + v + '</th>'; }).join('') + '<th class="n">E-Note</th><th class="n">Endnote</th>' +
       (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<th></th>' : '') + '<th></th>' + (classic ? '<th></th>' : '<th class="c">Duell</th>') + '</tr></thead>';
   }

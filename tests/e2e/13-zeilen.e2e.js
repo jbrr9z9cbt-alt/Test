@@ -35,10 +35,16 @@ module.exports = {
     assert.deepEqual(vals, ['1,0', '1,2', '4,6', '–', '–', '8,90', '13,50'], 'Werte in der Zeile: ' + vals.join(' | '));
     const res = await text(p, '[data-out="duel-SR-0"]') + ' ' + await text(p, '[data-out="duelact-SR-0"]');
     assert.match(res, /3\s*Diff\. 1,60\s*✓/, 'Scorepunkte, Differenz und ✓: ' + res);
-    // Verein: Spalte genau so breit wie „TZ Bochum-Witten“ – der Name passt ganz hinein, längere enden mit „…“
-    const lbl = await p.$$eval('table.ez td.tm .side-label', (l) => l.filter((e) => e.title === 'TZ Bochum-Witten').map((e) => ({ cut: e.scrollWidth > e.clientWidth + 1, w: e.clientWidth })));
+    // Verein: Spalte so breit wie „SG Wünnenberg/Elsen“ – alle Vereinsnamen der Oberliga ganz (auch „TG Geisweid/Eichen“)
+    const lbl = await p.$$eval('table.ez td.tm .side-label', (l) => l.map((e) => ({ n: e.title, cut: e.scrollWidth > e.clientWidth + 1, w: e.clientWidth })));
     const size = await p.$eval('table.ez th.tm .tm-size', (e) => e.clientWidth);
-    assert.ok(lbl.length && lbl.every((x) => !x.cut && x.w === size), '„TZ Bochum-Witten“ ganz, Spalte so breit wie der Name: ' + JSON.stringify(lbl) + ' / ' + size);
+    assert.ok(lbl.length && lbl.every((x) => !x.cut && x.w === size), 'Vereinsnamen ganz, Spalte so breit wie der Platzhalter: ' + JSON.stringify(lbl) + ' / ' + size);
+    const all = await p.evaluate(() => {
+      const l = document.querySelector('table.ez td.tm .side-label'), keep = l.textContent;
+      const out = window.TEAM_CONFIG.leagues.flatMap((g) => g.teams.map((t) => t.name)).filter((n) => { l.textContent = n; return l.scrollWidth > l.clientWidth + 1; });
+      l.textContent = keep; return out;
+    });
+    assert.deepEqual(all, ['SG Langenei-Kickenbach/Gleidorf'], 'nur Langenei-Kickenbach/Gleidorf wird gekürzt');
     // Sturz läuft: Tabelle und Seite werden nicht breiter
     const w0 = (await fit(p)).tw;
     const fb = `[data-action=fall-timer][data-app=SR][data-duel="1"]`;
