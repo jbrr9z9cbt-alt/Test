@@ -285,13 +285,71 @@ Absicherung:
   QR-Code des Oberkampfrichters lässt sich neu erzeugen (der alte wird ungültig). Gezeigt nur am Eingabegerät, nie am Beamer.
 - **Zuschauer (Schritt 2):** langer Lese-Link bzw. QR-Code, nur lesen, ohne kurzen Code.
 
+## Gesperrter Bildschirm und Hintergrund (geprüft 22.11.2026)
+
+**Befund:** Bei gesperrtem Bildschirm oder Browser im Hintergrund reißen die Verbindungen ab – auf iPhone/iPad wie auf
+Android (dort etwas später und je nach Gerät unterschiedlich). Verhindern lässt sich das nicht; deshalb Bildschirm wach
+halten, wo nötig, und überall sonst sauber wieder verbinden.
+
+- **iPhone / iPad** (Safari, auch installierte App): Im Hintergrund oder bei Sperre hält iOS die Seite nach kurzer Zeit an,
+  die Verbindung ist getrennt oder „tot“. Bekannter Fehler bis iOS 26: Nach der Rückkehr meldet die Verbindung manchmal
+  „verbunden“, liefert aber nichts, oder hängt beim Verbinden – alte Verbindung deshalb immer verwerfen und neu aufbauen,
+  als letzte Stufe Seite neu laden. **Bildschirm wach halten** (Screen Wake Lock) in Safari ab iOS 16.4, in der
+  installierten App ab **iOS 18.4** (März 2025).
+- **Android** (Chrome): Hintergrund-Tabs werden gedrosselt; Verbindungen sind zunächst geschützt, nach etwa 5 Minuten im
+  Hintergrund bzw. längerem Bildschirm-Aus aber angehalten oder getrennt. Berichte über still hängende Verbindungen –
+  dieselbe Absicherung wie bei iOS. Wake Lock wird unterstützt.
+- **Laptop**: Verbindungen in Hintergrund-Tab oder minimiertem Fenster bleiben bestehen. Kritisch ist nur der Ruhezustand
+  (Deckel zu, Energiesparen) – Wake Lock bei sichtbarer Seite und Netzteil.
+- Die App hat bisher kein Wake Lock (das Verstecken der Seite schreibt heute nur einen Sicherungspunkt). Wake Lock braucht
+  HTTPS, beim Hosting gegeben.
+
+**Folgerungen je Rolle**
+
+| Gerät | Risiko | Vorgehen |
+|---|---|---|
+| Tafelgerät (Laptop, Tablet) | Bildschirm schaltet ab, Gerät schläft ein | Im Tafelmodus Bildschirm **automatisch wach halten**, nach jeder Rückkehr neu anfordern. Anleitung: Netzteil anschließen; iPad als Rückfallebene automatische Sperre „Nie“, ggf. „Geführter Zugriff“. |
+| Eingabegerät als iPad oder Handy | Gesperrt oder im Hintergrund: nichts gesendet, keine Kampfrichter-Werte empfangen | Daten sicher (lokal gespeichert). Bei gekoppelten Geräten Bildschirm wach halten. Nach Rückkehr neu verbinden, ganzen Stand senden, eingegangene Kampfrichter-Werte nachholen. Tafel zeigt solange „Verbindung unterbrochen – letzter Stand …“. Laptop als Eingabegerät am unproblematischsten. |
+| Kampfrichter-Handy | Wird zwischen den Übungen hingelegt und sperrt sich | Erwartet. Beim Entsperren neu verbinden, bis dahin „verbinde …“ und Eingabe gesperrt, dann aktuelle Übung. Getippter, nicht gesendeter Wert bleibt erhalten und wird nachgesendet, wenn die Übung noch aktuell ist. Wach halten sinnvoll, abschaltbar (Akku). |
+| Zuschauer-Handy | Wie Kampfrichter | Bei Rückkehr neu verbinden, sofort letzten Stand zeigen (in der Kostenschätzung berücksichtigt). |
+
+**Regeln für das Wiederverbinden**
+- Bei Rückkehr (Seite wieder sichtbar) alte Verbindung immer verwerfen, nach kurzer Pause (etwa 0,5–1 s, iOS braucht sie
+  fürs Netz) neu aufbauen.
+- **Lebenszeichen** etwa alle 20–30 s; ohne Antwort nach etwa 5–10 s gilt die Verbindung als tot und wird neu aufgebaut
+  (erkennt auch stille Hänger).
+- **Zunehmende Wartezeiten** zwischen Versuchen (z. B. 1, 2, 5, 10, dann alle 30 s) – schützt die Tagesgrenzen von
+  Cloudflare vor Endlosschleifen.
+- **Neu laden als letzte Stufe** bei wiederholtem Fehlschlag (Kampfrichter-, Zuschauerseite; Tafelgerät ohne Datenverlust,
+  Zugangsdaten gespeichert).
+- Kosten der Lebenszeichen: 300 Zuschauer × alle 30 s × 3 Stunden ≈ 108.000 Nachrichten ≈ 5.400 Anfragen – passt.
+  Cloudflare kann Lebenszeichen automatisch beantworten, ohne den Raum zu wecken; ob sie dann zählen, bei der Umsetzung
+  prüfen.
+
+**Mit echten Geräten zu testen**
+- iPad und iPhone mit iOS 18/26, Browser und installierte App: Wachhalten, Rückkehr nach Sperre, Anruf, App-Wechsel.
+- iPhone im Stromsparmodus: bleibt das Wachhalten wirksam?
+- Android mit 1–2 Geräten verschiedener Hersteller (z. B. Samsung, eigene strengere Energiesparregeln).
+- Laptop über Stunden als Tafel.
+
+Quellen: [Safari 18.4 Release Notes](https://developer.apple.com/documentation/safari-release-notes/safari-18_4-release-notes.md),
+[WebKit-Bug 254545](https://bugs.webkit.org/show_bug.cgi?id=254545),
+[MDN: Screen Wake Lock API](https://developer.mozilla.org/docs/Web/API/Screen_Wake_Lock_API),
+[caniuse: Wake Lock](https://caniuse.com/wake-lock),
+[WebKit-Bug 308073](https://bugs.webkit.org/show_bug.cgi?id=308073),
+[Apple-Forum: WebSocket im Hintergrund](https://developer.apple.com/forums/thread/716118),
+[Chrome: Hintergrund-Tabs](https://developer.chrome.com/blog/background_tabs?hl=en),
+[Chromium blink-dev: Background Timer Throttling](https://groups.google.com/a/chromium.org/g/blink-dev/c/XRqy8mIOWps),
+[Mozilla-Bug 1944288](https://bugzilla.mozilla.org/show_bug.cgi?id=1944288),
+[DEV: WebSockets stall on Android](https://dev.to/jitchakraborty/websockets-can-stall-without-disconnecting-and-its-worse-on-android-3n6e)
+
 ## Vor der Umsetzung zu prüfen
 
 - ~~Grenzen und Kosten von Cloudflare Workers mit Durable Objects~~ – erledigt 22.11.2026, siehe oben. Offen bleibt der
   Lasttest mit vielen Zuschauern.
 - ~~Aufbau des Kopplungscodes~~ – erledigt 22.11.2026, siehe „Kopplungscode“.
-- Verhalten von iPad und iPhone bei gesperrtem Bildschirm und im Hintergrund: Wiederverbinden und Bildschirm wach halten am
-  Tafelgerät.
+- ~~Verhalten bei gesperrtem Bildschirm und im Hintergrund (iPhone, iPad, Android)~~ – erledigt 22.11.2026, siehe
+  „Gesperrter Bildschirm und Hintergrund“. Offen bleiben die Tests mit echten Geräten.
 - Wo der Dienst-Code liegt und wie er veröffentlicht wird, z. B. als eigener Ordner im Repository.
 
 ## Mögliche spätere Ergänzungen
