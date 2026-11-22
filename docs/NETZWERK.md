@@ -52,8 +52,8 @@ App-Entwicklung.
   weiter, die er nicht lesen kann.
 - Der Dienst hält nur den **letzten Stand** eines Raums, damit ein neu verbundenes Gerät sofort etwas zeigt. Er löscht alles
   automatisch, z. B. 24 Stunden nach der letzten Änderung.
-- **Vorgesehener Anbieter:** Cloudflare Workers mit einem Raum je Kopplung. Vor der Umsetzung sind die Grenzen des
-  kostenlosen Rahmens zu prüfen. Kosten: voraussichtlich 0 €, mit Zuschauern zur Sicherheit etwa 5 $ im Monat.
+- **Vorgesehener Anbieter:** Cloudflare Workers mit Durable Objects, ein Raum je Kopplung. Grenzen und Kosten geprüft
+  (siehe „Cloudflare: Grenzen und Kosten“): kostenloser Tarif reicht, ab den Zuschauern bezahlter Tarif ab 5 $ im Monat.
 - Der Dienst trägt auch den **Rückweg** von den Kampfrichter-Handys zum Eingabegerät (Schritt 3).
 - **Datenvolumen:** pro Wettkampf und Gerät voraussichtlich unter 10 MB.
 
@@ -203,9 +203,52 @@ bleibt jederzeit vollständig möglich.
   verschlüsselte Daten und die IP-Adressen der Handys.
 - Erwartung: kein grundsätzliches Hindernis.
 
+## Cloudflare: Grenzen und Kosten (geprüft 22.11.2026)
+
+Nach der Dokumentation von Cloudflare (Stand 22.11.2026). Bedarf geschätzt für 3 Wettkämpfe an einem Tag mit Tafeln,
+Kampfrichter-Handys und etwa 300 Zuschauern je Wettkampf.
+
+| Grenze im kostenlosen Tarif (pro Tag, Rückstellung 00:00 UTC) | Wert | Geschätzter Bedarf |
+|---|---|---|
+| Anfragen | 100.000 | etwa 10.000–30.000 |
+| Laufzeit („Duration“) | 13.000 GB-s | höchstens etwa 5.500 |
+| Rechenzeit je Anfrage | 10 ms | wenige ms (Daten nur weiterreichen) |
+| Schreibvorgänge in den Speicher | 100.000 Zeilen | etwa 6.000 |
+| Speicher | 5 GB | wenige KB (nur der letzte Stand je Raum) |
+
+**Grundlage der Schätzung**
+- Ein Verbindungsaufbau zählt als eine Anfrage; ankommende WebSocket-Nachrichten zählen im Verhältnis 20 : 1, ausgehende gar
+  nicht.
+- Eingabegerät: etwa 1.000 Nachrichten je Wettkampf (rund 50 Anfragen). Kampfrichter-Handys: 48 Übungen × etwa 15
+  Nachrichten (rund 36 Anfragen).
+- Größter Posten sind neue Verbindungen der Zuschauer nach Bildschirmsperre: 300 Zuschauer × bis zu 30 = etwa 9.000 je
+  Wettkampf.
+- Mit der WebSocket-„Hibernation“ kosten ruhende Verbindungen keine Laufzeit. Selbst bei 4 Stunden ununterbrochen aktivem
+  Raum je Wettkampf (128 MB) wären es nur etwa 5.500 GB-s.
+
+**Risiken**
+- Beim Erreichen einer Tagesgrenze verweigert der Dienst bis 00:00 UTC (keine Mehrkosten, aber Tafeln und Handys stehen;
+  der Wettkampf am Eingabegerät läuft weiter). Realistisch nur durch einen Fehler, z. B. Endlosschleife beim Wiederverbinden
+  – dagegen absichern (Wartezeiten zwischen Verbindungsversuchen) und testen.
+- Die 10 ms Rechenzeit beim Verteilen an etwa 300 Zuschauer sind mit einem Lasttest zu bestätigen.
+
+**Kosten und Empfehlung**
+- Entwicklung, Tests und Schritt 1: **kostenloser Tarif**.
+- Spätestens mit den Zuschauern: **bezahlter Tarif ab 5 $ im Monat** (etwa 60 $ im Jahr zzgl. MwSt.). Enthalten sind
+  1 Mio. Anfragen und 400.000 GB-s im Monat, ohne harte Tagesgrenze; darüber 0,15 $ je Million Anfragen und 12,50 $ je
+  Million GB-s. Bei unserer Menge bleibt es praktisch bei 5 $.
+- Adresse unter `workers.dev` kostenlos, eigene Domain optional.
+
+Quellen: [Durable Objects – Preise](https://developers.cloudflare.com/durable-objects/platform/pricing/),
+[Durable Objects – Grenzen](https://developers.cloudflare.com/durable-objects/platform/limits/),
+[Durable Objects – WebSockets](https://developers.cloudflare.com/durable-objects/best-practices/websockets/),
+[Workers – Preise](https://developers.cloudflare.com/workers/platform/pricing/),
+[Workers – Grenzen](https://developers.cloudflare.com/workers/platform/limits/)
+
 ## Vor der Umsetzung zu prüfen
 
-- Grenzen und Kosten von Cloudflare Workers mit Durable Objects, vor allem für WebSockets und viele Zuschauer.
+- ~~Grenzen und Kosten von Cloudflare Workers mit Durable Objects~~ – erledigt 22.11.2026, siehe oben. Offen bleibt der
+  Lasttest mit vielen Zuschauern.
 - Aufbau des Codes: Länge und Zeichen (gut abzulesen, keine Verwechslung von 0/O, 1/I), Sicherheit gegen Erraten und
   Gültigkeitsdauer.
 - Verhalten von iPad und iPhone bei gesperrtem Bildschirm und im Hintergrund: Wiederverbinden und Bildschirm wach halten am
