@@ -1006,7 +1006,8 @@ html.sd-open, body.sd-open { overflow: hidden; }
 .sd-set select { width: auto; padding: .1rem .3rem; font-size: 16px; }
 /* Zahlentastatur: rechts neben den Feldern (breite Bildschirme), sonst darunter */
 .sd-win.kp, .dc-win.kp { width: min(1100px, 100%); }
-.sd-pad { flex: 0 0 19rem; display: flex; flex-direction: column; border-left: 1px solid #e5e5e5; padding-left: 1rem; }
+/* min-width 0: Die Tastatur behält ihre Breite; eine zu lange Zeile darüber kürzt nur den Namen mit „…“ */
+.sd-pad { flex: 0 0 19rem; min-width: 0; display: flex; flex-direction: column; border-left: 1px solid #e5e5e5; padding-left: 1rem; }
 .sd-disp { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 0 .2rem .35rem; height: 2.6rem; flex: none; }
 .sd-disp .w { font-size: .82rem; color: #525252; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sd-disp .val { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }

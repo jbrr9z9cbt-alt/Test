@@ -80,6 +80,28 @@ module.exports = {
     assert.equal(await p.$$eval('#score-dlg .sd-keys button.down', (bs) => bs.length), 0, 'nach dem Loslassen nicht mehr grau');
   },
 
+  async 'Zahlentastatur am iPad quer: Breite bleibt beim Tippen gleich (langer Name, breiter Wert)'({ base, context }) {
+    const ctx = await context({ viewport: { width: 1024, height: 768 }, hasTouch: true, isMobile: true });
+    const p = await ctx.newPage();
+    await newMatch(p, base, OL, { keypad: 'on' });
+    await p.click('[data-action=score-open][data-app=FX][data-duel="0"][data-side=home]');
+    // Turner mit dem längsten Namen wählen
+    const v = await p.$eval('#score-dlg select[data-dlg=gymnast]', (s) => [...s.options].filter((o) => /^[TL]\d+-\d+$/.test(o.value) && !o.disabled)
+      .sort((a, b) => b.text.length - a.text.length)[0].value);
+    await p.selectOption('#score-dlg select[data-dlg=gymnast]', v); await wait(p, 150);
+    const width = (sel) => p.$eval(sel, (e) => Math.round(e.getBoundingClientRect().width));
+    const w0 = await width('#score-dlg .sd-pad');
+    for (const k of ['1', '1', '1']) await p.click(`#score-dlg [data-action=sd-key][data-k="${k}"]`);
+    assert.equal(await p.$eval('#score-dlg [data-dlg=e1]', (b) => b.textContent.trim()), '11,1');
+    assert.equal(await width('#score-dlg .sd-pad'), w0, 'Tastatur bleibt ' + w0 + ' px breit');
+    // D-Note-Rechner ebenso
+    await p.click('#score-dlg [data-action=dc-open]'); await wait(p, 200);
+    const d0 = await width('#score-dlg .dc-win .sd-pad');
+    await p.click('#score-dlg [data-action=dc-field][data-dc=EG]');
+    for (const k of ['1', '1', '1']) await p.click(`#score-dlg [data-action=dc-key][data-k="${k}"]`);
+    assert.equal(await width('#score-dlg .dc-win .sd-pad'), d0, 'Rechner-Tastatur bleibt ' + d0 + ' px breit');
+  },
+
   async 'Zahlentastatur: Tastenton je Gerät einstellbar, Grundeinstellung aus'({ base, context }) {
     const { devices } = require('playwright');
     const p = await (await context(devices['iPhone 13'])).newPage();
