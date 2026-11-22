@@ -67,10 +67,10 @@ module.exports = {
     const fb = '[data-action=fall-timer][data-app=SR][data-duel="0"][data-side=home]';
     await p.click(fb); await wait(p, 300);
     await longClick(fb);
-    assert.equal(await p.$eval(fb, (b) => b.classList.contains('t-fall1')), false, 'Sturz-Timer gestoppt');
+    assert.equal(await p.$eval(fb, (b) => b.classList.contains('t-fall1')), false, 'Sturz gestoppt');
   },
 
-  async 'Sturz-Timer: 30 s gelb, dann rot mit Abzug 0,3, danach Übung beendet'({ base, context }) {
+  async 'Sturz: 30 s gelb, dann rot mit Abzug 0,3, danach Übung beendet'({ base, context }) {
     const ctx = await context();
     await ctx.clock.install();
     const p = await ctx.newPage();

@@ -1365,3 +1365,57 @@ body.board-light .gb-clock { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,
   body.match-page .tb-ribbon .menu-pop { gap: .3rem; }
   .tb-ribbon .menu-pop hr { margin: 0 .1rem; }
 }
+
+/* ---------- Querformat ab 1100 px: Wertungen einzeilig (js: rowsPanel) ----------
+   Eine Tabelle, nur so breit wie nötig und mittig; Spaltenköpfe einmal oben. Der obere Bereich bleibt unverändert. */
+.card-head.ez-head { margin-bottom: .35rem; }
+.ez-head .app-sum { margin-left: auto; }
+.ez-head .deduct-row { margin: 0; gap: .8rem; }
+.ez-head .deduct-row .linkish { font-size: .78rem; }
+table.ez { border-collapse: separate; border-spacing: 0; margin: 0 auto -.4rem; width: auto; font-variant-numeric: tabular-nums; }
+table.ez th { font-size: .72rem; font-weight: 600; color: #737373; text-align: left; padding: 0 .32rem .2rem; white-space: nowrap; vertical-align: bottom; }
+table.ez th.n, table.ez td.n { text-align: right; }
+table.ez th.c { text-align: center; }
+table.ez td { padding: .1rem .32rem; white-space: nowrap; vertical-align: middle; border-top: 1px solid #e5e5e5; }
+table.ez tbody.ez-duel tr:first-child td { border-top: 2px solid #cfcfcf; }
+table.ez tbody:first-of-type tr:first-child td { border-top: 0; }
+/* Nr. mit Farbleiste der Mannschaft; ▶ = legt vor (wie im Protokoll) */
+table.ez td.nr { border-left: 5px solid var(--team); font-weight: 700; color: #525252; padding-left: .5rem; }
+table.ez .ez-lead { margin-left: .2rem; font-size: .8rem; color: #171717; }
+table.ez td.ez-d { font-size: .78rem; color: #737373; padding-right: .7rem; }
+/* Verein: Spalte so breit wie „TZ Bochum-Witten“ (unsichtbarer Platzhalter im Kopf), längere Namen einzeilig mit „…“ */
+table.ez .side-label { display: block; box-sizing: border-box; font-size: .72rem; font-weight: 700; text-transform: none; letter-spacing: 0;
+  padding: .15rem .45rem; white-space: nowrap; line-height: 1.25; }
+table.ez th.tm .tm-size { width: auto; height: 0; padding-top: 0; padding-bottom: 0; visibility: hidden; overflow: hidden; }
+table.ez td.tm .side-label { width: 0; min-width: 100%; max-width: none; overflow: hidden; text-overflow: ellipsis;
+  background: var(--team, #737373); color: var(--team-fg, #fff); border-radius: 4px; }
+table.ez td.gy select { width: 12.3rem; max-width: 12.3rem; padding-top: .22rem; padding-bottom: .22rem; }
+table.ez td.n { font-size: 1.05rem; font-weight: 600; min-width: 2.1rem; }
+table.ez td.n.empty { color: #b5b5b5; font-weight: 400; }
+table.ez td.fin { font-size: 1.25rem; font-weight: 800; }
+table.ez td.note { text-align: center; font-style: italic; color: #737373; font-weight: 400; font-size: .95rem; }
+table.ez tr.struck td.fin { text-decoration: line-through; color: #a3a3a3; }
+table.ez td.tb .btn, table.ez td.bt .btn { margin: 0; white-space: nowrap; padding-top: .32rem; padding-bottom: .32rem; }
+table.ez td.bt .btn { min-width: 5.6rem; justify-content: center; }
+/* „Sturz“: läuft der Timer, legt sich der breitere Knopf nach links über die (dann noch leeren) Wertungsfelder – die Tabelle
+   behält ihre Breite */
+table.ez td.tb { position: relative; }
+table.ez td.tb .timer-btn.t-fall1, table.ez td.tb .timer-btn.t-fall2 { position: absolute; right: .32rem; top: 50%; transform: translateY(-50%); z-index: 3;
+  box-shadow: 0 0 0 4px var(--card); }
+/* Oberliga: Scorepunkte des Duells über beide Zeilen, ✓ daneben, darunter „unentschieden“ bzw. „Diff.“ */
+table.ez td.ez-res { text-align: center; border-left: 1px solid #e5e5e5; width: 5.6rem; white-space: normal; }
+table.ez .ez-res-in { display: grid; grid-template-columns: 1fr auto auto 1fr; grid-template-areas: ". pts act ." "diff diff diff diff"; align-items: center; column-gap: .3rem; }
+table.ez .ez-res-in > .ez-pts { display: contents; }
+table.ez .ez-res-in .duel-pts, table.ez .ez-res-in .duel-open { grid-area: pts; }
+table.ez .ez-res-in .duel-pts { font-size: 1.6rem; line-height: 1; }
+table.ez .ez-res-in .duel-diff { grid-area: diff; flex-basis: auto; font-size: .68rem; line-height: 1.2; color: #737373; }
+table.ez .ez-res-in .dd-u { display: block; }
+table.ez .ez-res-in .dd-sep, table.ez .ez-act .rv-t { display: none; }
+table.ez .ez-res-in > .ez-act { grid-area: act; font-size: 1rem; font-weight: 700; }
+table.ez .ez-act .revealed { font-size: 1rem; }
+table.ez .ez-act .changed { flex-basis: auto; font-size: .72rem; }
+/* Landesliga: Stand am Zeilenende */
+table.ez td.ez-st { font-size: .78rem; }
+/* offene Korrektur bzw. gesperrt (wie die Kacheln) */
+table.ez tbody.pending td, table.ez tr.pending td { background: #fffbeb; }
+table.ez tbody.blocked, table.ez tr.blocked { opacity: .55; }

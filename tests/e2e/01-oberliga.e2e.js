@@ -49,7 +49,7 @@ module.exports = {
     // kein Turner: direkt freigeben aus der Kachel
     await p.selectOption('select[data-field=gymnast][data-app=FX][data-duel="0"][data-side=home]', '__none');
     await wait(p, 300);
-    assert.match(await text(p, '.side[data-key="FX-0-home"] .score-btn'), /Wertung freigeben/);
+    assert.match(await text(p, '[data-key="FX-0-home"] .score-btn'), /^Freigeben$/, 'Zeilenansicht (Laptop): kurze Beschriftung');
     // Wertung 0,00 mit Rückfrage, wenn schon Werte eingetragen sind
     await p.click('[data-action=score-open][data-app=FX][data-duel="0"][data-side=guest]');
     const sel = await p.$eval('#score-dlg select[data-dlg=gymnast]', (s) => [...s.options].find((o) => /^T\d+-\d+$/.test(o.value) && !o.disabled).value);

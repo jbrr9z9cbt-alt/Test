@@ -1253,15 +1253,16 @@
    * Gesperrt nur im abgeschlossenen Wettkampf und solange eine andere Korrektur offen ist –
    * ohne Turner anklickbar (der Turner wird dann im Fenster gewählt).
    */
-  function scoreButton(m, appKey, idx, sideKey, side, locked) {
+  function scoreButton(m, appKey, idx, sideKey, side, locked, short) {
     var shown = sideShown(m, appKey, idx, sideKey);
     var entered = !side.dns && S.sideFinal(side, m.rules) !== null;
     var change = shown || (!isClassic(m) && (entered || (side.dns && side.dnsReleased)));
     var off = locked;
     var attrs = ' data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"' + (off ? ' disabled' : '');
     // „kein Turner“: nichts einzutippen – direkt in der Kachel freigeben (ohne Fenster).
-    if (side.dns && !change) return '<button type="button" class="btn primary score-btn" data-action="dns-release"' + attrs + '>Wertung freigeben</button>';
-    return '<button type="button" class="btn ' + (change ? '' : 'primary ') + 'score-btn" data-action="score-open"' + attrs + '>' + (change ? 'Wertung ändern' : 'Wertung eingeben') + '</button>';
+    if (side.dns && !change) return '<button type="button" class="btn primary score-btn" data-action="dns-release"' + attrs + '>' + (short ? 'Freigeben' : 'Wertung freigeben') + '</button>';
+    return '<button type="button" class="btn ' + (change ? '' : 'primary ') + 'score-btn" data-action="score-open"' + attrs + '>' +
+      (short ? (change ? 'Ändern' : 'Eingeben') : change ? 'Wertung ändern' : 'Wertung eingeben') + '</button>';
   }
 
   /**
@@ -1284,14 +1285,14 @@
   }
 
   /**
-   * Knopf „Sturz-Timer“ (Kachel und Wertungsfenster). Gesperrt wie die Turnerauswahl – nach der Freigabe, bei „kein Turner“
+   * Knopf „Sturz“ (Kachel, Zeile und Wertungsfenster). Gesperrt wie die Turnerauswahl – nach der Freigabe, bei „kein Turner“
    * und im abgeschlossenen Wettkampf –, außer sein Timer läuft gerade: dann bleibt er bis zum Stopp bzw. Ablauf bedienbar.
    */
   function fallButton(m, appKey, idx, sideKey, off) {
     var f = fallState(m);
     var running = !!f && f.t.appKey === appKey && f.t.idx === idx && f.t.side === sideKey;
     return '<button type="button" class="btn small timer-btn" tabindex="-1" data-action="fall-timer" data-app="' + appKey + '" data-duel="' + idx + '" data-side="' + sideKey + '"' +
-      (off ? ' data-off="1"' + (running ? '' : ' disabled') : '') + '>Sturz-Timer</button>';
+      (off ? ' data-off="1"' + (running ? '' : ' disabled') : '') + '>Sturz</button>';
   }
 
   function sideHtml(m, appKey, idx, sideKey, side, locked, position, struck) {
@@ -1323,7 +1324,7 @@
     var n = r.winner === 'home' ? r.homePoints : r.winner === 'guest' ? r.guestPoints : 0;
     var num = r.winner === 'draw' ? '<span class="sp-num draw0">0</span>' : pts(m, r.winner, n);
     return '<span class="duel-pts">' + num + '</span>' +
-      '<span class="duel-diff">' + (r.winner === 'draw' ? 'unentschieden · ' : '') + 'Diff. ' + fmt(r.diff) + '</span>';
+      '<span class="duel-diff">' + (r.winner === 'draw' ? '<span class="dd-u">unentschieden</span><span class="dd-sep"> · </span>' : '') + 'Diff. ' + fmt(r.diff) + '</span>';
   }
 
   /**
@@ -1338,11 +1339,96 @@
   /** Knöpfe unter der zweiten Übung – in der Tab-Reihenfolge als Letztes im Duell. */
   /** Mittelspalte (Oberliga): nur noch der Stand – freigegeben wird im Wertungsfenster. */
   function duelActions(r, duel) {
-    if (S.hasPendingCorrection(duel)) return '<span class="changed">geändert – noch nicht freigegeben</span>';
-    return duel.revealedAt ? '<span class="revealed">✓ freigegeben</span>' : '';
+    if (S.hasPendingCorrection(duel)) return '<span class="changed" title="geändert – noch nicht freigegeben">geändert<span class="rv-t"> – noch nicht freigegeben</span></span>';
+    return duel.revealedAt ? '<span class="revealed" title="freigegeben">✓<span class="rv-t"> freigegeben</span></span>' : '';
+  }
+
+  // ---------- Querformat ab 1100 px: Wertungen einzeilig (ganzes Gerät ohne Scrollen) ----------
+
+  /**
+   * Laptop und iPad quer ab 1100 px Breite: der Inhalt jeder Wertungskachel steht in einer Zeile einer Tabelle, die nur so
+   * breit ist wie nötig. Hochkant, Handys und schmalere Fenster (z. B. iPad 10,2" quer) behalten die Kacheln.
+   */
+  var ROWS_MQ = window.matchMedia('(min-width: 1100px) and (orientation: landscape)');
+  function rowLayout() { return ROWS_MQ.matches; }
+  ROWS_MQ.addEventListener('change', function () {
+    var r = route(), m = r.name === 'match' ? match(r.id) : null;
+    if (m && document.getElementById('apparatus-panel')) rerenderPanel(m);
+  });
+
+  /** Spaltenköpfe; „Verein“ ist so breit wie „TZ Bochum-Witten“ (unsichtbarer Platzhalter), längere Namen enden mit „…“. */
+  function rowHead(m, appKey) {
+    var classic = isClassic(m), three = S.eJudgeCount(m.rules) === 3;
+    var vals = ['E1', 'E2'].concat(three ? ['E3'] : [], ['D-Note'], appKey !== S.NO_BONUS_APPARATUS ? ['Stand'] : [], ['NA']);
+    return '<thead><tr>' + (classic ? '' : '<th class="ez-d"></th>') + '<th>Nr.</th>' +
+      '<th class="tm">Verein<span class="side-label tm-size" aria-hidden="true">TZ Bochum-Witten</span></th><th>Turner</th>' +
+      vals.map(function (v) { return '<th class="n">' + v + '</th>'; }).join('') + '<th class="n">E-Note</th><th class="n">Endnote</th>' +
+      (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<th></th>' : '') + '<th></th>' + (classic ? '<th></th>' : '<th class="c">Duell</th>') + '</tr></thead>';
+  }
+
+  function rowValues(m, appKey, side) {
+    var three = S.eJudgeCount(m.rules) === 3, bonus = appKey !== S.NO_BONUS_APPARATUS;
+    if (side.dns || side.zero) return '<td class="n note" colspan="' + (4 + (three ? 1 : 0) + (bonus ? 1 : 0)) + '">' + (side.dns ? 'kein Turner' : 'Wertung 0,00') + '</td>';
+    var num = function (x) { return x === null || x === undefined ? '' : fmt1(x); };
+    var cell = function (v) { return '<td class="n' + (v ? '' : ' empty') + '">' + (v || '–') + '</td>'; };
+    return cell(num(side.e1)) + cell(num(side.e2)) + (three ? cell(num(side.e3)) : '') + cell(num(side.d)) +
+      (bonus ? cell(side.bonus ? '+0,1' : '') : '') + cell(side.nd ? fmt1(side.nd) : '');
+  }
+
+  /** Eine Übung als Tabellenzeile – dieselben Felder und Knöpfe wie in der Kachel (lead/tail: Zellen davor/dahinter). */
+  function rowHtml(m, appKey, idx, sideKey, side, locked, position, struck, lead, tail) {
+    var classic = isClassic(m), color = sideColor(m, sideKey), key = appKey + '-' + idx + '-' + sideKey;
+    var d = m.apparatus[appKey].duels[idx], shown = sideShown(m, appKey, idx, sideKey);
+    var teamId = sideKey === 'home' ? m.homeTeamId : m.guestTeamId;
+    var cls = 'ez-row ' + sideKey + (side.dns ? ' dns' : '') + (struck ? ' struck' : '') +
+      (classic && S.sidePending(d, sideKey) ? ' pending' : '') + (classic && locked && m.status !== 'final' ? ' blocked' : '');
+    return '<tr class="' + cls + '" data-key="' + key + '" style="--team:' + color.hex + ';--team-fg:' + color.fg + '">' + (lead || '') +
+      '<td class="nr" title="' + (classic ? 'Startposition am Gerät' : position === 1 ? 'legt vor' : 'Startreihenfolge im Duell') + '">' + position + '.' +
+      (!classic && position === 1 ? '<span class="ez-lead" aria-label="legt vor">▶</span>' : '') + '</td>' +
+      '<td class="tm"><span class="side-label" title="' + esc(teamName(teamId)) + '">' + esc(teamName(teamId)) + '</span></td>' +
+      '<td class="gy">' + gymnastSelect(m, appKey, idx, sideKey, side, locked || shown) + '</td>' +
+      rowValues(m, appKey, side) +
+      '<td class="n en" data-out="enote-' + key + '">' + fmt(S.eScore(side, m.rules)) + '</td>' +
+      '<td class="n fin" data-out="final-' + key + '">' + fmt(S.sideFinal(side, m.rules)) + '</td>' +
+      (FALL_TIMER_APPARATUS.indexOf(appKey) >= 0 ? '<td class="tb">' + fallButton(m, appKey, idx, sideKey, locked || side.dns || shown) + '</td>' : '') +
+      '<td class="bt">' + scoreButton(m, appKey, idx, sideKey, side, locked, true) + '</td>' + (tail || '') + '</tr>';
+  }
+
+  /**
+   * Gerät als Tabelle. Oberliga: je Duell zwei Zeilen (vorlegender Turner zuerst), rechts über beide die Scorepunkte mit ✓.
+   * Landesliga: alle Übungen in Wettkampfreihenfolge, am Zeilenende der Stand; Mannschaftsabzug in der Kopfzeile.
+   * DOM-Reihenfolge = Wettkampfreihenfolge (Tabulatortaste).
+   */
+  function rowsPanel(m, appKey) {
+    var a = S.APPARATUS.filter(function (x) { return x.key === appKey; })[0];
+    var app = m.apparatus[appKey], ar = S.apparatusResult(app, m.rules), classic = isClassic(m), body;
+    if (classic) {
+      var list = [];
+      app.duels.forEach(function (d, i) { ['home', 'guest'].forEach(function (k) { list.push({ i: i, k: k, pos: S.classicPosition(m, appKey, i, k) }); }); });
+      list.sort(function (x, y) { return x.pos - y.pos; });
+      body = '<tbody>' + list.map(function (x) {
+        var d = app.duels[x.i], key = appKey + '-' + x.i + '-' + x.k;
+        return rowHtml(m, appKey, x.i, x.k, d[x.k], duelBlocked(m, appKey, x.i, x.k), x.pos, ar[x.k].struck.indexOf(x.i) >= 0, '',
+          '<td class="ez-st"><span class="side-status" data-out="sideact-' + key + '">' + sideActions(m, d, appKey, x.i, x.k) + '</span></td>');
+      }).join('') + '</tbody>';
+    } else {
+      body = app.duels.map(function (d, i) {
+        var locked = duelBlocked(m, appKey, i), order = S.startOrder(m, appKey, i);
+        var cls = 'ez-duel' + (S.hasPendingCorrection(d) ? ' pending' : '') + (locked && m.status !== 'final' ? ' blocked' : '');
+        return '<tbody class="' + cls + '">' +
+          rowHtml(m, appKey, i, order[0], d[order[0]], locked, 1, false, '<td class="ez-d" rowspan="2">Duell ' + (i + 1) + '</td>',
+            '<td class="ez-res" rowspan="2"><div class="ez-res-in"><span class="ez-pts" data-out="duel-' + appKey + '-' + i + '">' + duelPoints(m, ar.duels[i]) + '</span>' +
+            '<span class="ez-act" data-out="duelact-' + appKey + '-' + i + '">' + duelActions(ar.duels[i], d) + '</span></div></td>') +
+          rowHtml(m, appKey, i, order[1], d[order[1]], locked, 2, false) + '</tbody>';
+      }).join('');
+    }
+    return '<div class="card-head ez-head"><h3>' + a.name + '</h3><div class="app-sum" data-out="app-sum">' + appSumHtml(m, ar) + '</div>' +
+      (classic ? deductionLinks(m) : '') + '</div>' +
+      '<table class="ez' + (classic ? ' ll' : '') + '">' + rowHead(m, appKey) + body + '</table>';
   }
 
   function apparatusPanel(m, appKey) {
+    if (rowLayout()) return rowsPanel(m, appKey);
     if (isClassic(m)) return classicPanel(m, appKey);
     var a = S.APPARATUS.filter(function (x) { return x.key === appKey; })[0];
     var app = m.apparatus[appKey];
@@ -1466,11 +1552,11 @@
           var act = $app.querySelector('[data-out="sideact-' + key + '"]');
           var html = sideActions(m, d, tab, i, k);
           if (act && act.innerHTML !== html) act.innerHTML = html;
-          var cell = act && act.closest('.cl-cell');
+          var cell = act && act.closest('.cl-cell, .ez-row');
           if (cell) cell.classList.toggle('pending', S.sidePending(d, k));
           out('enote-' + key, fmt(S.eScore(d[k], m.rules)));
           out('final-' + key, fmt(S.sideFinal(d[k], m.rules)));
-          var sideEl = $app.querySelector('.side[data-key="' + key + '"]');
+          var sideEl = $app.querySelector('#apparatus-panel [data-key="' + key + '"]');
           if (sideEl) sideEl.classList.toggle('struck', ar[k].struck.indexOf(i) >= 0);
         });
       });
@@ -2511,7 +2597,7 @@
       // Laufend: Sekunden auf festem Platz, unsichtbar darunter die längste Beschriftung – der Knopf behält während des
       // ganzen Laufs seine Breite (am iPad blieben sonst Reste der alten Umrandung stehen); geblinkt wird nur die Zahl.
       var label = on ? '<span class="fall-lbl"><span>⏱ <b class="fs">' + secs(fall.remaining) + '</b>' + (fall.phase === 2 ? ' · Abzug 0,3' : '') + ' – Stopp</span>' +
-        '<span class="sizer" aria-hidden="true">⏱ <b class="fs">00</b> · Abzug 0,3 – Stopp</span></span>' : 'Sturz-Timer';
+        '<span class="sizer" aria-hidden="true">⏱ <b class="fs">00</b> · Abzug 0,3 – Stopp</span></span>' : 'Sturz';
       if (btn.innerHTML !== label) btn.innerHTML = label;
       btn.classList.toggle('t-fall1', on && fall.phase === 1);
       btn.classList.toggle('t-fall2', on && fall.phase === 2);
@@ -3017,6 +3103,8 @@
 
       sec('2. Wertungen', [
         'Gerät oben wählen, <b>Wertung eingeben</b> antippen. E-Note und Endnote rechnet die App' + ' – <b>berechnen</b> unter der D-Note hilft beim Zusammenzählen.',
+        'Am Laptop und am iPad quer (ab 1100 px Breite) steht jede Übung in einer Zeile – das ganze Gerät passt ohne Scrollen auf den Bildschirm; die Knöpfe heißen dort kurz <b>Eingeben</b> und <b>Ändern</b>' +
+          (classic ? '.' : ', ▶ markiert den vorlegenden Turner, rechts stehen die Scorepunkte des Duells.'),
         '<b>Zahlentastatur</b>: Die letzte Ziffer ist die Nachkommastelle („1 7“ = 1,7; „8“ = 0,8); ein getipptes Komma gilt wie getippt. Den <b>Tastenton</b> schaltet man unten in der Zeile „Zahlentastatur“ ein.',
         classic
           ? 'Geturnt wird abwechselnd; die Zahl vor dem Turner ist seine Startposition. Jede Übung wird einzeln freigegeben und erscheint sofort auf der Tafel. Je Mannschaft und Gerät zählen die drei höchsten Wertungen; die Streichwertung ist durchgestrichen.'
@@ -3025,7 +3113,7 @@
         '<b>Zurücknehmen</b>: Wertung ändern → „– Turner –“ wählen → Wertung zurücknehmen; die Kachel ist danach wieder leer.',
         '<b>kein Turner</b> = nicht angetreten, zählt 0. <b>Wertung 0,00</b> = angetreten, Endnote 0.',
         classic
-          ? '<b>Mannschaftsabzug</b> über die Links unten im Gerätebereich: einer je Mannschaft für den ganzen Wettkampf, mindert nur die Gesamtpunktzahl.'
+          ? '<b>Mannschaftsabzug</b> über die Links unten im Gerätebereich (in der Zeilenansicht oben rechts): einer je Mannschaft für den ganzen Wettkampf, mindert nur die Gesamtpunktzahl.'
           : '<b>Mannschaftsabzüge</b> als neutralen Abzug beim Turner eintragen, der zuletzt am Gerät war bzw. bei dem der Abzug aufgefallen ist.'
       ]) +
 
@@ -3037,7 +3125,7 @@
 
       sec('4. Timer', [
         '<b>Einturnzeit</b> 4 Minuten oder eine eigene Zeit (<b>Andere Zeit …</b>, die zuletzt gewählte steht dann im Menü), <b>Wettkampfpause</b> 10, 15 oder 20 Minuten. In der Pause wird schon eingeturnt, deshalb laufen nie beide gleichzeitig.',
-        '<b>Sturz-Timer</b> (nicht an Boden und Sprung): nach 30 Sekunden 0,3 Abzug, nach 60 Sekunden ist die Übung beendet; erneuter Klick stoppt.'
+        '<b>Sturz</b> (nicht an Boden und Sprung): Der Knopf startet nach einem Sturz die Zeit – nach 30 Sekunden 0,3 Abzug, nach 60 Sekunden ist die Übung beendet; erneuter Klick stoppt.'
       ]) +
 
       sec('5. Abschluss', [
@@ -3656,7 +3744,7 @@
    * sonst zurück auf „Wertung eingeben“ dieses Turners.
    */
   function focusNextScoreBtn(key, next) {
-    var sides = Array.prototype.slice.call($app.querySelectorAll('#apparatus-panel .side'));
+    var sides = Array.prototype.slice.call($app.querySelectorAll('#apparatus-panel [data-key]'));
     var pos = sides.map(function (sd) { return sd.getAttribute('data-key'); }).indexOf(key);
     var list = next ? sides.slice(pos + 1) : sides.slice(pos, pos + 1);
     for (var i = 0; i < list.length; i++) {
@@ -4595,7 +4683,7 @@
         break;
       case 'intro-start':
         if (introOn(m)) { showAppIntro(m); return; }
-        if (pauseState(m) || warmupState(m) || fallState(m)) { toast('Erst Pause, Einturnzeit bzw. Sturz-Timer beenden.', 'error'); return; }
+        if (pauseState(m) || warmupState(m) || fallState(m)) { toast('Erst Pause, Einturnzeit bzw. „Sturz“ beenden.', 'error'); return; }
         introSet(m, 0);
         break;
       case 'intro-step':

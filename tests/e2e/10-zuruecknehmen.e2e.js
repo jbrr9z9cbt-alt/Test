@@ -29,7 +29,7 @@ module.exports = {
     assert.equal(d[a].gymnastId, null); assert.equal(d[a].d, null);
     assert.ok(d[b].gymnastId && d[b].d !== null, 'der andere Turner bleibt gespeichert');
     assert.equal(d.shown, null);
-    assert.equal(await text(p, `.side[data-key="FX-0-${a}"] .score-btn`), 'Wertung eingeben');
+    assert.equal(await text(p, `[data-key="FX-0-${a}"] .score-btn`), 'Eingeben');
     await wait(bp, 600);
     assert.ok(await bp.$('.cur-duel.empty'), 'Duell nicht mehr auf der Tafel');
     assert.equal(await bp.$('#score-flash.show'), null, 'keine Einblendung');
