@@ -2,17 +2,15 @@
 
 ## Liste nach Beta 86
 
-Noch keine Punkte.
-
-## Fehlerkorrektur nach Beta 86 – umgesetzt in Beta 87 (noch nicht veröffentlicht)
-
-1. **Handy hochkant: das letzte Duell rastet nicht ein** (gemeldet 22.11.2026, Bildschirmfoto iPhone, App vom
+1. **Handy hochkant: das letzte Duell bzw. Startpaar rastet nicht ein** (gemeldet 22.11.2026, Bildschirmfoto iPhone, App vom
    Home-Bildschirm): Am Ende der Seite stand Duell 4 nicht oben unter der Leiste, markiert blieb „3“. Ursache: Im hohen
-   Fenster (ohne Safari-Leisten) endete die Seite, bevor das letzte Duell bzw. Startpaar nach oben rutschen konnte; die Tests
+   Fenster (ohne Safari-Leisten) endet die Seite, bevor das letzte Duell bzw. Startpaar nach oben rutschen kann; die Tests
    liefen nur mit der niedrigeren Safari-Höhe. Lösung: Unter dem Gerätebereich bleibt genau so viel Platz, dass auch das
    letzte Duell bzw. Startpaar oben einrastet (neu berechnet bei jedem Aufbau und bei Größenänderung, z. B. wenn die
-   Safari-Leisten ein- und ausfahren). Browser-Test mit 390 × 844, 430 × 932 und 360 × 780 (beide Ligen), der ohne die
+   Safari-Leisten ein- und ausfahren); beide Ligen. Browser-Test mit 390 × 844, 430 × 932 und 360 × 780, der ohne die
    Korrektur scheitert.
+   **Stand:** im Arbeitszweig schon umgesetzt und getestet (Commit `2bbc6fb`, Versionsnummer dort Beta 87) – wird mit den
+   übrigen Punkten dieser Liste veröffentlicht.
 
 ## Liste nach Beta 85 – umgesetzt in Beta 86 (veröffentlicht 22.11.2026, Commit `19d42c1`)
 
