@@ -28,17 +28,19 @@
      Platz unter dem letzten, damit auch dieses oben einrastet (wie Punkt 1).
    - **Passt das ganze Gerät auf den Bildschirm** (Landesliga auf allen iPads hochkant, beide Ligen auf dem iPad Pro
      hochkant): alles wie heute, ohne Einrasten und ohne Leiste (sonst entstünde Scrollen, wo keins nötig ist).
-   - **Oberliga am Handy quer (Variante A):** Ein Duell ist etwa doppelt so hoch wie der freie Platz – dort rastet es **je
-     Übung** (Kachel, 187 px) ein; die Leiste zeigt weiter die Duelle 1–4 und springt zum Duell.
+   - **Handy quer (Variante B, beschlossen 22.11.2026):** kein Einrasten, frei gescrollt wie heute; nur Leiste und
+     „↑ Zurück nach oben“ wie in den übrigen Kachelansichten (beide Ligen). Handy quer ist keine nützliche Option für die
+     Eingabe; eine weitere Optimierung dafür wird nicht verfolgt. (Erkennung: Querformat mit geringer Fensterhöhe, etwa
+     bis 500 px.)
    - Die einzeilige Darstellung (ab 1100 px quer) bleibt ohne Einrasten (dort passt das ganze Gerät).
    - Browser-Tests für die Größen der Tabelle (Einrasten, Leiste, letztes Duell, „passt ganz“ ohne Einrasten).
-3. **Wertungsfenster am Handy quer** (gewünscht 22.11.2026, **nur angehen, wenn einfach machbar**): Damit die Queransicht
+3. **Wertungsfenster am Handy quer – wird nicht weiter verfolgt** (22.11.2026: Handy quer ist keine nützliche Option).
+   Zur Erinnerung der Befund: Damit die Queransicht
    am Handy wirklich nutzbar ist, müsste auch das Wertungsfenster dort passen. Heute (Beta 86, iPhone 6,1" quer 750 × 342 px,
    Android 360 quer 780 × 320 px): Mit Zahlentastatur liegt die Tastatur unterhalb des Fensters (im Fenster rund 360–380 px
    scrollen); ohne Zahlentastatur fehlen unten 52 bzw. 74 px (Knöpfe „Abbrechen“ / „Wertung freigeben“ angeschnitten).
    Einschätzung: **nicht einfach** – es bräuchte einen eigenen Aufbau für Handy quer (Felder links, Zahlentastatur rechts
    mit kleineren Tasten, Kopfzeile und Hinweise knapper), ebenso für den D-Note-Rechner, und alles neu auf Passung prüfen.
-   Daher vorerst zurückgestellt.
 
 ## Liste nach Beta 85 – umgesetzt in Beta 86 (veröffentlicht 22.11.2026, Commit `19d42c1`)
 
