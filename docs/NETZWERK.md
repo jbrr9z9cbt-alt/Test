@@ -343,6 +343,48 @@ Quellen: [Safari 18.4 Release Notes](https://developer.apple.com/documentation/s
 [Mozilla-Bug 1944288](https://bugzilla.mozilla.org/show_bug.cgi?id=1944288),
 [DEV: WebSockets stall on Android](https://dev.to/jitchakraborty/websockets-can-stall-without-disconnecting-and-its-worse-on-android-3n6e)
 
+## Dienst-Code: Ablage und Veröffentlichung (festgelegt 22.11.2026)
+
+„Dienst-Code“ ist das Programm des Weiterleitungsdienstes, das bei Cloudflare läuft (Worker mit Durable Objects) – getrennt
+von der App, die im Browser läuft und über GitHub Pages ausgeliefert wird.
+
+**Umfang:** Der Dienst bleibt bewusst „dumm“ und reicht nur verschlüsselte Daten weiter; die Wettkampflogik bleibt komplett
+in der App. Er kennt nur Räume, Rollen und Schreibrechte, den letzten Stand je Raum, die Kopplungs-Warteplätze, die
+Begrenzung der Versuche und das Löschen nach 24 Stunden. Geschätzt etwa 200–400 Zeilen JavaScript; neue App-Funktionen
+brauchen meist keine Änderung am Dienst (außer bei den Rollen).
+
+**Ablage: im selben Repository, eigener Ordner `relay/`**
+- Ein Ort für alles: Änderungen am Datenaustausch landen in App und Dienst im selben Commit.
+- Die Playwright-Browser-Tests starten den Dienst lokal mit („wrangler dev“) und testen Eingabe und Tafel in zwei Browsern
+  gegeneinander – ohne Internet und ohne Cloudflare-Konto.
+- GitHub Pages veröffentlicht den ganzen Hauptzweig; `relay/` ist damit als Quelltext abrufbar – harmlos, da keine
+  Geheimnisse darin stehen (Ende-zu-Ende-Verschlüsselung, Cloudflare-Zugangsdaten nie im Repository). Der Service Worker
+  der App ist nicht betroffen.
+- Verworfen: eigenes Repository (zwei Stellen abzustimmen, gemeinsame Tests umständlicher).
+
+**Veröffentlichung: Cloudflare „Workers Builds“**
+- Einmalig im Cloudflare-Dashboard das Repository verbinden, Stammordner `relay/`, nur auf Änderungen in `relay/**`
+  reagieren.
+- Ein Push auf `main` veröffentlicht den Dienst automatisch – wie bei der App nur nach Freigabe. Kein Werkzeug auf dem
+  eigenen PC, kein Cloudflare-Schlüssel bei GitHub.
+- Voraussetzung: Cloudflare-Konto des Betreibers.
+- Verworfen: GitHub Actions (zusätzlicher Schlüssel bei GitHub), Veröffentlichen von Hand mit `npx wrangler deploy`
+  (Kommandozeile am eigenen Rechner nötig).
+- **Testdienst:** zweiter Worker, z. B. `wtb-relay-test`, für Tests mit echten Geräten vor der Freigabe. Die Beta-App
+  verbindet sich mit dem Testdienst, die veröffentlichte App mit dem echten; Daten getrennt.
+- **Adresse in der App:** feste Einstellung in `js/config.js`, z. B. `wtb-relay.<name>.workers.dev`; eine eigene Domain ist
+  später möglich (nur diese Zeile ändern).
+
+**App und Dienst passend halten**
+- Jede Nachricht trägt eine **Protokollnummer**. Der Dienst nimmt auch ältere Nummern an, solange es irgend geht; Änderungen
+  werden abwärtskompatibel veröffentlicht – erst den Dienst erweitern, dann die App.
+- Ist eine installierte App zu alt, zeigt sie „Für die Netzwerktafel bitte die App aktualisieren“; die Eingabe läuft offline
+  normal weiter. Passt zum bestehenden Update-Ablauf („Jetzt aktualisieren“).
+
+Quellen: [Workers Builds – Konfiguration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/),
+[Workers Builds – Watch Paths](https://developers.cloudflare.com/workers/ci-cd/builds/build-watch-paths/),
+[Workers Builds – Monorepo](https://developers.cloudflare.com/workers/ci-cd/builds/advanced-setups/)
+
 ## Vor der Umsetzung zu prüfen
 
 - ~~Grenzen und Kosten von Cloudflare Workers mit Durable Objects~~ – erledigt 22.11.2026, siehe oben. Offen bleibt der
@@ -350,7 +392,10 @@ Quellen: [Safari 18.4 Release Notes](https://developer.apple.com/documentation/s
 - ~~Aufbau des Kopplungscodes~~ – erledigt 22.11.2026, siehe „Kopplungscode“.
 - ~~Verhalten bei gesperrtem Bildschirm und im Hintergrund (iPhone, iPad, Android)~~ – erledigt 22.11.2026, siehe
   „Gesperrter Bildschirm und Hintergrund“. Offen bleiben die Tests mit echten Geräten.
-- Wo der Dienst-Code liegt und wie er veröffentlicht wird, z. B. als eigener Ordner im Repository.
+- ~~Wo der Dienst-Code liegt und wie er veröffentlicht wird~~ – erledigt 22.11.2026, siehe „Dienst-Code“.
+
+**Noch offen (bei der Umsetzung):** Lasttest mit vielen Zuschauern; Tests mit echten Geräten (iPhone, iPad, Android,
+Laptop über Stunden); ob automatisch beantwortete Lebenszeichen bei Cloudflare als Anfragen zählen.
 
 ## Mögliche spätere Ergänzungen
 
