@@ -4,9 +4,9 @@
 
 Noch keine Punkte.
 
-## Liste nach Beta 85 – umgesetzt in Beta 86 (noch nicht veröffentlicht)
+## Liste nach Beta 85 – umgesetzt in Beta 86 (veröffentlicht 22.11.2026, Commit `19d42c1`)
 
-Umgesetzt 22.11.2026 (Punkte 1–5) im Arbeitszweig. Rückkehrpunkt: Beta 85 (Commit `febb54e`).
+Umgesetzt 22.11.2026 (Punkte 1–5). Rückkehrpunkt: Beta 85 (Commit `febb54e`). Live geprüft: Service Worker v86.
 Hinweise zur Umsetzung:
 - Punkt 1: `.sd-pad` mit `min-width: 0`; geprüft am iPad quer 1024, 1180 und 1366 px: 304 px vor und nach „11,1“, der Wert
   bleibt ganz sichtbar, nur der Name wird gekürzt. Am Handy unverändert (Tastatur an derselben Stelle). Browser-Test.
