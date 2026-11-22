@@ -11,6 +11,34 @@
    Korrektur scheitert.
    **Stand:** im Arbeitszweig schon umgesetzt und getestet (Commit `2bbc6fb`, Versionsnummer dort Beta 87) – wird mit den
    übrigen Punkten dieser Liste veröffentlicht.
+2. **Einrastendes Scrollen auch in der Kachelansicht außerhalb des Handys hochkant** (beschlossen 22.11.2026): Bisher gibt es
+   Leiste, Einrasten und „Zurück nach oben“ nur am Handy hochkant; in der Zwischenstufe (z. B. iPad 10,2" quer, wo die
+   einzeilige Darstellung nicht mehr passt) und den übrigen Kachel-Ansichten wird frei gescrollt. Gemessen in Beta 86
+   (Einheit = Duell bzw. Startpaar, frei = unter dem festen oberen Bereich mit Leiste):
+   | Situation | Oberliga | Landesliga |
+   |---|---|---|
+   | Handy quer (iPhone 6,1"/6,7", Android 360) | untereinander 456–526 px bei 218–278 px frei – passt nicht | 201 px – 1 je Bildschirm |
+   | iPad mini, 10,2", Air 11" hochkant | untereinander 526 px – 1 je Bildschirm | alle 4 passen |
+   | iPad Pro 13" hochkant | nebeneinander 244 px – alle 4 passen | alle 4 passen |
+   | iPad 10,2" quer | 244 px – 2 je Bildschirm | 201 px – 3 je Bildschirm |
+   | Laptopfenster 1000 × 700 / 900 × 900 / 700 × 900 | 2 / 3 / 1 je Bildschirm | 2 / 3 / 1 je Bildschirm |
+   - **Überall in der Kachelansicht, wo das Gerät nicht ganz auf den Bildschirm passt:** dieselbe Leiste (Oberliga
+     „Gerät · Duell 1–4“, Landesliga Gerätesymbol und 1–8 in Mannschaftsfarben), Einrasten je Duell bzw. Startpaar
+     (passen mehrere untereinander, steht beim Einrasten das nächste bündig unter der Leiste), „↑ Zurück nach oben“ und
+     Platz unter dem letzten, damit auch dieses oben einrastet (wie Punkt 1).
+   - **Passt das ganze Gerät auf den Bildschirm** (Landesliga auf allen iPads hochkant, beide Ligen auf dem iPad Pro
+     hochkant): alles wie heute, ohne Einrasten und ohne Leiste (sonst entstünde Scrollen, wo keins nötig ist).
+   - **Oberliga am Handy quer (Variante A):** Ein Duell ist etwa doppelt so hoch wie der freie Platz – dort rastet es **je
+     Übung** (Kachel, 187 px) ein; die Leiste zeigt weiter die Duelle 1–4 und springt zum Duell.
+   - Die einzeilige Darstellung (ab 1100 px quer) bleibt ohne Einrasten (dort passt das ganze Gerät).
+   - Browser-Tests für die Größen der Tabelle (Einrasten, Leiste, letztes Duell, „passt ganz“ ohne Einrasten).
+3. **Wertungsfenster am Handy quer** (gewünscht 22.11.2026, **nur angehen, wenn einfach machbar**): Damit die Queransicht
+   am Handy wirklich nutzbar ist, müsste auch das Wertungsfenster dort passen. Heute (Beta 86, iPhone 6,1" quer 750 × 342 px,
+   Android 360 quer 780 × 320 px): Mit Zahlentastatur liegt die Tastatur unterhalb des Fensters (im Fenster rund 360–380 px
+   scrollen); ohne Zahlentastatur fehlen unten gut 50 px (Knöpfe „Abbrechen“ / „Wertung freigeben“ angeschnitten).
+   Einschätzung: **nicht einfach** – es bräuchte einen eigenen Aufbau für Handy quer (Felder links, Zahlentastatur rechts
+   mit kleineren Tasten, Kopfzeile und Hinweise knapper), ebenso für den D-Note-Rechner, und alles neu auf Passung prüfen.
+   Daher vorerst zurückgestellt.
 
 ## Liste nach Beta 85 – umgesetzt in Beta 86 (veröffentlicht 22.11.2026, Commit `19d42c1`)
 
