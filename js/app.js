@@ -11,7 +11,7 @@
   // kein Service Worker); bereitgestellt wird nur window.WTBReport (ganz unten).
   var REPORT = !!window.WTB_REPORT;
   var APP_VERSION = 2;
-  var APP_BUILD = '86';
+  var APP_BUILD = '87';
   // Angezeigte Version: in der Testphase „Beta <Nr.>“, ab der Freigabe „Version 1.0“ usw.
   var APP_LABEL = 'Beta ' + APP_BUILD;
   var FLASH_MS = 8000;             // Einblendung der Scorepunkte bzw. der Wertung auf der Tafel
@@ -1413,13 +1413,22 @@
     requestAnimationFrame(function () { unitSpyQueued = false; unitSpy(); });
   }, { passive: true });
 
-  /** „Zurück nach oben“ bekommt nur dann einen eigenen Rastpunkt, wenn er beim letzten Duell nicht mehr ins Bild passt. */
+  /**
+   * Ende der Seite: Unter dem letzten Duell bzw. Startpaar bleibt so viel Platz, dass es wie die anderen oben unter der
+   * Leiste einrasten kann (sonst endet die Seite bei hohen Fenstern vorher – z. B. als App vom Home-Bildschirm des iPhones).
+   * „Zurück nach oben“ bekommt nur dann einen eigenen Rastpunkt, wenn er beim letzten Duell nicht mehr ins Bild passt.
+   */
   function fitTotop() {
     var box = document.querySelector('#apparatus-panel .totop'), units = document.querySelectorAll('#apparatus-panel [data-unit]');
     if (!box || !units.length) return;
-    var last = units[units.length - 1];
-    var need = box.getBoundingClientRect().bottom + 12 - last.getBoundingClientRect().top + (parseFloat(getComputedStyle(last).scrollMarginTop) || 0);
-    box.classList.toggle('snap-end', need > innerHeight - snapPad());
+    var root = document.documentElement, last = units[units.length - 1], pad = snapPad();
+    var mt = parseFloat(getComputedStyle(last).scrollMarginTop) || 0;
+    var tail = parseFloat(root.style.getPropertyValue('--unit-tail')) || 0;
+    var lastTop = last.getBoundingClientRect().top + window.scrollY;
+    var need = Math.max(0, Math.ceil(lastTop - pad - mt + innerHeight - (root.scrollHeight - tail)));
+    if (need !== tail) root.style.setProperty('--unit-tail', need + 'px');
+    var fit = box.getBoundingClientRect().bottom + 12 - last.getBoundingClientRect().top + mt;
+    box.classList.toggle('snap-end', fit > innerHeight - pad);
   }
   window.addEventListener('resize', function () { if (document.documentElement.classList.contains('unit-snap')) fitTotop(); });
 

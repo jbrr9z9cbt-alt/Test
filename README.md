@@ -80,7 +80,8 @@ Die Startseite passt ohne Scrollen auf den Bildschirm (am Handy ohne leere Menü
   (begonnen), Landesliga Gerätesymbol und die Startpositionen 1–8 in der Farbe der jeweiligen Mannschaft mit ✓. Das gerade
   sichtbare Duell bzw. beide Nummern des sichtbaren Startpaars sind hervorgehoben; ein Tipp springt dorthin (Landesliga: die
   Kachel der Übung blinkt kurz auf). Unter dem letzten Duell bzw. Startpaar **„↑ Zurück nach oben“** (eigener Rastpunkt nur,
-  wenn der Knopf sonst nicht ins Bild passt). Kein automatisches Weiterspringen. Oberliga: Scorepunkte, „Diff.“ und
+  wenn der Knopf sonst nicht ins Bild passt); darunter bleibt so viel Platz, dass auch das letzte Duell bzw. Startpaar oben
+  einrastet – auch in hohen Fenstern wie der App vom Home-Bildschirm des iPhones (seit Beta 87). Kein automatisches Weiterspringen. Oberliga: Scorepunkte, „Diff.“ und
   „✓ freigegeben“ stehen unter den Kacheln **in einer Zeile** (unentschieden: „unentschieden“ und „Diff.“ in zwei kurzen
   Zeilen) – ein fertiges Duell ist 523 statt 580 px hoch und passt so mit Leiste auch auf das iPhone 6,1".
 - **Wertungsfenster** (beide Ligen): Die Kachel zeigt die Werte nur als Text (E1, E2, (E3), D-Note, Stand, NA, E-Note, Endnote)

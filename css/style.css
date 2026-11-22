@@ -1455,6 +1455,8 @@ html.unit-snap #apparatus-panel .cl-row[data-unit] { scroll-snap-align: start; s
 .totop { display: flex; justify-content: center; margin-top: .9rem; }
 .totop .btn { padding: .6rem 1.2rem; }
 html.unit-snap .totop.snap-end { scroll-snap-align: end; scroll-margin-bottom: 12px; }
+/* Platz unter dem letzten Duell bzw. Startpaar, damit es oben einrasten kann (Höhe per Skript: --unit-tail) */
+html.unit-snap #apparatus-panel { margin-bottom: calc(1rem + var(--unit-tail, 0px)); }
 @media (max-width: 560px) {
   .unit-bar { margin-left: -.85rem; margin-right: -.85rem; padding-left: .85rem; padding-right: .85rem; }
 }

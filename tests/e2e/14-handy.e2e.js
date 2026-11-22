@@ -65,6 +65,29 @@ module.exports = {
     assert.ok(await p.$('#apparatus-panel .side.flash'), 'Kachel der Übung blinkt kurz');
   },
 
+  async 'Handy hochkant, hohes Fenster (App vom Home-Bildschirm): auch das letzte Duell bzw. Startpaar rastet oben ein'({ base, context }) {
+    for (const L of [OL, LL]) {
+      for (const size of [{ width: 390, height: 844 }, { width: 430, height: 932 }, { width: 360, height: 780 }]) {
+        const ctx = await context({ viewport: size, hasTouch: true, isMobile: true, deviceScaleFactor: 3 });
+        const p = await ctx.newPage();
+        await newMatch(p, base, L);
+        // ans Ende wischen: das letzte Duell bzw. Startpaar steht oben unter der Leiste und ist hervorgehoben
+        await p.evaluate(() => window.scrollBy(0, 5000)); await wait(p, 900);
+        const w = await where(p, 3);
+        const tag = L.league + ' ' + size.width + ' × ' + size.height + ': ';
+        assert.ok(w.top >= w.barBottom && w.top <= w.barBottom + 30, tag + 'letztes oben ' + JSON.stringify(w));
+        assert.deepEqual(w.cur.map((t) => t.replace(/[✓●]/g, '')), L === OL ? ['4'] : ['7', '8'], tag + 'hervorgehoben');
+        assert.ok(await p.$eval('.totop .btn', (b) => b.getBoundingClientRect().bottom <= innerHeight), tag + '„Zurück nach oben“ sichtbar');
+        // über die Leiste direkt zum letzten
+        await p.evaluate(() => window.scrollTo(0, 0)); await wait(p, 600);
+        await p.click('.unit-bar .chip[data-go="3"]'); await wait(p, 1000);
+        const j = await where(p, 3);
+        assert.ok(j.top >= j.barBottom && j.top <= j.barBottom + 30, tag + 'Sprung zum letzten ' + JSON.stringify(j));
+        await ctx.close();
+      }
+    }
+  },
+
   async 'Tablet und Handy quer: ohne Leiste und ohne Einrasten (wie bisher)'({ base, context }) {
     const ctx = await context({ viewport: { width: 820, height: 1180 }, hasTouch: true, isMobile: true });
     const p = await ctx.newPage();
