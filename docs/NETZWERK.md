@@ -1,6 +1,6 @@
 # Netzwerkfunktion – Planung
 
-Stand: 15.11.2026 · Status: **Planung, noch nicht umgesetzt**. Diskussion in einem eigenen Chat, getrennt von der
+Stand: 22.11.2026 · Status: **Planung, noch nicht umgesetzt**. Diskussion in einem eigenen Chat, getrennt von der
 App-Entwicklung.
 
 ## Ziel
@@ -10,6 +10,8 @@ App-Entwicklung.
    oder Handy.
 2. **Schritt 2 (mitgeplant, noch nicht umgesetzt): Zuschauer.** Zuschauer sehen den Wettkampf über Link oder QR-Code auf
    dem eigenen Handy.
+3. **Schritt 3 (mitgeplant, noch nicht umgesetzt): Kampfrichter-Handys.** Die E-Kampfrichter geben ihre Abzüge am eigenen
+   Handy ein, der Oberkampfrichter prüft und gibt am Handy frei; Mischbetrieb mit der Eingabe am Laptop jederzeit möglich.
 
 ## Ausgangslage
 
@@ -52,6 +54,7 @@ App-Entwicklung.
   automatisch, z. B. 24 Stunden nach der letzten Änderung.
 - **Vorgesehener Anbieter:** Cloudflare Workers mit einem Raum je Kopplung. Vor der Umsetzung sind die Grenzen des
   kostenlosen Rahmens zu prüfen. Kosten: voraussichtlich 0 €, mit Zuschauern zur Sicherheit etwa 5 $ im Monat.
+- Der Dienst trägt auch den **Rückweg** von den Kampfrichter-Handys zum Eingabegerät (Schritt 3).
 - **Datenvolumen:** pro Wettkampf und Gerät voraussichtlich unter 10 MB.
 
 ## Schritt 1: Netzwerktafel
@@ -95,10 +98,10 @@ App-Entwicklung.
 
 ## Schritt 2: Zuschauer (mitgeplant, noch nicht umgesetzt)
 
-Schritt 1 wird so gebaut, dass Schritt 2 ohne Umbau folgen kann:
+Schritt 1 wird so gebaut, dass Schritt 2 und Schritt 3 ohne Umbau folgen können:
 - **Ein gemeinsames Datenpaket** für Tafel und Zuschauer: alle Noten aller Geräte, Namen, Vereine und Farben. Ohne
   Kampfrichternamen und ohne interne Daten.
-- **Lesen und Schreiben getrennt** von Anfang an.
+- **Lesen und Schreiben getrennt** von Anfang an, mit Rollen und eigenen Schreibrechten (für Schritt 3).
 
 Später hinzu kommen:
 - Ein **Zuschauer-Link nur zum Lesen**, getrennt vom Kopplungscode. Der Schlüssel steht im Link-Teil nach `#` und wird nicht
@@ -110,6 +113,79 @@ Später hinzu kommen:
 - **Gültigkeit:** z. B. bis zum Ende des Wettkampftags, danach wird alles gelöscht. Dauerhafte Ergebnisse gehören auf die
   Liga-Webseite.
 - **Last:** etwa 50–300 Zuschauer je Wettkampf, bei bis zu 3 Wettkämpfen gleichzeitig.
+
+## Schritt 3: Kampfrichter-Handys (mitgeplant, noch nicht umgesetzt)
+
+Festgelegt 22.11.2026.
+
+**Ziel:** Die E-Kampfrichter geben ihren E-Abzug auf dem eigenen Handy ein, statt ihn per Zettel oder Zuruf weiterzugeben.
+Der Oberkampfrichter prüft, ändert und gibt am Handy frei. Das ist ein **Zusatz**: Der heutige Betrieb am Eingabegerät
+bleibt jederzeit vollständig möglich.
+
+**Grundprinzip**
+- Das Eingabegerät des Wettkampfleiters, z. B. der Laptop, bleibt die **einzige Stelle, die Daten hält**.
+- Jede Eingabe vom Handy ist eine Nachricht an das Eingabegerät. Es übernimmt sie, speichert sie wie heute sofort und
+  verteilt den neuen Stand an alle Beteiligten.
+- Ändern zwei Stellen dasselbe Feld, gilt die letzte Änderung, und alle sehen sie sofort.
+- Es ist also **kein** Betrieb mit mehreren gleichberechtigten Eingabegeräten.
+- Mögliche Aufstellungen:
+  - Der Laptop steht fest an einer Stelle in der Halle, mit dem Beamer per Kabel (zweites Fenster), und die Kampfrichter
+    werten am Handy. Die Hallentafel hängt dann nicht am Internet. Nur der Laptop und die Kampfrichter-Handys brauchen
+    Netz, der Laptop z. B. über einen Handy-Hotspot.
+  - Der Laptop steht wie heute am Kampfrichtertisch, und nur einzelne Kampfrichter werten am Handy.
+
+**Mischbetrieb – jederzeit möglich**
+- Jede Rolle wird **entweder** per Handy **oder** wie heute am Laptop bedient, unabhängig voneinander. Beispiel: E2 wertet
+  am Handy, E3 ruft zu, und der Wettkampfleiter tippt ein.
+- Ohne Handy des Oberkampfrichters gibt der Wettkampfleiter am Laptop frei, wie heute auf Zeichen des Oberkampfrichters.
+- Wechsel sind **mitten im Wettkampf** möglich, z. B. wenn ein Akku leer ist: Der Laptop trägt den Wert einfach selbst ein,
+  und das Handy kann später wieder einsteigen.
+- Im Wertungsfenster am Laptop ist bei jedem Feld erkennbar, woher der Wert kommt (z. B. „📱 E2“ oder am Laptop
+  eingegeben). Außerdem sieht man, wer für die aktuelle Übung schon geliefert hat.
+
+**Rollen und Rechte**
+
+| Rolle | Gerät | Aufgaben |
+|---|---|---|
+| Wettkampfleiter | Laptop (Eingabegerät) | Bestimmt den Ablauf: Aufstellung, aktueller Turner, „kein Turner“ (gibt ihn auch selbst frei, Endnote 0,00), Turnervorstellung, Einturnzeit, Pause, Ergebnis und Siegerehrung. Kann **jederzeit alle Felder ändern, freigeben und Wertungen ändern**. Das ist die Rückfallebene bei technischen Problemen und der Normalfall für Rollen ohne Handy. |
+| E1 = Oberkampfrichter | eigenes Handy (optional) | Gibt E1, D-Note (mit D-Note-Rechner), Standbonus und neutrale Abzüge ein. Sieht E2 und E3 sofort beim Eingang und kann alle Werte ändern. Bedient den Sturz-Timer. Gibt frei und kann Wertungen nach der Freigabe ändern. Fachlich entscheidet nur er über die Freigabe. |
+| E2, ggf. E3 | eigenes Handy (optional) | Gibt nur den eigenen E-Abzug ein. Bis zur Freigabe änderbar. |
+| D-Kampfrichter der Vereine | kein Gerät | Stimmen die D-Note mündlich mit dem Oberkampfrichter ab, auch in der Doppelrolle D- und E-Kampfrichter bei nur 3 Personen im Kampfgericht. |
+
+**Ablauf**
+1. **Koppeln:** Der Laptop zeigt je Rolle einen QR-Code (Oberkampfrichter, E2, E3). Jeder Kampfrichter scannt seinen Code,
+   und die Kampfrichterseite öffnet sich im Browser, ohne Installation. Der Code des Oberkampfrichters gibt mehr Rechte. Er
+   wird deshalb nur am Tisch gezeigt und kann neu erzeugt werden. Rollen ohne Handy werden einfach nicht gekoppelt.
+2. **Aktuelle Übung:** Der Wettkampfleiter bestimmt am Laptop, wer dran ist. Standardmäßig ist es die nächste offene Übung
+   in der Reihenfolge, und der Wettkampfleiter kann eine andere wählen. Alle Handys zeigen oben Gerät, Duell bzw. Position,
+   Startnummer, Name und Verein.
+3. **Eingabe:** E2 und E3 tippen ihren Abzug auf der Zahlentastatur der App und senden ihn. Vor der Freigabe sehen sie nur
+   ihren eigenen Wert.
+4. **Prüfen:** Der Oberkampfrichter sieht alle Werte sofort und kann jeden ändern. Er sieht die Vorschau von E-Note und
+   Endnote wie im Wertungsfenster, in der Oberliga auch die Scorepunkte des Duells.
+5. **Freigabe:** Der Oberkampfrichter gibt am Handy frei, oder der Laptop gibt frei. Für die Tafel gilt dasselbe wie heute:
+   In der Oberliga wird beim ersten Turner eines Duells nur gespeichert, das Duell wird freigegeben, wenn beide fertig sind.
+6. **Nach der Freigabe:** E2 und E3 sehen **nur die zählende E-Note**, nicht die einzelnen Abzüge der anderen. Bei 2
+   Kampfrichtern ergibt sie sich aus dem Mittelwert, bei 3 aus dem mittleren Abzug. Danach springen die Handys zur nächsten
+   Übung.
+7. **Wertung ändern** nach der Freigabe: Das geht beim Oberkampfrichter am Handy und am Laptop, mit denselben Regeln wie
+   heute, einschließlich Zurücknehmen.
+
+**Nicht vorgesehen**
+- Wertungszettel als Beleg.
+- Grenzwerte bzw. Warnungen bei weit auseinanderliegenden E-Abzügen.
+- Eingabe durch die D-Kampfrichter.
+
+**Technische Punkte**
+- Der Weiterleitungsdienst braucht einen **Rückweg** von den Handys zum Eingabegerät. Jede Rolle bekommt ein eigenes
+  Schreibrecht, das nur für ihre Felder gilt; der Oberkampfrichter hat mehr Rechte. Das wird schon in Schritt 1 so angelegt.
+- Jede Eingabe trägt die Kennung der Übung. Werte für eine nicht mehr aktuelle oder schon freigegebene Übung werden
+  abgewiesen und am Handy gemeldet.
+- Bildschirmsperre, Anruf und Rückkehr in den Browser: Das Handy verbindet sich automatisch wieder und zeigt den aktuellen
+  Stand.
+- **Aufwand:** grob 5–8 Beta-Runden. Am aufwendigsten ist die Ansicht des Oberkampfrichters, die einem kleinen
+  Wertungsfenster am Handy mit Freigabe, Korrektur und Sturz-Timer entspricht. Dazu kommt die Herkunftsanzeige im
+  Wertungsfenster am Laptop.
 
 ## Datenschutz (wird noch besprochen)
 
@@ -123,6 +199,8 @@ Später hinzu kommen:
   - Impressum und Datenschutzerklärung auf der Zuschauerseite.
   - Vertrag zur Auftragsverarbeitung mit Cloudflare.
   - Umgang mit Minderjährigen, falls sie starten.
+- **Schritt 3:** Kaum zusätzlich. Kampfrichternamen werden nicht übertragen; der Dienst sieht wie in Schritt 1 nur
+  verschlüsselte Daten und die IP-Adressen der Handys.
 - Erwartung: kein grundsätzliches Hindernis.
 
 ## Vor der Umsetzung zu prüfen
@@ -138,4 +216,5 @@ Später hinzu kommen:
 
 - Live-Übersicht aller laufenden Wettkämpfe für die Liga-Webseite.
 - Direkte Verbindung von Gerät zu Gerät für Hallen-WLAN ohne Internet.
-- Mehrere Eingabegeräte, z. B. je Kampfgericht. Das ist bewusst nicht geplant und wäre deutlich aufwendiger.
+- Mehrere **gleichberechtigte** Eingabegeräte (gemeinsames Bearbeiten des Wettkampfs) – weiterhin nicht geplant; die
+  Kampfrichter-Handys aus Schritt 3 liefern nur zu, die Daten bleiben auf einem Gerät.
