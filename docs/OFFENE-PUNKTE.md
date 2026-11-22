@@ -41,6 +41,23 @@
    scrollen); ohne Zahlentastatur fehlen unten 52 bzw. 74 px (Knöpfe „Abbrechen“ / „Wertung freigeben“ angeschnitten).
    Einschätzung: **nicht einfach** – es bräuchte einen eigenen Aufbau für Handy quer (Felder links, Zahlentastatur rechts
    mit kleineren Tasten, Kopfzeile und Hinweise knapper), ebenso für den D-Note-Rechner, und alles neu auf Passung prüfen.
+4. **Wertungsfenster am Handy: „Sturz“ in die Knopfzeile** (beschlossen 22.11.2026 nach Vorschaubildern, Ringe,
+   iPhone 6,1" und Android 360). Bisher steht der Knopf am Handy klein oben rechts in der Kopfzeile (seit Beta 84 nur am
+   Laptop und Tablet ab 561 × 501 px in der Knopfzeile).
+   - **Handy (Fenster unter 561 × 501 px):** eine Zeile **[Sturz] [Abbrechen] [Freigeben]**. „Sturz“ bleibt einheitlich
+     etwas kleiner als die anderen Knöpfe (wie in der Kachel und am Laptop); Abbrechen und Freigeben teilen sich den Rest
+     (gemessen: Sturz 58 px, je 129 px auf 360, 144 px auf 390, 164 px auf 430 px Breite). An Boden und Sprung wie bisher
+     ohne „Sturz“.
+   - **Beschriftungen am Handy:** „Freigeben“, „Korrektur“ (statt „Korrektur freigeben“, passt auf 360 px sonst nicht),
+     „Zurücknehmen“ (statt „Wertung zurücknehmen“). **Laptop und Tablet bleiben unverändert** („Wertung freigeben“,
+     „Korrektur freigeben“, „Wertung zurücknehmen“).
+   - **Läuft „Sturz“**, legt sich der Knopf über die ganze Knopfzeile („⏱ 29 – Stopp“, „⏱ 9 · Abzug 0,3 – Stopp“) – dann gibt
+     es nur Stoppen oder Ablaufen lassen; Abbrechen und Freigeben sind solange verdeckt.
+   - **Die Zahlentastatur bleibt genau an ihrer Stelle** (gemessen heute = neu = während „Sturz“ läuft: 405 px iPhone 6,1",
+     461 px iPhone 6,7", 432 px Android 360); die Kopfzeile behält ihre Höhe, oben rechts bleibt der Platz frei. Der
+     D-Note-Rechner bleibt unverändert.
+   - Browser-Tests: Lage der Zahlentastatur vor/nach, Knopfzeile ohne Überbreite auf 360/390/430 px, laufender Sturz über
+     der Zeile.
 
 ## Liste nach Beta 85 – umgesetzt in Beta 86 (veröffentlicht 22.11.2026, Commit `19d42c1`)
 
