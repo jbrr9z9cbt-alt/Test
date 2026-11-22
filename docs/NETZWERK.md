@@ -47,12 +47,13 @@ App-Entwicklung.
   später die Zuschauer empfangen ihn innerhalb von etwa einer Sekunde.
 - **Die Geräte müssen nicht im selben Netz sein.** Jedes Gerät nutzt einen eigenen Internetzugang: SIM-Karte, Hotspot eines
   Handys oder ausnahmsweise Hallen-WLAN.
-- Jede Kopplung bekommt einen eigenen, zufälligen **Raum**. Mehrere Wettkämpfe gleichzeitig sind dadurch kein Problem.
+- Jeder Wettkampf bekommt einen eigenen, zufälligen **Raum**. Alle Tafeln, später auch Zuschauer und Kampfrichter-Handys,
+  gehören zu diesem Raum. Mehrere Wettkämpfe gleichzeitig sind dadurch kein Problem.
 - **Ende-zu-Ende-verschlüsselt** mit der vorhandenen AES-Verschlüsselung (`js/crypto.js`): Der Dienst leitet nur Daten
   weiter, die er nicht lesen kann.
 - Der Dienst hält nur den **letzten Stand** eines Raums, damit ein neu verbundenes Gerät sofort etwas zeigt. Er löscht alles
   automatisch, z. B. 24 Stunden nach der letzten Änderung.
-- **Vorgesehener Anbieter:** Cloudflare Workers mit Durable Objects, ein Raum je Kopplung. Grenzen und Kosten geprüft
+- **Vorgesehener Anbieter:** Cloudflare Workers mit Durable Objects, ein Raum je Wettkampf. Grenzen und Kosten geprüft
   (siehe „Cloudflare: Grenzen und Kosten“): kostenloser Tarif reicht, ab den Zuschauern bezahlter Tarif ab 5 $ im Monat.
 - Der Dienst trägt auch den **Rückweg** von den Kampfrichter-Handys zum Eingabegerät (Schritt 3).
 - **Datenvolumen:** pro Wettkampf und Gerät voraussichtlich unter 10 MB.
@@ -66,7 +67,7 @@ App-Entwicklung.
 
 **Koppeln (Code am Tafelgerät)**
 1. Das Tafelgerät öffnet die App und wählt auf der Startseite „Als Anzeigetafel verwenden“. Es zeigt groß einen Code mit
-   etwa 8 Zeichen, z. B. `4K7P-9XQ2`, dazu einen QR-Code. Der Code enthält Raum und Schlüssel.
+   8 Zeichen, z. B. `4K7P-9XQ2`, dazu einen QR-Code. Der Code dient nur dem einmaligen Koppeln (siehe „Kopplungscode“).
 2. Am Eingabegerät gibt man im Menü Anzeigetafel unter „Tafel verbinden …“ den Code ein oder scannt den QR-Code mit Tablet
    oder Handy.
 
@@ -86,7 +87,8 @@ App-Entwicklung.
 - Eingabegerät und Tafeln zeigen ihren **Status**, z. B. „Tafel verbunden“ bzw. „Verbindung unterbrochen – letzter Stand 14:32“. Bei
   einer Unterbrechung zeigt die Tafel den letzten Stand weiter.
 - **Automatisches Wiederverbinden** nach Aussetzer, Neustart oder Akkuwechsel, ohne neuen Code.
-- Die Kopplung gilt für diesen Wettkampf und endet mit dem Abschluss oder per „Tafel trennen“.
+- Die Kopplung gilt für diesen Wettkampf und endet mit dem Abschluss, per „Tafel trennen“ bzw. „Kopplung lösen“ oder
+  spätestens nach 24 Stunden ohne Änderung. Das Tafelgerät speichert dafür nur die Zugangsdaten, keine Wettkampfdaten.
 
 **Technische Punkte**
 - Timer wie Pause und Einturnzeit werden als Restzeit übertragen, damit unterschiedlich gestellte Uhren der Geräte keine
@@ -245,12 +247,49 @@ Quellen: [Durable Objects – Preise](https://developers.cloudflare.com/durable-
 [Workers – Preise](https://developers.cloudflare.com/workers/platform/pricing/),
 [Workers – Grenzen](https://developers.cloudflare.com/workers/platform/limits/)
 
+## Kopplungscode (geprüft 22.11.2026)
+
+**Grundidee: kurzer Einmal-Code, danach lange Schlüssel**
+1. Das Tafelgerät erzeugt einen kurzen Code und wartet damit beim Dienst.
+2. Das Eingabegerät gibt den Code ein und übergibt der Tafel – **verschlüsselt mit dem Code** – die dauerhaften
+   Zugangsdaten des Wettkampfs: Raumkennung (128 Bit, zufällig) und Leseschlüssel (AES 256 Bit). Das Schreibrecht behält
+   nur das Eingabegerät.
+3. Damit ist der Code **verbraucht**. Beide Geräte merken sich die langen Zugangsdaten und verbinden sich damit später
+   automatisch wieder.
+
+**Aufbau**
+- **8 Zeichen**, angezeigt als `4K7P-9XQ2`.
+- **Zeichenvorrat:** 32 Zeichen – Ziffern 2–9 und Buchstaben A–Z ohne I und O. Keine Verwechslung von 0/O und 1/I; wird
+  trotzdem O, 0, I oder 1 getippt, erscheint ein Hinweis. Groß-/Kleinschreibung egal, den Bindestrich setzt die App.
+- **Sicherheit:** 40 Bit (etwa 1 Billion Möglichkeiten); mit kurzer Gültigkeit und Begrenzung der Versuche ist Erraten
+  praktisch ausgeschlossen. Verworfen: 6 Zeichen (30 Bit, ausreichend, aber weniger Reserve) und reine Ziffern (8 Ziffern
+  nur etwa 27 Bit).
+- **Gültigkeit:** 10 Minuten, danach zeigt die Tafel von selbst einen neuen Code. Jeder Code ist **nur einmal verwendbar**.
+- **QR-Code daneben** mit demselben Code als Link: Tablet oder Handy als Eingabegerät scannen, am Laptop abtippen.
+- Ende-zu-Ende: Der Dienst sieht nur eine aus dem Code abgeleitete Kennung, nie den Code selbst.
+- **Begrenzung der Versuche** beim Dienst, z. B. höchstens 10 falsche Codes pro Minute und Gerät (schützt auch die
+  Tagesgrenzen von Cloudflare).
+
+**Schwachstelle: Code für alle sichtbar am Beamer** – ein Zuschauer könnte schneller tippen und die Tafel „übernehmen“.
+Absicherung:
+- Nur einmal verwendbar: Kommt jemand zuvor, meldet das Eingabegerät „Code bereits verwendet“ – fällt sofort auf.
+- Sichtbare Bestätigung: Die Tafel zeigt kurz „Verbunden – Heim gegen Gast“, das Eingabegerät „Tafel 1 verbunden“.
+- Knopf „Kopplung lösen“ am Tafelgerät, danach neuer Code.
+- Gekoppelt wird in der Regel beim Aufbau, bevor Zuschauer da sind; danach zeigt die Tafel keinen Code mehr.
+- Eine gekoppelte Tafel nimmt keinen zweiten Sender an.
+- Eine zusätzliche Prüfzahl zum Vergleichen auf beiden Geräten ist deshalb nicht nötig.
+
+**Abgrenzung zu den anderen Codes**
+- **Kampfrichter (Schritt 3):** Das Eingabegerät zeigt je Rolle einen QR-Code, die Handys scannen. Nichts wird abgetippt,
+  deshalb enthalten diese QR-Codes direkt die langen Zugangsdaten samt Schreibrecht der Rolle; kein kurzer Code. Der
+  QR-Code des Oberkampfrichters lässt sich neu erzeugen (der alte wird ungültig). Gezeigt nur am Eingabegerät, nie am Beamer.
+- **Zuschauer (Schritt 2):** langer Lese-Link bzw. QR-Code, nur lesen, ohne kurzen Code.
+
 ## Vor der Umsetzung zu prüfen
 
 - ~~Grenzen und Kosten von Cloudflare Workers mit Durable Objects~~ – erledigt 22.11.2026, siehe oben. Offen bleibt der
   Lasttest mit vielen Zuschauern.
-- Aufbau des Codes: Länge und Zeichen (gut abzulesen, keine Verwechslung von 0/O, 1/I), Sicherheit gegen Erraten und
-  Gültigkeitsdauer.
+- ~~Aufbau des Kopplungscodes~~ – erledigt 22.11.2026, siehe „Kopplungscode“.
 - Verhalten von iPad und iPhone bei gesperrtem Bildschirm und im Hintergrund: Wiederverbinden und Bildschirm wach halten am
   Tafelgerät.
 - Wo der Dienst-Code liegt und wie er veröffentlicht wird, z. B. als eigener Ordner im Repository.
