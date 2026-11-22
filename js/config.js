@@ -16,6 +16,11 @@
  * Wichtig: Die "id" einer Mannschaft nie ändern und nie doppelt vergeben
  * (auch nicht über Ligen hinweg), sonst verlieren bereits erfasste Wettkämpfe
  * die Zuordnung. Der Name darf jederzeit geändert werden.
+ *
+ * formerTeams: Mannschaften, die nicht mehr in der Liga turnen. Sie erscheinen
+ * nirgends mehr zur Auswahl (Neuer Wettkampf, Mannschaften, Tabelle), ihr Name
+ * bleibt aber für ältere, schon erfasste Wettkämpfe erhalten. Ihre id wird nie
+ * neu vergeben – eine neue Mannschaft bekommt eine neue id.
  */
 window.TEAM_CONFIG = {
   gymnastsPerTeam: 20,
@@ -25,12 +30,12 @@ window.TEAM_CONFIG = {
       name: 'WTB-Oberliga',
       short: 'Oberliga',
       model: 'score',
-      rosterVersion: 1,
+      rosterVersion: 2,
       teams: [
         {
           id: 'T1', name: 'KTS Mettingen',
           gymnasts: {
-            1: 'Baar, Matz', 2: 'Brickwedde, Henning', 3: 'Stork, Elias', 4: 'Köhne, Tobias', 5: 'Meck, Bodo',
+            1: 'Baar, Mats', 2: 'Brickwedde, Henning', 3: 'Stork, Elias', 4: 'Köhne, Tobias', 5: 'Meck, Bodo',
             6: 'Muck, Thure', 7: 'Weddehoff, Johann', 8: 'Dirkmann, Marlin', 9: 'von Wulfen, Philipp',
             10: 'von Wulfen, Stephan', 11: 'von Wulfen, Theo', 12: 'Langemeyer, Daniel', 13: 'Meck, Anton',
             15: 'Luck, Joshua', 16: 'Luck, Jonah', 17: 'Rohlmann, Marten', 18: 'Wagner, Jonas', 20: 'Reissfelder, Robert'
@@ -61,14 +66,6 @@ window.TEAM_CONFIG = {
           }
         },
         {
-          id: 'T5', name: 'SG Langenei-Kickenbach/Gleidorf',
-          gymnasts: {
-            1: 'Krämer, Bastian', 2: 'Kaiser, Daniel', 4: 'Wüllner, Jannik', 5: 'Rosenkranz, Ricardo', 6: 'Eckstein, Mattis',
-            7: 'Gertner, Jan', 8: 'Daudrich, Michael', 10: 'Wolf, Moritz', 11: 'Wilmes, Jakob', 12: 'Krämer, Mats',
-            13: 'Gehle, Anton', 14: 'Wilmes, Jonathan', 15: 'Boike, Eric'
-          }
-        },
-        {
           id: 'T6', name: 'TG Geisweid/Eichen',
           gymnasts: {
             1: 'Daudrich, Michael', 2: 'Krämer, Mats', 3: 'Krämer, Fiete', 4: 'Daudrich, Leonard', 5: 'Kupferoth, Pontus',
@@ -81,10 +78,14 @@ window.TEAM_CONFIG = {
           gymnasts: {
             1: 'Hellmich, Thomas', 2: 'Gangnus, Caspar', 3: 'Lell, Matthias', 4: 'König, Stefan', 5: 'Blaurock, Nick',
             6: 'Luig, Simon', 7: 'Schmitz, Robin', 8: 'Mönnig, Jan', 9: 'Schall, Alexander', 10: 'Schwab, Pan',
-            11: 'Olenberg, Daniel', 12: 'Olenberg, Marcel', 14: 'Brand, Cedrik', 15: 'Byrski, David',
+            11: 'Olenberg, Daniel', 12: 'Olenberg, Marcel', 13: 'Ledesma, Erick', 14: 'Brand, Cedrik', 15: 'Byrski, David',
             16: 'Gronbach, Lucas', 17: 'Hülsmann, Peer', 18: 'König, Koray'
           }
         }
+        // 7. Platz frei (Saison 2026: sechs Mannschaften). Eine neue Mannschaft hier mit neuer id eintragen (z. B. 'T8').
+      ],
+      formerTeams: [
+        { id: 'T5', name: 'SG Langenei-Kickenbach/Gleidorf' } // bis 2025 in der Oberliga
       ]
     },
     {

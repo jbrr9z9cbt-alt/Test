@@ -61,5 +61,32 @@ module.exports = {
     await wait(p, 200);
     assert.ok(await p.$eval('#score-dlg input[data-dlg=zero]', (c) => c.checked), 'Wertung 0,00 gesetzt');
     assert.match(await text(p, '#score-dlg [data-dlg-out=final]'), /0,00/);
+  },
+
+  async 'Mannschaftslisten Saison 2026: sechs Mannschaften, neue Turnerliste ersetzt alten Stand, alte Wettkämpfe behalten den Namen'({ base, context }) {
+    const ctx = await context();
+    const p = await ctx.newPage();
+    await newMatch(p, base, OL);
+    const tpl = (await dbMatches(p))[0];
+    // Gerät mit altem Stand: selbst geänderte Namen (Turnerliste Version 1) und ein älterer Wettkampf mit Langenei-Kickenbach/Gleidorf
+    await p.evaluate((m) => new Promise((res) => {
+      const q = indexedDB.open('turnwettkampf');
+      q.onsuccess = () => {
+        const tx = q.result.transaction(['teams', 'matches'], 'readwrite');
+        tx.objectStore('teams').put({ id: 'T1', name: 'KTS Mettingen', league: 'oberliga', rosterVersion: 1, gymnasts: [{ id: 'T1-1', number: 1, name: 'Baar, Matz' }] });
+        tx.objectStore('matches').put(Object.assign({}, m, { id: 'alt-t5', homeTeamId: 'T5', guestTeamId: 'T4', date: '2025-10-11' }));
+        tx.oncomplete = () => res();
+      };
+    }), tpl);
+    await p.goto(base + '#/oberliga/new'); await p.reload(); await p.waitForSelector('select[name=home]');
+    const opts = await p.$$eval('select[name=home] option', (os) => os.filter((o) => o.value).map((o) => o.textContent));
+    assert.equal(opts.length, 6, 'sechs Mannschaften zur Auswahl: ' + opts.join(', '));
+    assert.ok(!opts.some((t) => /Langenei/.test(t)), 'Langenei-Kickenbach/Gleidorf nicht mehr auswählbar');
+    await p.goto(base + '#/oberliga/teams'); await p.waitForSelector('.team-card');
+    assert.equal(await p.$$eval('.team-card', (c) => c.length), 6, 'sechs Mannschaften unter „Mannschaften“');
+    assert.equal(await p.$eval('input[data-team=T1][data-gym="1"]', (i) => i.value), 'Baar, Mats', 'neue Liste ersetzt den alten Stand');
+    assert.equal(await p.$eval('input[data-team=T7][data-gym="13"]', (i) => i.value), 'Ledesma, Erick');
+    await p.goto(base + '#/oberliga'); await p.waitForSelector('.match-link');
+    assert.match(await p.$eval('main', (e) => e.innerText), /SG Langenei-Kickenbach\/\s*Gleidorf/, 'älterer Wettkampf zeigt den Vereinsnamen');
   }
 };

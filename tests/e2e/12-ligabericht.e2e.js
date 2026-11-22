@@ -26,7 +26,7 @@ module.exports = {
       fileOf(tpl, 'a', '2026-09-19', 'T1', 'T2', 300, 'final', t1),
       fileOf(tpl, 'b', '2026-09-26', 'T2', 'T3', 300, 'final', t1),
       fileOf(tpl, 'c', '2026-10-10', 'T3', 'T1', 300, 'final', t1),
-      fileOf(tpl, 'd', '2026-10-24', 'T4', 'T5', 300, 'open', t1)
+      fileOf(tpl, 'd', '2026-10-24', 'T4', 'T7', 300, 'open', t1)
     ]); await wait(r, 800);
     assert.match(await r.textContent('#rp-msg'), /4 neu/);
     // älterer Stand desselben Wettkampfs wird nicht übernommen

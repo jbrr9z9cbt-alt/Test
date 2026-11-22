@@ -407,6 +407,8 @@
         teams.push({ id: c.id, name: c.name, league: lg.key, rosterVersion: lg.rosterVersion, gymnasts: gymnasts });
       });
     });
+    // Nicht mehr turnende Mannschaften: nur noch der Name für ältere Wettkämpfe (keine Auswahl, keine Tabelle)
+    LEAGUES.forEach(function (lg) { (lg.formerTeams || []).forEach(function (t) { if (!known[t.id]) state.legacyTeamNames[t.id] = t.name; }); });
     stored.forEach(function (t) { if (!known[t.id] && t.name) state.legacyTeamNames[t.id] = t.name; });
     return teams;
   }
